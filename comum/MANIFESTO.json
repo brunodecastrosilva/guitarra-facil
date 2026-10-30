@@ -1,0 +1,16 @@
+{
+  "kit": "2.6.0",
+  "arquivos": {
+    "kit-facil.js": "24f7da779e864bea9b31ce702a9b329ea5fef15b8025d6c58433609daf948e44",
+    "kit-facil.css": "2e98e2e11c8931a324d1608f291b9812469d0917c55efc8789829f6b6806f249",
+    "regras-firestore-feedback.txt": "ac13fef5c5d9ab9a9c0931ffc04153022eb5bc964c9c5f4cf40bd4352602b7e5",
+    "servidor.mjs": "b6cc0deb2154acb2a59d00ad2223d2a69214d40c28680bc05b29777e2b273b57",
+    "verificar.mjs": "a1764527b7fb0f0bd6f177ac156abb00c71d5ad5ee774a699378fa8151bd3d8c",
+    "testar.mjs": "53f0ed2efb8b8baaecaabe416fc373b3bc95a574025acf8dd5aec97f68a3642b",
+    "PADRAO.md": "0af064dd64f5c1b4eb7a7c5b8b0dc2df537c7716b2f313f5679a11c454dd0974",
+    "LEIAME.md": "5a0c7b3775f93498f584f147be3ea2e85338e53ebd901d00c9507891ad214868",
+    "testes/ambiente.mjs": "548b6c29bb1eb757face04d46c47135b63495f83da8db89e591f404f34ad47ee",
+    "testes/kit.test.mjs": "8f0f85c3326eb08b83cc80ddad8520ab197f94247b80a1cc636927b838857728",
+    "testes/pagina-kit.html": "b5e48ae700ad9a42f88384c29fa32c232b8ebfc42ab374fcc98dd23b6f4626a3"
+  }
+}

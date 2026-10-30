@@ -1,0 +1,22 @@
+{
+  "id": "/guitarra-facil/",
+  "name": "Guitarra Fácil",
+  "short_name": "Guitarra Fácil",
+  "description": "Aprenda guitarra elétrica do primeiro acorde aos solos: trilha de aulas, metrônomo, notas para afinar e acordes",
+  "lang": "pt-BR",
+  "start_url": "./#/hoje",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F3F3F1",
+  "theme_color": "#F3F3F1",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Trilha", "url": "./#/trilha", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Metrônomo", "url": "./#/ferramentas", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

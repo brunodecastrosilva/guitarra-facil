@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Teste do Kit Fácil</title>
+<link rel="stylesheet" href="../kit-facil.css">
+<style>
+/* página usada só pelos testes automáticos (comum/testes/kit.test.mjs): um app mínimo com a moldura do kit */
+:root{--kf-bg:#F4F4F1;--kf-surface:#fff;--kf-surface-2:#EDEDE8;--kf-line:#D8D6CE;--kf-line-2:#C9C6BC;--kf-ink:#16150F;--kf-muted:#5E5C54;--kf-accent:#1D5A3B;--kf-accent-ink:#fff;--kf-accent-soft:#DCEBE1;--kf-accent-texto:#1D5A3B;--kf-col:900px}
+:root[data-theme="dark"]{--kf-bg:#111;--kf-surface:#1B1B1B;--kf-surface-2:#232323;--kf-line:#333;--kf-ink:#EEE;--kf-muted:#AAA;--kf-accent:#46A272;--kf-accent-ink:#06120B;--kf-accent-soft:#1C3A2A;--kf-accent-texto:#6FC696}
+body{font-family:var(--kf-font);margin:0;background:var(--kf-bg);color:var(--kf-ink)}
+main{max-width:900px;margin:0 auto;padding:8px 16px calc(var(--kf-nav-h) + 40px)}
+@media (min-width:1024px){main{padding-bottom:40px}}
+.marca-ic{background:var(--kf-accent);color:#fff}
+</style>
+</head>
+<body class="kf-casca">
+<header class="kf-barra" id="barra"><div class="kf-barra-in"><div class="kf-marca"><span class="kf-marca-ic marca-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/></svg></span><span class="kf-marca-nome">Teste</span></div><div id="topo"></div></div></header>
+<aside class="kf-trilho" aria-label="Seções"><div class="kf-marca"><span class="kf-marca-ic marca-ic"></span><span class="kf-marca-nome">Teste</span></div>
+  <button class="kf-trilho-it" data-ir="inicio">Início</button><button class="kf-trilho-it" data-ir="notas">Notas</button><span id="trilho-ajustes"></span></aside>
+<main id="main"></main>
+<nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in">
+  <button class="kf-nav-it" data-ir="inicio"><span class="kf-nav-ic"></span><span class="kf-nav-l">Início</span></button>
+  <button class="kf-nav-it" data-ir="notas"><span class="kf-nav-ic"></span><span class="kf-nav-l">Notas</span></button><span id="nav-extras"></span><span id="nav-ajustes" hidden></span></div></nav>
+<script src="../kit-facil.js"></script>
+<script>
+'use strict';
+const app = new URLSearchParams(location.search).get('app') || 'conta-facil';
+const fam = KitFacil.FAMILIA.find(f => f.app === app) || KitFacil.FAMILIA[0];
+const CH = 'teste.' + fam.app + '.';
+const Q = new URLSearchParams(location.search);
+let tela = 'inicio';
+KitFacil.iniciar({ app: fam.app, nome: fam.nome, versao: '0.0.0-teste', resumo: 'Página de teste do kit.', icone: '../../icons/icon-192.png', prefixo: CH,
+  apoio: Q.get('apoio') ? { chave: '123e4567-e12b-12d1-a456-426655440000', nome: 'Criador Teste', cidade: 'Brasília' } : { chave: '' },
+  novidades: Q.get('novidades') ? [{ versao: '0.0.0-teste', itens: ['Novidade um.', 'Novidade dois.'] }] : [],
+  boasVindas: Q.get('novo') ? { novo: () => true, passos: [['Primeiro passo', 'Explicação do primeiro passo.'], ['Segundo passo', '']], exemplo: () => { window.EXEMPLO = true; } } : null,
+  tela: () => tela, privacidade: ['As notas de teste ficam guardadas neste aparelho.'], exemploDados: 'as notas de teste',
+  abrirAjustes: () => ir('ajustes'), emAjustes: () => tela === 'ajustes',
+  copia: { descricao: 'Baixe um arquivo com as notas.', baixar: () => KitFacil.copia.baixar({ notas }, 1), restaurar: async f => { const j = await KitFacil.copia.ler(f); if (j) { notas = j.dados.notas; guardar(); carimbar(); desenhar(); KitFacil.avisar('Cópia restaurada.'); } else KitFacil.avisar('Esse arquivo não é uma cópia.'); } } });
+KitFacil.tema.iniciar({ chave: CH + 'pref', cores: { claro: '#F4F4F1', escuro: '#111111' } });
+
+/* mini app: uma lista de notas sincronizada pelo motor do kit, com a mesma regra dos apps (a alteração mais recente vence) */
+let notas = JSON.parse(localStorage.getItem(CH + 'notas') || '[]');
+let SNAP = new Map(notas.map(n => [n.id, JSON.stringify(n)]));
+function guardar() { localStorage.setItem(CH + 'notas', JSON.stringify(notas)); }
+function carimbar() {
+  const st = SY.estado.st, del = SY.estado.del, agora = Date.now(), vistos = new Set();
+  for (const n of notas) { vistos.add(n.id); const j = JSON.stringify(n); if (SNAP.get(n.id) !== j) { SNAP.set(n.id, j); st['n:' + n.id] = agora; delete del['n:' + n.id]; } }
+  for (const id of [...SNAP.keys()]) if (!vistos.has(id)) { SNAP.delete(id); delete st['n:' + id]; del['n:' + id] = agora; }
+  SY.salvar();
+}
+function aplicar(R) {
+  const st = { ...SY.estado.st }, del = { ...SY.estado.del }, rs = R.st || {};
+  for (const k in (R.del || {})) del[k] = Math.max(del[k] || 0, R.del[k]);
+  const antes = KitFacil.canon(notas);
+  const rm = new Map((R.notas || []).map(x => [x.id, x])), usados = new Set(), out = [];
+  const lt = id => st['n:' + id] || 0, rt = id => rs['n:' + id] || 0, dl = id => del['n:' + id] || 0;
+  for (const x of notas) {
+    usados.add(x.id); const r = rm.get(x.id);
+    if (r) { if (dl(x.id) && dl(x.id) >= Math.max(lt(x.id), rt(x.id))) continue; if (rt(x.id) > lt(x.id)) { out.push(r); st['n:' + x.id] = rt(x.id); } else out.push(x); }
+    else if (!(dl(x.id) && dl(x.id) >= lt(x.id))) out.push(x);
+  }
+  for (const r of (R.notas || [])) if (!usados.has(r.id) && !(dl(r.id) && dl(r.id) >= rt(r.id))) { out.push(r); if (rt(r.id)) st['n:' + r.id] = rt(r.id); }
+  notas = out; SY.estado.st = st; SY.estado.del = del;
+  guardar(); SNAP = new Map(notas.map(n => [n.id, JSON.stringify(n)])); SY.salvar();
+  return antes !== KitFacil.canon(notas);
+}
+function ir(t) {
+  if (t === tela && t !== 'ajustes') return;
+  if (t === 'ajustes') history.pushState({ tela: t }, ''); else history.replaceState({ tela: t }, '');
+  tela = t; desenhar();
+}
+window.addEventListener('popstate', () => { const t = (history.state && history.state.tela) || 'inicio'; if (t !== tela) { tela = t; desenhar(); } });
+document.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b) ir(b.dataset.ir); });
+function desenhar() {
+  document.querySelectorAll('[data-ir]').forEach(b => b.setAttribute('aria-current', b.dataset.ir === tela ? 'page' : 'false'));
+  const m = document.getElementById('main');
+  if (tela === 'ajustes') {
+    m.innerHTML = KitFacil.ajustes.html({
+      extras: { conta: '<div class="kf-bloco" id="extra-conta"><h3>Perfil do teste</h3><p class="kf-ajuda">Conteúdo do app.</p></div>' },
+      produto: [{ id: 'notas', titulo: 'Notas', icone: '<path d="M6 4h12v16H6z"/>', resumo: `${notas.length} notas`, html: '<div class="kf-bloco"><h3>Preferências das notas</h3><label class="kf-check"><input type="checkbox" id="prod-opcao"><span>Opção do produto</span></label></div>' }],
+    });
+    KitFacil.ajustes.ligar(m);
+  } else if (tela === 'notas') {
+    // tela principal com os componentes comuns: cabeçalho, botão de criar e estado vazio
+    const muitas = +(Q.get('lista') || 0);
+    const itens = [...notas.map(n => n.t), ...Array.from({ length: muitas }, (_, i) => 'Item ' + (i + 1))];
+    m.innerHTML = KitFacil.ui.cabecalho({ titulo: 'Notas', sub: 'Tudo o que você anotou.', criar: { rotulo: 'Nova nota', attrs: 'data-nova-nota' } })
+      + (itens.length ? `<ul id="notas">${itens.map(t => `<li style="min-height:56px">${KitFacil.esc(t)}</li>`).join('')}</ul>`
+        : KitFacil.ui.vazio({ titulo: 'Nenhuma nota ainda', texto: 'Suas notas aparecem aqui.', acao: '<button class="kf-btn kf-sec" data-nova-nota>Criar a primeira nota</button>' }));
+  } else m.innerHTML = `<h1>${tela === 'inicio' ? 'Início' : tela}</h1><ul id="notas">${notas.map(n => `<li data-id="${KitFacil.esc(n.id)}">${KitFacil.esc(n.t)}</li>`).join('')}</ul>`;
+  KitFacil.topo.atualizar();
+}
+const SY = KitFacil.sync.criar({ app: fam.app, nome: fam.nome, chave: CH + 'sync', dados: 'as notas de teste',
+  carimbar, aplicar, pacote: () => ({ notas, st: SY.estado.st, del: SY.estado.del }),
+  mesmo: (a, r) => KitFacil.canon(a) === KitFacil.canon({ notas: r.notas, st: r.st, del: r.del }),
+  redesenhar: desenhar });
+window.T = {
+  SY, ir,
+  notas: () => notas.map(n => n.t).sort(),
+  add(t) { notas.push({ id: KitFacil.novoId(), t }); guardar(); carimbar(); SY.agendar(50); desenhar(); },
+  addLento(t) { notas.push({ id: KitFacil.novoId(), t }); guardar(); carimbar(); SY.agendar(60000); },
+  editar(t, novo) { const n = notas.find(x => x.t === t); if (n) { n.t = novo; guardar(); carimbar(); SY.agendar(50); desenhar(); } },
+  remover(t) { notas = notas.filter(x => x.t !== t); guardar(); carimbar(); SY.agendar(50); desenhar(); },
+};
+document.getElementById('topo').innerHTML = KitFacil.topo.html({ principal: true });
+// ?secoes=N cria N seções a mais na barra de baixo (testa o "Mais"); as de número par são marcadas como secundárias
+const extras = +(Q.get('secoes') || 0);
+document.getElementById('nav-extras').outerHTML = Array.from({ length: extras }, (_, i) => `<button class="kf-nav-it" data-ir="extra${i + 1}"${i % 2 ? ' data-kf-mais' : ''}><span class="kf-nav-ic"></span><span class="kf-nav-l">Seção ${i + 1}</span></button>`).join('');
+document.getElementById('nav-ajustes').outerHTML = KitFacil.nav.ajustes('nav');
+document.getElementById('trilho-ajustes').outerHTML = KitFacil.nav.ajustes('trilho');
+history.replaceState({ tela: 'inicio' }, '');
+desenhar();
+const link = SY.tokenDoLink();
+if (link) history.replaceState({ tela: 'inicio' }, '', location.pathname + location.search);
+SY.iniciar({ token: link, textoConfirmar: 'As notas deste aparelho se juntam às da nuvem.' });
+</script>
+</body>
+</html>

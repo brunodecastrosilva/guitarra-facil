@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Guitarra Fácil</title>
+<meta name="description" content="Aprenda guitarra elétrica do primeiro acorde aos solos, no seu ritmo: trilha de aulas, afinador, metrônomo e acordes">
+<meta name="theme-color" content="#F3F3F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Guitarra Fácil">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.1.0">
+<style>
+/* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
+   O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
+:root{
+  color-scheme:light;
+  --kf-bg:#F3F3F1; --kf-surface:#FFFFFF; --kf-surface-2:#EAEAE7; --kf-line:#DAD9D4; --kf-line-2:#C8C7C1;
+  --kf-ink:#18181B; --kf-muted:#5B5B60;
+  --kf-accent:#2B2B30; --kf-accent-ink:#FFFFFF; --kf-accent-soft:#E2E2E5; --kf-accent-texto:#2B2B30;
+  --kf-focus:#2B2B30; --kf-scrim:rgba(14,14,16,.5); --kf-shadow:0 10px 30px rgba(14,14,16,.16),0 2px 6px rgba(14,14,16,.08);
+  --kf-col:880px; --kf-col-nav:720px;
+}
+/* modo escuro: automático (pelo aparelho) ou escolhido em Aparência; o destaque vira cromado */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --kf-bg:#111113; --kf-surface:#1B1B1E; --kf-surface-2:#242428; --kf-line:#2F2F34; --kf-line-2:#3E3E44;
+  --kf-ink:#F1F1F3; --kf-muted:#A6A6AD;
+  --kf-accent:#D6D6DB; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E34; --kf-accent-texto:#E4E4E8;
+  --kf-focus:#E4E4E8; --kf-scrim:rgba(0,0,0,.62); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --kf-bg:#111113; --kf-surface:#1B1B1E; --kf-surface-2:#242428; --kf-line:#2F2F34; --kf-line-2:#3E3E44;
+  --kf-ink:#F1F1F3; --kf-muted:#A6A6AD;
+  --kf-accent:#D6D6DB; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E34; --kf-accent-texto:#E4E4E8;
+  --kf-focus:#E4E4E8; --kf-scrim:rgba(0,0,0,.62); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+body{margin:0;background:var(--kf-bg);color:var(--kf-ink);font-family:var(--kf-font);font-size:var(--kf-t-corpo);line-height:1.5}
+.marca-ic{background:var(--kf-accent);color:var(--kf-accent-ink)}
+.marca-ic svg{width:22px;height:22px}
+main{max-width:var(--kf-col);margin:0 auto;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(var(--kf-nav-h) + 40px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (min-width:1024px){main{padding-bottom:48px}}
+h2{font:700 var(--kf-t-secao)/1.2 var(--kf-font-display);margin:0}
+.pilha{display:flex;flex-direction:column;gap:14px}
+.cartao{background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:16px;display:flex;flex-direction:column;gap:10px}
+.cartao h3{margin:0;font:700 var(--kf-t-cartao)/1.3 var(--kf-font)}
+.cartao p{margin:0}
+.apoio{color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+/* tela Hoje */
+.ola{display:flex;flex-direction:column;gap:6px;padding:8px 0 2px}
+.ola h1{margin:0;font:800 30px/1.1 var(--kf-font-display);letter-spacing:-.025em}
+.passo{background:var(--kf-accent);color:var(--kf-accent-ink);border-radius:var(--kf-r-lg);padding:20px;display:flex;flex-direction:column;gap:10px}
+.passo .apoio{color:inherit;opacity:.85}
+.passo h2{font-size:24px}
+.passo .kf-btn{align-self:flex-start;background:var(--kf-accent-ink);color:var(--kf-accent)}
+.barra-prog{height:10px;border-radius:99px;background:var(--kf-surface-2);overflow:hidden}
+.barra-prog > span{display:block;height:100%;background:var(--kf-accent);border-radius:inherit;transition:width .56s cubic-bezier(.45,0,.2,1)}
+.passo .barra-prog{background:color-mix(in srgb,var(--kf-accent-ink) 20%,transparent)}
+.passo .barra-prog > span{background:var(--kf-accent-ink)}
+.niveis{display:grid;gap:10px}
+/* trilha */
+.licoes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.licao{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--kf-line)}
+.licao:first-child{border-top:0}
+.licao b{display:block}
+.marca-feita{width:44px;height:44px;border-radius:50%;border:2px solid var(--kf-line-2);background:none;display:grid;place-items:center;color:transparent;cursor:pointer;flex:none;transition:background-color .28s cubic-bezier(.45,0,.2,1),border-color .28s cubic-bezier(.45,0,.2,1)}
+.marca-feita svg{width:22px;height:22px}
+.marca-feita[aria-pressed="true"]{background:var(--kf-accent);border-color:var(--kf-accent);color:var(--kf-accent-ink)}
+.marca-feita:focus-visible{outline:2.5px solid var(--kf-focus);outline-offset:2px}
+details[data-kf-secao] > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
+details[data-kf-secao] > summary::-webkit-details-marker{display:none}
+.nivel-tt{display:flex;flex-direction:column;gap:2px}
+.selo{font:700 13px/1 var(--kf-font);padding:6px 10px;border-radius:99px;background:var(--kf-surface-2);color:var(--kf-muted);white-space:nowrap}
+.selo.ok{background:var(--kf-accent);color:var(--kf-accent-ink)}
+/* ferramentas */
+.metro-bpm{display:flex;align-items:center;justify-content:center;gap:16px}
+.metro-bpm output{font:800 52px/1 var(--kf-font-display);font-variant-numeric:tabular-nums;min-width:3ch;text-align:center}
+.metro-bpm .kf-btn{min-width:56px}
+.batidas{display:flex;justify-content:center;gap:10px}
+.batidas span{width:16px;height:16px;border-radius:50%;background:var(--kf-surface-2);box-shadow:inset 0 0 0 1px var(--kf-line-2);transition:background-color .1s}
+.batidas span.on{background:var(--kf-accent)}
+input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
+.cordas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.cordas .kf-btn{flex-direction:column;gap:0;min-height:64px;padding:6px 0;font-size:20px}
+.cordas small{font-size:12.5px;font-weight:400;color:var(--kf-muted)}
+.acordes{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.acorde{background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:12px 8px 8px;text-align:center}
+.acorde b{font:700 20px/1 var(--kf-font-display)}
+.acorde svg{width:100%;max-width:120px;height:auto;color:var(--kf-ink)}
+/* músicas */
+.musicas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.musica{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;border:0;cursor:pointer;background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:14px 16px;font:inherit;color:inherit;min-height:56px}
+.musica .kf-i{width:20px;height:20px;color:var(--kf-muted);flex:none}
+.campo{display:flex;flex-direction:column;gap:6px}
+.dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.dado{background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:14px}
+.dado b{display:block;font:800 28px/1.1 var(--kf-font-display)}
+@media (prefers-reduced-motion:reduce){.barra-prog > span,.marca-feita{transition:none}}
+</style>
+</head>
+<body class="kf-casca">
+<header class="kf-barra"><div class="kf-barra-in"><div class="kf-marca"><span class="kf-marca-ic marca-ic" id="marca"></span><span class="kf-marca-nome">Guitarra Fácil</span></div><div id="topo"></div></div></header>
+<aside class="kf-trilho" aria-label="Navegação"><div class="kf-marca"><span class="kf-marca-ic marca-ic" id="marca-trilho"></span><span class="kf-marca-nome">Guitarra Fácil</span></div><div id="trilho"></div><span id="trilho-ajustes"></span></aside>
+<main id="main"></main>
+<nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
+<noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
+<script src="comum/kit-facil.js?v=0.1.0"></script>
+<script src="app.js?v=0.1.0"></script>
+</body>
+</html>
