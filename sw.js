@@ -2,8 +2,8 @@
 // Arquivos do app: busca a versão nova primeiro e usa a guardada se estiver sem internet.
 // Fontes têm versão fixa: usa a guardada.
 // O cache leva a versão do app (package.json); cada app só apaga as próprias cópias antigas.
-const CACHE = 'guitarra-facil-0.1.0';
-const APP = ['./', './index.html', './comum/kit-facil.js', './comum/kit-facil.css', './app.js', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/favicon-32.png'];
+const CACHE = 'guitarra-facil-0.2.0';
+const APP = ['./', './index.html', './comum/kit-facil.js', './comum/kit-facil.css', './aulas.js', './app.js', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/favicon-32.png'];
 const LIBS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {

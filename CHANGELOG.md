@@ -2,6 +2,15 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.2.0 · 2026-10-30
+
+- Trilha nova em seis módulos (Começo, Primeiros acordes, Rock: power chords e ritmo, Teoria essencial, Pentatônica e blues, Técnica e solos), com 33 aulas escritas: objetivo, passo a passo, exercício com andamento inicial e meta, e dica.
+- Plano de hoje: a meta de prática dividida em aquecimento, aula da vez, técnica e repertório.
+- Afinador pelo microfone (o som é analisado no aparelho, sem gravar nem enviar), mapa das notas no braço (toque para ouvir) e dez acordes, inclusive o Fá com pestana.
+- Registro do andamento de cada exercício, com o melhor andamento e a meta em Progresso.
+- Ícone novo: o pedal de efeito.
+- Kit Fácil 2.7.0: campo de hora do Kit.
+
 ## 0.1.0 · 2026-10-30
 
 - Primeira versão em testes.
