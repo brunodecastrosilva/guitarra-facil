@@ -86,8 +86,9 @@ test('ferramentas: metrônomo muda o andamento, liga e desliga; notas para afina
   const p = a.page;
   await comNivel(p);
   await irPelaNav(p, 'Ferramentas');
-  assert.equal(await p.locator('details#f-metronomo').getAttribute('open'), '', 'o metrônomo já vem aberto');
-  await p.click('[data-bpm="5"]');
+  assert.equal(await p.locator('details#f-treinos').getAttribute('open'), '', 'os treinos já vêm abertos');
+  await p.evaluate(() => ir('ferramentas/metronomo'));
+  await p.click('#f-metronomo [data-bpm="5"]');
   assert.equal(await p.textContent('#bpm'), '85');
   await p.click('#metro');
   assert.match(await p.textContent('#metro'), /Parar/);
@@ -162,6 +163,89 @@ test('aula: abre com objetivo, passos e exercício; registrar andamento aparece 
   await irPelaNav(p, 'Progresso');
   assert.match(await p.textContent('.andas'), /Aquecimento 1-2-3-4[\s\S]*melhor: 70 bpm · meta 120/);
   assert.equal(await p.evaluate(() => TRILHA.flatMap(n => n.aulas).length), 33);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('teoria: escalas, acordes e campo harmônico calculados certo, com o braço desenhado', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await comNivel(p);
+  const r = await p.evaluate(() => ({
+    penta: notasEscala(9, 'penta-menor').map(n => CIFRA[n]).join(' '),
+    maiorG: notasEscala(7, 'maior').map(n => CIFRA[n]).join(' '),
+    campoG: campoHarmonico(7).map(c => c.triade).join(' '),
+    c7: notasAcorde(0, '7').map(n => CIFRA[n]).join(' '),
+    rel: CIFRA[relativaMenor(0)],
+    des: desenhosPenta(9)[0].join('-'),
+  }));
+  assert.equal(r.penta, 'A C D E G');
+  assert.equal(r.maiorG, 'G A B C D E F#');
+  assert.equal(r.campoG, 'G Am Bm C D Em F#°');
+  assert.equal(r.c7, 'C E G A#');
+  assert.equal(r.rel, 'A');
+  assert.equal(r.des, '5-8', 'primeiro desenho da pentatônica de Lá na casa 5');
+  await irPelaNav(p, 'Teoria');
+  assert.equal(await p.textContent('.kf-titulo'), 'Teoria');
+  assert.ok(await p.locator('#te-braco [data-nota]').count() > 20);
+  await p.click('#te-esc-esc');
+  await p.click('.kf-esc-op:has-text("Maior (jônio)")');
+  assert.match(await p.textContent('#t-escalas'), /Notas: A · B · C# · D · E · F# · G#/);
+  await p.evaluate(() => { document.getElementById('t-circulo').open = true; });
+  await p.click('#t-circulo [data-tom="7"]');
+  assert.match(await p.textContent('#t-circulo .campo-h'), /G[\s\S]*Am[\s\S]*Bm[\s\S]*C[\s\S]*D[\s\S]*Em[\s\S]*F#°/);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('treino com o professor: avaliação das notas, exemplo tocando e bateria sem erros', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await comNivel(p);
+  // avaliação: duas notas certas (uma levemente alta), uma errada e uma não ouvida
+  const r = await p.evaluate(() => avaliar([{ midi: 40, amostras: [40.02, 40.05, 40.1] }, { midi: 45, amostras: [45.1, 45.12] }, { midi: 50, amostras: [47, 47.1, 47] }, { midi: 55, amostras: [null, null] }]));
+  assert.equal(r.acerto, 50); assert.equal(r.ouvidas, 3); assert.deepEqual(r.notas.map(n => n.ok), [true, true, false, false]);
+  assert.ok(r.cents >= 4 && r.cents <= 12, `cents ${r.cents}`);
+  await irPelaNav(p, 'Ferramentas');
+  await p.click('[data-treino="ex-soltas"]');
+  const d = p.locator('.kf-dlg[data-kf-dialogo="treino"]');
+  await d.waitFor();
+  assert.equal(await d.locator('.tab-n').count(), 11);
+  await d.locator('[data-tr-bpm="5"]').click();
+  assert.equal(await d.locator('#tr-bpm').textContent(), '65');
+  await d.locator('#tr-r').evaluate(el => { el.value = 200; el.dispatchEvent(new Event('input', { bubbles: true })); });
+  assert.equal(await d.locator('#tr-bpm').textContent(), '140', 'o máximo é a meta + 40');
+  await d.locator('#tr-mic').uncheck();
+  await d.locator('#tr-ir').click();
+  assert.ok(await esperar(() => p.evaluate(() => treino.tocando)), 'o treino começa');
+  assert.ok(await esperar(() => p.evaluate(() => !treino.tocando), 15000), 'o treino termina');
+  assert.equal(await d.locator('#tr-ir').textContent(), 'Começar');
+  await p.keyboard.press('Escape');
+  await p.evaluate(() => { document.getElementById('f-bateria').open = true; });
+  await p.click('[data-estilo="funk"]');
+  await p.click('#bat-ligar');
+  assert.ok(await esperar(() => p.evaluate(() => bateria.ligada)));
+  await p.click('#bat-ligar');
+  assert.equal(await p.evaluate(() => bateria.ligada), false);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('professor e playlists: sugestões com ação e música adicionada à lista', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await comNivel(p);
+  assert.ok(await p.locator('.prof [data-prof]').count() >= 2, 'o professor sugere ações');
+  await p.evaluate(() => { DB.treinos.push({ id: 't1', ex: 'ex-1234', bpm: 80, acerto: 95, cents: 6, em: Date.now() }); commit(); render(); });
+  assert.match(await p.textContent('.prof'), /pronto para 85 bpm/);
+  await irPelaNav(p, 'Músicas');
+  assert.equal(await p.locator('.playlist').count(), 5);
+  assert.match(await p.getAttribute('#pl-1 a[href*="youtube"]', 'href'), /youtube\.com\/results\?search_query=/);
+  await p.click('#pl-1 [data-pl-add="pl-1|0"]');
+  assert.equal(await p.evaluate(() => DB.musicas[0].titulo), "Knockin' on Heaven's Door");
+  assert.equal(await p.locator('#pl-1 [data-pl-add="pl-1|0"]').isDisabled(), true);
+  await irPelaNav(p, 'Progresso');
+  assert.equal(await p.locator('.grafico rect').count(), 1);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });

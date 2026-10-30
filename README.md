@@ -3,7 +3,7 @@
 Aulas de guitarra elétrica no celular e no computador, para quem começa do zero e para quem já toca: um teste de nível
 escolhe onde a trilha começa, e o app acompanha a prática com metrônomo, notas para afinar e os primeiros acordes.
 
-**Fase de testes** · versão 0.2.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.3.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.
@@ -14,9 +14,16 @@ globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste ap
 - **Trilha:** seis módulos (Começo, Primeiros acordes, Rock: power chords e ritmo, Teoria essencial, Pentatônica e
   blues, Técnica e solos) com 33 aulas: objetivo, passo a passo, exercício com metrônomo e dica. O conteúdo fica em
   `aulas.js`. Toque na aula para abrir; no círculo, para marcar como feita.
-- **Plano de hoje:** a meta de prática dividida em aquecimento, aula da vez, técnica e repertório.
-- **Ferramentas:** metrônomo, afinador pelo microfone e notas de referência, mapa das notas no braço e dez acordes.
-- **Músicas:** lista de músicas por situação (Quero aprender, Aprendendo, Já toco).
+- **Plano de hoje e professor:** a meta de prática dividida em aquecimento, aula da vez, técnica e repertório, e o
+  professor do app (regras de ensino, sem IA) dizendo o que fazer a seguir com base nos seus treinos.
+- **Treinos com o professor:** o app toca o exercício, a tablatura rola no andamento escolhido e o microfone confere
+  cada nota (precisão e afinação). Velocidade ajustável e subida automática de andamento.
+- **Teoria (em Mais):** escalas no braço com os desenhos da pentatônica, construtor de acordes, círculo das quintas,
+  campo harmônico, intervalos e figuras rítmicas.
+- **Ferramentas:** treinos, metrônomo, bateria de acompanhamento, afinador pelo microfone e notas de referência, mapa
+  das notas no braço e dez acordes.
+- **Músicas:** sua lista (Quero aprender, Aprendendo, Já toco) e playlists recomendadas por nível, com links para o
+  YouTube e o Spotify (as gravações, letras e cifras ficam fora do app por direitos autorais).
 - **Progresso** (em Mais): aulas feitas, minutos praticados e músicas que você já toca.
 - **Ajustes:** as oito guias comuns da família e a guia própria **Prática** (meta diária e onde a trilha começa).
 
@@ -34,8 +41,8 @@ permissão: o som é analisado em memória, não é gravado nem enviado.
 ## Modelo de dados
 
 Um só objeto (`guitarrafacil.db`, versão 1): `cfg` (nível inicial, meta diária, andamento do metrônomo) e as listas
-`feitas` (aulas feitas), `musicas`, `praticas` (minutos de cada sessão com o metrônomo) e `andamentos` (o andamento
-registrado em cada exercício). As listas sincronizam registro
+`feitas` (aulas feitas), `musicas`, `praticas` (minutos de prática), `andamentos` (o andamento registrado em cada
+exercício) e `treinos` (exercício, andamento, % de notas certas e afinação de cada treino com o microfone). As listas sincronizam registro
 a registro; a mudança mais recente vence.
 
 ## Para desenvolver
@@ -56,7 +63,10 @@ constante `VERSAO` (`app.js`), no cache do `sw.js`, no `?v=` do `index.html`, no
 |---|---|
 | `index.html` | moldura e visual (grafite de amplificador) |
 | `aulas.js` | o conteúdo da trilha (texto próprio do app) |
-| `app.js` | dados, telas, metrônomo, afinador, mapa do braço, acordes e ligação com o Kit |
+| `teoria.js` | motor de teoria (escalas, acordes, intervalos, campo harmônico) e os desenhos do braço e do círculo |
+| `pratica.js` | treinos (som de guitarra, tablatura, conferência pelo microfone) e bateria |
+| `musicas.js` | playlists recomendadas (título, artista e motivo) |
+| `app.js` | dados, telas, professor, metrônomo, afinador e ligação com o Kit |
 | `comum/` | **Kit Fácil**: igual nos apps da família; não edite só aqui |
 | `sw.js`, `manifest.webmanifest`, `icons/` | instalação e uso sem internet |
 | `tests/` | testes do app |

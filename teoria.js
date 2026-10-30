@@ -1,0 +1,107 @@
+/* Guitarra Fácil · motor de teoria musical e os desenhos (SVG) do braço, do círculo das quintas e das figuras.
+   Tudo calculado aqui: escalas, acordes, intervalos e campo harmônico em qualquer tom. */
+'use strict';
+const NOTAS = ['Dó', 'Dó#', 'Ré', 'Ré#', 'Mi', 'Fá', 'Fá#', 'Sol', 'Sol#', 'Lá', 'Lá#', 'Si'];
+const CIFRA = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const CIFRA_B = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const SOLTAS = [4, 9, 2, 7, 11, 4]; // 6ª a 1ª corda: Mi, Lá, Ré, Sol, Si, Mi
+const MIDI_SOLTAS = [40, 45, 50, 55, 59, 64]; // Mi2, Lá2, Ré3, Sol3, Si3, Mi4
+const GRAUS = ['T', '2m', '2M', '3m', '3M', '4J', '4A', '5J', '6m', '6M', '7m', '7M'];
+const INTERVALOS = [
+  [0, 'Uníssono', 'a mesma nota'], [1, 'Segunda menor', 'meio tom: tensão, suspense'], [2, 'Segunda maior', 'um tom: o passo da escala'],
+  [3, 'Terça menor', 'a cor do acorde menor'], [4, 'Terça maior', 'a cor do acorde maior'], [5, 'Quarta justa', 'abertura, hinos'],
+  [6, 'Trítono', 'instável, pede resolução'], [7, 'Quinta justa', 'o power chord'], [8, 'Sexta menor', 'melancólica'],
+  [9, 'Sexta maior', 'doce, aberta'], [10, 'Sétima menor', 'blues e acordes com 7'], [11, 'Sétima maior', 'jazz, sofisticada'], [12, 'Oitava', 'a mesma nota mais aguda'],
+];
+const ESCALAS = [
+  ['maior', 'Maior (jônio)', [0, 2, 4, 5, 7, 9, 11], 'Alegre. A base de toda a harmonia.'],
+  ['menor', 'Menor natural (eólio)', [0, 2, 3, 5, 7, 8, 10], 'Triste. Relativa da maior, uma terça menor abaixo.'],
+  ['penta-menor', 'Pentatônica menor', [0, 3, 5, 7, 10], 'Cinco notas: rock, blues e solos.'],
+  ['penta-maior', 'Pentatônica maior', [0, 2, 4, 7, 9], 'Country, pop e solos alegres.'],
+  ['blues', 'Escala de blues', [0, 3, 5, 6, 7, 10], 'Pentatônica menor com a blue note.'],
+  ['menor-harmonica', 'Menor harmônica', [0, 2, 3, 5, 7, 8, 11], 'Som neoclássico e flamenco.'],
+  ['dorico', 'Dórico', [0, 2, 3, 5, 7, 9, 10], 'Menor com a 6ª maior: funk e jazz.'],
+  ['frigio', 'Frígio', [0, 1, 3, 5, 7, 8, 10], 'Menor com a 2ª menor: metal e flamenco.'],
+  ['lidio', 'Lídio', [0, 2, 4, 6, 7, 9, 11], 'Maior com a 4ª aumentada: trilhas de filme.'],
+  ['mixolidio', 'Mixolídio', [0, 2, 4, 5, 7, 9, 10], 'Maior com a 7ª menor: rock clássico e blues.'],
+  ['locrio', 'Lócrio', [0, 1, 3, 5, 6, 8, 10], 'O mais instável dos modos.'],
+  ['cromatica', 'Cromática', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 'As doze notas.'],
+];
+const TIPOS_ACORDE = [
+  ['', 'Maior', [0, 4, 7]], ['m', 'Menor', [0, 3, 7]], ['5', 'Power chord', [0, 7]], ['7', 'Com sétima', [0, 4, 7, 10]],
+  ['7M', 'Com sétima maior', [0, 4, 7, 11]], ['m7', 'Menor com sétima', [0, 3, 7, 10]], ['sus2', 'Suspenso com 2ª', [0, 2, 7]],
+  ['sus4', 'Suspenso com 4ª', [0, 5, 7]], ['°', 'Diminuto', [0, 3, 6]], ['m7(b5)', 'Meio diminuto', [0, 3, 6, 10]],
+  ['+', 'Aumentado', [0, 4, 8]], ['6', 'Com sexta', [0, 4, 7, 9]], ['9', 'Com nona', [0, 4, 7, 10, 14]],
+];
+const pc = n => ((n % 12) + 12) % 12;
+const notasEscala = (raiz, id) => (ESCALAS.find(e => e[0] === id) || ESCALAS[0])[2].map(i => pc(raiz + i));
+const notasAcorde = (raiz, tipo) => (TIPOS_ACORDE.find(t => t[0] === tipo) || TIPOS_ACORDE[0])[2].map(i => pc(raiz + i));
+const grauDe = (raiz, n) => GRAUS[pc(n - raiz)];
+const nomeAcorde = (raiz, tipo) => CIFRA[raiz] + tipo;
+// campo harmônico da escala maior: tríades e tétrades de cada grau
+function campoHarmonico(raiz) {
+  const esc = notasEscala(raiz, 'maior'), ROM = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+  const tri = ['', 'm', 'm', '', '', 'm', '°'], tet = ['7M', 'm7', 'm7', '7M', '7', 'm7', 'm7(b5)'];
+  const fun = ['tônica', 'subdominante', 'tônica', 'subdominante', 'dominante', 'tônica', 'dominante'];
+  return esc.map((n, i) => ({ grau: ROM[i], triade: nomeAcorde(n, tri[i]), tetrade: nomeAcorde(n, tet[i]), funcao: fun[i], raiz: n, tipo: tri[i] }));
+}
+const relativaMenor = raiz => pc(raiz + 9);
+const CIRCULO = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5]; // Dó, Sol, Ré... (cada passo uma quinta)
+const ACIDENTES = ['', '1#', '2#', '3#', '4#', '5#', '6#', '5b', '4b', '3b', '2b', '1b'];
+const midiDe = (corda, casa) => MIDI_SOLTAS[corda] + casa;
+const hzDeMidi = m => 440 * Math.pow(2, (m - 69) / 12);
+
+/* braço com notas marcadas. o = { notas: [pcs], raiz, rotulo: 'nota'|'grau', casas, ini, desenho: [c0,c1] } */
+function bracoMarcado(o) {
+  const ini = o.ini || 0, fim = o.casas || 15, C = fim - ini + 1, L = 44, A = 26;
+  const x = k => 30 + (k - ini) * L, y = c => 20 + (5 - c) * A, larg = x(fim + 1) + 6;
+  const set = new Set(o.notas), [d0, d1] = o.desenho || [-1, -1];
+  let s = `<svg class="braco" viewBox="0 0 ${larg} ${y(0) + 34}" role="group" aria-label="${esc(o.titulo || 'Notas no braço')}">`;
+  s += `<rect x="${x(ini)}" y="${y(5) - 11}" width="${x(fim + 1) - x(ini)}" height="${y(0) - y(5) + 22}" rx="4" fill="var(--kf-surface-2)"/>`;
+  if (d0 >= 0) s += `<rect x="${x(Math.max(ini, d0)) - (d0 === 0 ? 14 : 0)}" y="${y(5) - 11}" width="${x(d1 + 1) - x(Math.max(ini, d0)) + (d0 === 0 ? 14 : 0)}" height="${y(0) - y(5) + 22}" rx="6" fill="var(--kf-accent-soft)"/>`;
+  for (let k = ini; k <= fim + 1; k++) s += `<line x1="${x(k)}" y1="${y(5) - 11}" x2="${x(k)}" y2="${y(0) + 11}" stroke="var(--kf-line-2)" stroke-width="${k === 0 ? 5 : 1.5}"/>`;
+  for (let k = Math.max(1, ini); k <= fim; k++) {
+    if ([3, 5, 7, 9, 15, 17].includes(k)) s += `<circle cx="${x(k) + L / 2}" cy="${y(0) + 24}" r="3" fill="var(--kf-muted)"/>`;
+    if (k === 12) s += `<circle cx="${x(k) + L / 2 - 6}" cy="${y(0) + 24}" r="3" fill="var(--kf-muted)"/><circle cx="${x(k) + L / 2 + 6}" cy="${y(0) + 24}" r="3" fill="var(--kf-muted)"/>`;
+    s += `<text x="${x(k) + L / 2}" y="${y(5) - 15}" text-anchor="middle" class="casa-n">${k}</text>`;
+  }
+  for (let c = 0; c < 6; c++) s += `<line x1="${x(ini)}" y1="${y(c)}" x2="${x(fim + 1)}" y2="${y(c)}" stroke="var(--kf-muted)" stroke-width="${1 + (5 - c) * .25}"/>`;
+  for (let c = 0; c < 6; c++) for (let k = ini; k <= fim; k++) {
+    const n = pc(SOLTAS[c] + k); if (!set.has(n)) continue;
+    const raiz = n === o.raiz, cx = k === 0 ? x(0) - 14 : x(k) + L / 2, fora = d0 >= 0 && (k < d0 || k > d1);
+    const rot = o.rotulo === 'grau' ? grauDe(o.raiz, n) : CIFRA[n];
+    s += `<g class="nota${raiz ? ' raiz' : ''}${fora ? ' fora' : ''}" data-nota="${c},${k}" role="button" tabindex="0" aria-label="${NOTAS[n]}${raiz ? ' (tônica)' : ''}, ${6 - c}ª corda, ${k ? 'casa ' + k : 'solta'}"><circle cx="${cx}" cy="${y(c)}" r="11"/><text x="${cx}" y="${y(c) + 4}" text-anchor="middle">${rot}</text></g>`;
+  }
+  return s + '</svg>';
+}
+// os cinco desenhos (posições) da pentatônica: casas inicial e final de cada um, a partir da tônica na 6ª corda
+function desenhosPenta(raiz) {
+  const t = pc(raiz - 4); // casa da tônica na 6ª corda (0 a 11)
+  const base = [[0, 3], [2, 5], [4, 8], [7, 10], [9, 12]];
+  return base.map(([a, b]) => { let i = t + a, f = t + b; if (f > 17) { i -= 12; f -= 12; } if (i < 0) { i += 12; f += 12; } return [i, f]; });
+}
+/* círculo das quintas: maiores por fora, relativas menores por dentro */
+function circuloSVG(sel) {
+  const cx = 160, cy = 160;
+  let s = `<svg class="circulo" viewBox="0 0 320 320" role="group" aria-label="Círculo das quintas">`;
+  s += `<circle cx="${cx}" cy="${cy}" r="150" fill="var(--kf-surface-2)"/><circle cx="${cx}" cy="${cy}" r="98" fill="var(--kf-surface)"/><circle cx="${cx}" cy="${cy}" r="56" fill="var(--kf-surface-2)"/>`;
+  CIRCULO.forEach((n, i) => {
+    const a = (i * 30 - 90) * Math.PI / 180, on = n === sel;
+    const xo = cx + 124 * Math.cos(a), yo = cy + 124 * Math.sin(a), xi = cx + 77 * Math.cos(a), yi = cy + 77 * Math.sin(a);
+    s += `<g class="tom${on ? ' on' : ''}" data-tom="${n}" role="button" tabindex="0" aria-label="${NOTAS[n]} maior, relativa ${NOTAS[relativaMenor(n)]} menor, ${ACIDENTES[i] || 'sem acidentes'}" aria-pressed="${on}">`
+      + `<circle cx="${xo}" cy="${yo}" r="22"/><text x="${xo}" y="${yo + 5}" text-anchor="middle" class="tom-M">${CIFRA_B[n]}</text>`
+      + `<text x="${xi}" y="${yi + 4}" text-anchor="middle" class="tom-m">${CIFRA_B[relativaMenor(n)]}m</text></g>`;
+  });
+  const i = CIRCULO.indexOf(sel);
+  s += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="tom-c">${CIFRA_B[sel]}</text><text x="${cx}" y="${cy + 16}" text-anchor="middle" class="tom-a">${ACIDENTES[i] || 'sem acidentes'}</text>`;
+  return s + '</svg>';
+}
+/* figuras rítmicas: desenho, nome e duração */
+const FIGURAS = [['Semibreve', 4], ['Mínima', 2], ['Semínima', 1], ['Colcheia', .5], ['Semicolcheia', .25]];
+function figuraSVG(tempos) {
+  const cabeca = tempos >= 2 ? '<ellipse cx="18" cy="40" rx="9" ry="6.5" transform="rotate(-20 18 40)" fill="none" stroke="currentColor" stroke-width="2.5"/>' : '<ellipse cx="18" cy="40" rx="9" ry="6.5" transform="rotate(-20 18 40)" fill="currentColor"/>';
+  const haste = tempos < 4 ? '<line x1="26" y1="38" x2="26" y2="6" stroke="currentColor" stroke-width="2.4"/>' : '';
+  const band = tempos <= .5 ? '<path d="M26 6c2 8 12 10 10 22" fill="none" stroke="currentColor" stroke-width="2.4"/>' : '';
+  const band2 = tempos <= .25 ? '<path d="M26 15c2 8 12 10 10 22" fill="none" stroke="currentColor" stroke-width="2.4"/>' : '';
+  return `<svg viewBox="0 0 44 52" aria-hidden="true" class="figura">${cabeca}${haste}${band}${band2}</svg>`;
+}
