@@ -1,7 +1,7 @@
 {
   "name": "guitarra-facil",
-  "version": "0.3.0",
-  "description": "Guitarra Fácil: aulas de guitarra elétrica do zero aos solos. App web instalável (PWA) do Projeto Integrador.",
+  "version": "0.4.0",
+  "description": "Guitarra Fácil: treinos de guitarra elétrica com o braço desenhado. App web instalável (PWA) do Projeto Integrador.",
   "private": true,
   "type": "module",
   "scripts": {

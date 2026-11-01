@@ -1,49 +1,58 @@
 # Guitarra Fácil
 
-Aulas de guitarra elétrica no celular e no computador, para quem começa do zero e para quem já toca: um teste de nível
-escolhe onde a trilha começa, e o app acompanha a prática com metrônomo, notas para afinar e os primeiros acordes.
+Treinos de guitarra elétrica no celular e no computador, no andamento que você escolher: o app conta, toca junto,
+acende a nota da vez no braço desenhado e rola a tablatura. Para quem começa e para quem já toca: não há trilha nem
+nível, cada um escolhe o treino.
 
-**Fase de testes** · versão 0.3.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.4.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.
 
 ## O que o app faz
 
-- **Hoje:** a próxima aula da trilha e a prática do dia (meta em minutos).
-- **Trilha:** seis módulos (Começo, Primeiros acordes, Rock: power chords e ritmo, Teoria essencial, Pentatônica e
-  blues, Técnica e solos) com 33 aulas: objetivo, passo a passo, exercício com metrônomo e dica. O conteúdo fica em
-  `aulas.js`. Toque na aula para abrir; no círculo, para marcar como feita.
-- **Plano de hoje e professor:** a meta de prática dividida em aquecimento, aula da vez, técnica e repertório, e o
-  professor do app (regras de ensino, sem IA) dizendo o que fazer a seguir com base nos seus treinos.
-- **Treinos com o professor:** o app toca o exercício, a tablatura rola no andamento escolhido e o microfone confere
-  cada nota (precisão e afinação). Velocidade ajustável e subida automática de andamento.
-- **Teoria (em Mais):** escalas no braço com os desenhos da pentatônica, construtor de acordes, círculo das quintas,
-  campo harmônico, intervalos e figuras rítmicas.
-- **Ferramentas:** treinos, metrônomo, bateria de acompanhamento, afinador pelo microfone e notas de referência, mapa
-  das notas no braço e dez acordes.
-- **Músicas:** sua lista (Quero aprender, Aprendendo, Já toco) e playlists recomendadas por nível, com links para o
-  YouTube e o Spotify (as gravações, letras e cifras ficam fora do app por direitos autorais).
-- **Progresso** (em Mais): aulas feitas, minutos praticados e músicas que você já toca.
-- **Ajustes:** as oito guias comuns da família e a guia própria **Prática** (meta diária e onde a trilha começa).
+Barra de baixo: **Hoje, Treinos, Teoria, Ferramentas e Mais** (Músicas, Progresso e Ajustes).
+
+- **Hoje:** sequência de dias seguidos, a semana com os dias praticados, a meta de minutos do dia, o último treino
+  para continuar, o plano do dia (aquecimento com a combinação do cromático de hoje, técnica com o desenho da
+  pentatônica de hoje, teoria e repertório, cada um com o seu botão) e o resumo da semana.
+- **Treinos:** o cromático 1-2-3-4 com as 24 combinações dos dedos, as escalas (pentatônica menor, maior e blues)
+  nos cinco desenhos em qualquer tom, palhetada e arpejos, riffs e frases originais.
+- **Janela do treino:** o braço (dedo em cada nota, a da vez acesa, a próxima tracejada, a tônica marcada) e a
+  tablatura rolando; andamento de 30 a 240 bpm, de 1 em 1 ou de 5 em 5; subida automática a cada volta; ao fim de
+  cada volta, repetir, seguir para a próxima combinação ou desenho, sortear ou subir uma casa. Ajustes do cromático:
+  combinação, casa inicial, cordas e figura. Ao parar, "Saiu limpo" registra o melhor andamento.
+- **Teoria:** escalas no braço com os desenhos da pentatônica (e o botão "Treinar este desenho"), construtor de
+  acordes, círculo das quintas, campo harmônico, intervalos e figuras rítmicas. O braço desenhado é o padrão visual
+  do app.
+- **Ferramentas:** metrônomo, bateria de acompanhamento, afinador pelo microfone e notas de referência, mapa das notas
+  no braço e dez acordes.
+- **Músicas (em Mais):** sua lista (Quero aprender, Aprendendo, Já toco) e playlists recomendadas da mais fácil à
+  mais difícil, com links para o YouTube e o Spotify (gravações, letras e cifras ficam fora do app por direitos
+  autorais).
+- **Progresso (em Mais):** dias seguidos, maior sequência, minutos dos últimos 7 dias em gráfico, as 24 combinações
+  com o melhor andamento de cada uma, os andamentos dos outros treinos e 13 conquistas.
+- **Ajustes:** as oito guias comuns da família e a guia própria **Prática** (meta de minutos por dia).
 
 ## Onde ficam os dados
 
 | O quê | Onde |
 |---|---|
-| Aulas feitas, músicas, tempo de prática e preferências | neste aparelho (`guitarrafacil.db`) |
+| Treinos, conquistas, músicas, tempo de prática e preferências | neste aparelho (`guitarrafacil.db`) |
 | Os mesmos dados, com a sincronização ligada | gist secreto na conta GitHub do usuário, criptografado no aparelho |
 | Avaliações e relatos de problema | Firestore do Projeto Integrador (coleção `feedback`), guardados por 2 anos |
 
-O som do metrônomo e das notas é gerado no aparelho. O afinador usa o microfone só enquanto está ligado, com
-permissão: o som é analisado em memória, não é gravado nem enviado.
+Todo o som (treinos, metrônomo, bateria, notas) é gerado no aparelho. Só o afinador usa o microfone, enquanto está
+ligado e com permissão: o som é analisado em memória, não é gravado nem enviado.
 
 ## Modelo de dados
 
-Um só objeto (`guitarrafacil.db`, versão 1): `cfg` (nível inicial, meta diária, andamento do metrônomo) e as listas
-`feitas` (aulas feitas), `musicas`, `praticas` (minutos de prática), `andamentos` (o andamento registrado em cada
-exercício) e `treinos` (exercício, andamento, % de notas certas e afinação de cada treino com o microfone). As listas sincronizam registro
-a registro; a mudança mais recente vence.
+Um só objeto (`guitarrafacil.db`, versão 1): `cfg` (meta diária, andamento do metrônomo, os últimos ajustes do
+cromático e das escalas) e as listas `musicas`, `praticas` (minutos de prática), `treinos` (exercício, ajustes,
+andamento, voltas, minutos e se saiu limpo) e `conquistas` (id e data). As listas `feitas` e `andamentos` são da
+versão com aulas (até a 0.3.0): continuam guardadas e sincronizadas, mas não aparecem. Ids de treino: `crom:1324`,
+`esc:penta-menor:9:0` (escala, tônica, desenho) ou o id de um exercício pronto. As listas sincronizam registro a
+registro; a mudança mais recente vence.
 
 ## Para desenvolver
 
@@ -62,11 +71,10 @@ constante `VERSAO` (`app.js`), no cache do `sw.js`, no `?v=` do `index.html`, no
 | Arquivo | Conteúdo |
 |---|---|
 | `index.html` | moldura e visual (grafite de amplificador) |
-| `aulas.js` | o conteúdo da trilha (texto próprio do app) |
 | `teoria.js` | motor de teoria (escalas, acordes, intervalos, campo harmônico) e os desenhos do braço e do círculo |
-| `pratica.js` | treinos (som de guitarra, tablatura, conferência pelo microfone) e bateria |
+| `pratica.js` | catálogo de treinos, cromático (24 combinações), escalas por desenho, braço e tablatura do treino, tocador em voltas e bateria |
 | `musicas.js` | playlists recomendadas (título, artista e motivo) |
-| `app.js` | dados, telas, professor, metrônomo, afinador e ligação com o Kit |
+| `app.js` | dados, telas, janela do treino, sequência e conquistas, metrônomo, afinador e ligação com o Kit |
 | `comum/` | **Kit Fácil**: igual nos apps da família; não edite só aqui |
 | `sw.js`, `manifest.webmanifest`, `icons/` | instalação e uso sem internet |
 | `tests/` | testes do app |

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Guitarra Fácil</title>
-<meta name="description" content="Aprenda guitarra elétrica do primeiro acorde aos solos, no seu ritmo: trilha de aulas, afinador, metrônomo e acordes">
+<meta name="description" content="Treinos de guitarra elétrica no seu andamento, com o braço desenhado: cromático 1-2-3-4 nas 24 combinações, escalas nos cinco desenhos, teoria, metrônomo e afinador">
 <meta name="theme-color" content="#F3F3F1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.3.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.4.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -66,16 +66,6 @@ h2{font:700 var(--kf-t-secao)/1.2 var(--kf-font-display);margin:0}
 .barra-prog > span{display:block;height:100%;background:var(--kf-accent);border-radius:inherit;transition:width .56s cubic-bezier(.45,0,.2,1)}
 .passo .barra-prog{background:color-mix(in srgb,var(--kf-accent-ink) 20%,transparent)}
 .passo .barra-prog > span{background:var(--kf-accent-ink)}
-.niveis{display:grid;gap:10px}
-/* trilha */
-.licoes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.licao{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--kf-line)}
-.licao:first-child{border-top:0}
-.licao b{display:block}
-.marca-feita{width:44px;height:44px;border-radius:50%;border:2px solid var(--kf-line-2);background:none;display:grid;place-items:center;color:transparent;cursor:pointer;flex:none;transition:background-color .28s cubic-bezier(.45,0,.2,1),border-color .28s cubic-bezier(.45,0,.2,1)}
-.marca-feita svg{width:22px;height:22px}
-.marca-feita[aria-pressed="true"]{background:var(--kf-accent);border-color:var(--kf-accent);color:var(--kf-accent-ink)}
-.marca-feita:focus-visible{outline:2.5px solid var(--kf-focus);outline-offset:2px}
 details[data-kf-secao] > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
 details[data-kf-secao] > summary::-webkit-details-marker{display:none}
 details[data-kf-secao] > summary::after{content:'';flex:none;width:9px;height:9px;margin:0 6px 4px 0;border-right:2.5px solid var(--kf-muted);border-bottom:2.5px solid var(--kf-muted);transform:rotate(45deg);transition:transform .56s cubic-bezier(.45,0,.2,1)}
@@ -84,8 +74,6 @@ details.cartao[open] > :not(summary){margin-top:2px}
 #f-afinador h3{margin-top:10px}
 #af-ligar{margin-top:4px}
 .nivel-tt{display:flex;flex-direction:column;gap:2px}
-.selo{font:700 13px/1 var(--kf-font);padding:6px 10px;border-radius:99px;background:var(--kf-surface-2);color:var(--kf-muted);white-space:nowrap}
-.selo.ok{background:var(--kf-accent);color:var(--kf-accent-ink)}
 /* ferramentas */
 .metro-bpm{display:flex;align-items:center;justify-content:center;gap:16px}
 .metro-bpm output{font:800 52px/1 var(--kf-font-display);font-variant-numeric:tabular-nums;min-width:3ch;text-align:center}
@@ -105,27 +93,17 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .musicas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .musica{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;border:0;cursor:pointer;background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:14px 16px;font:inherit;color:inherit;min-height:56px}
 .musica .kf-i{width:20px;height:20px;color:var(--kf-muted);flex:none}
+.treinos .musica > span{display:flex;flex-direction:column;gap:2px}
 .campo{display:flex;flex-direction:column;gap:6px}
 .dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .dado{background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:14px}
 .dado b{display:block;font:800 28px/1.1 var(--kf-font-display)}
 /* plano do dia */
 .blocos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.blocos li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:start}
+.blocos li{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:10px;align-items:center}
+.bl-acao{min-height:44px;padding:0 14px}
 .blocos li > b{font:800 15px/1.4 var(--kf-font);font-variant-numeric:tabular-nums;background:var(--kf-surface-2);border-radius:8px;text-align:center;padding:2px 0}
 .blocos li span{display:flex;flex-direction:column}
-/* aulas */
-.licao-abre{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:44px;border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
-.licao-abre span{display:flex;flex-direction:column}
-.licao-abre .kf-i{width:20px;height:20px;color:var(--kf-muted);flex:none}
-.aula-passos{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
-.exercicio{background:var(--kf-surface);border-radius:var(--kf-r-md);box-shadow:inset 0 0 0 1px var(--kf-line);padding:14px;display:flex;flex-direction:column;gap:10px}
-.exercicio h3{margin:0;font:700 var(--kf-t-cartao)/1.3 var(--kf-font)}
-.exercicio p{margin:0}
-.ex-registro{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--kf-line);padding-top:10px}
-.ex-registro .metro-bpm output{font-size:32px}
-.aula-dica{margin:0;padding:12px 14px;border-radius:var(--kf-r-md);background:var(--kf-surface-2)}
-.aula-obj{margin:0}
 /* afinador */
 .afinador{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0}
 .af-nota{font:800 56px/1 var(--kf-font-display);min-height:56px;transition:color .28s cubic-bezier(.45,0,.2,1)}
@@ -147,17 +125,75 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .andas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .andas li{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .andas li > span{display:flex;flex-direction:column}
-/* professor */
-.prof{background:var(--kf-surface);border-radius:var(--kf-r-lg);box-shadow:inset 0 0 0 1px var(--kf-line);padding:16px;display:flex;flex-direction:column;gap:10px}
-.prof-cab{display:flex;align-items:center;gap:10px}
-.prof-cab .apoio{margin-left:auto}
-.prof-av{width:40px;height:40px;border-radius:12px;background:#2B2B30;display:grid;place-items:center;flex:none}
-.prof-av svg{width:28px;height:28px}
-.prof-fala{background:var(--kf-surface-2);border-radius:4px 16px 16px 16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;animation:prof-entra .42s cubic-bezier(.45,0,.2,1) both}
-.prof-fala:nth-child(3){animation-delay:.12s}.prof-fala:nth-child(4){animation-delay:.24s}
-.prof-fala p{margin:0}
-.prof-fala .kf-btn{align-self:flex-start}
-@keyframes prof-entra{from{opacity:0;transform:translateY(8px)}}
+/* sequência (Hoje) */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.seq-cab{display:flex;align-items:center;gap:12px}
+.seq-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--kf-accent-ink) 14%,transparent);flex:none}
+.seq-ic .kf-i{width:26px;height:26px;color:#FF8A73}
+.semana{list-style:none;margin:4px 0 0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.semana li{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;font-weight:600}
+.sem-c{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--kf-accent-ink) 40%,transparent)}
+.sem-c .kf-i{width:18px;height:18px}
+.semana li.feito .sem-c{background:var(--kf-accent-ink);color:var(--kf-accent);box-shadow:none}
+.semana li.hoje .sem-d{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.semana li.hoje .sem-c{box-shadow:inset 0 0 0 2.5px #FF8A73}
+.semana li.hoje.feito .sem-c{box-shadow:none}
+.continuar .kf-btn,.cartao > .kf-btn{align-self:flex-start}
+.dados.mini{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.dados.mini .dado{background:var(--kf-surface-2);box-shadow:none}
+.cq-nova{display:flex;gap:10px;align-items:center;margin:0;padding:10px 12px;border-radius:var(--kf-r-md);background:var(--kf-surface-2)}
+.cq-nova > .kf-i{width:28px;height:28px;color:#C7432F;flex:none}
+.cq-nova > span{display:flex;flex-direction:column}
+/* treinos */
+.tr-cat-cab{display:flex;gap:14px;align-items:center}
+.mini-braco{width:92px;height:64px;flex:none;background:var(--kf-surface-2);border-radius:10px}
+.mini-braco .mi-l{stroke:var(--kf-muted);stroke-width:1}.mini-braco .mi-t{stroke:var(--kf-line-2);stroke-width:1}
+.mini-braco .mi-n{fill:var(--kf-accent)}.mini-braco .mi-n.raiz{fill:#C7432F}
+.perms{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.perm{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:52px;padding:4px 2px;border-radius:12px;border:1.5px solid var(--kf-line-2);background:var(--kf-surface);color:var(--kf-ink);font:inherit;cursor:pointer;transition:background-color .28s cubic-bezier(.45,0,.2,1),border-color .28s cubic-bezier(.45,0,.2,1)}
+.perm b{font:800 14.5px/1.2 var(--kf-font);font-variant-numeric:tabular-nums;white-space:nowrap}
+.perm small{font-size:12px;color:var(--kf-muted)}
+.perm.feita{background:var(--kf-accent-soft);border-color:var(--kf-accent-soft)}
+.perm.dia{border-color:#C7432F;border-width:2px}
+.perm[aria-pressed="true"]{background:var(--kf-accent);border-color:var(--kf-accent);color:var(--kf-accent-ink)}
+.perms-dlg{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+.perms-dlg .perm{min-height:44px}
+.perms-prog .perm{cursor:default;min-height:48px}
+.tr-sortear{align-self:flex-start;margin-top:4px}
+.desenhos-tr{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.des-it{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:12px;border:1.5px solid var(--kf-line-2);background:var(--kf-surface);color:var(--kf-ink);font:inherit;cursor:pointer}
+.des-it small{font-size:12.5px;color:var(--kf-muted)}
+.te-acoes{display:flex;flex-wrap:wrap;gap:8px}
+/* braço do treino */
+.tr-braco{padding:6px 6px 0}
+.braco-tr{width:100%;height:auto;display:block;max-height:230px}
+.braco-tr .bt-madeira{fill:var(--kf-surface-2)}
+.braco-tr .bt-traste{stroke:var(--kf-line-2);stroke-width:2}
+.braco-tr .bt-pestana{stroke:var(--kf-muted);stroke-width:6}
+.braco-tr .bt-corda{stroke:var(--kf-muted)}
+.braco-tr .bt-ponto{fill:var(--kf-muted)}
+.braco-tr .casa-n{font:600 11px var(--kf-font);fill:var(--kf-muted)}
+.braco-tr .tab-r{font:700 11px var(--kf-font-mono);fill:var(--kf-muted)}
+.braco-tr .nt circle{fill:var(--kf-surface);stroke:var(--kf-accent);stroke-width:2;transition:fill .08s linear}
+.braco-tr .nt text{font:800 12.5px var(--kf-font);fill:var(--kf-ink)}
+.braco-tr .nt.raiz circle{stroke:#C7432F;stroke-width:3}
+.braco-tr .nt.prox circle{stroke-width:4;stroke-dasharray:4 3}
+.braco-tr .nt.agora circle{fill:#C7432F;stroke:#C7432F}
+.braco-tr .nt.agora text{fill:#fff}
+.tr-status{margin:0;font-size:var(--kf-t-apoio);color:var(--kf-muted)}
+.tr-vel .metro-bpm{gap:8px;flex-wrap:wrap}
+.tr-vel .metro-bpm .kf-btn{min-width:48px;padding:0 8px;font-weight:700}
+.tr-limpo{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+/* conquistas */
+.conquistas{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.conquistas li{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:var(--kf-r-md);background:var(--kf-surface-2)}
+.conquistas li > span:last-child{display:flex;flex-direction:column}
+.cq-ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1.5px var(--kf-line-2);color:var(--kf-muted)}
+.cq-ic .kf-i{width:22px;height:22px}
+.conquistas li.ganha .cq-ic{background:#C7432F;color:#fff;box-shadow:none}
+.conquistas li:not(.ganha) b{color:var(--kf-muted)}
+.g-hoje{font-weight:800;fill:var(--kf-ink)}
+.g-med{fill:var(--kf-line-2)}.g-ok{fill:var(--kf-accent)}
 /* listas */
 .treinos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .sec-h{font:800 22px/1.2 var(--kf-font-display);margin:10px 0 0}
@@ -169,6 +205,7 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .playlist > summary{gap:12px;justify-content:flex-start}
 .playlist > summary .nivel-tt{flex:1}
 .pl-capa{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font:800 24px var(--kf-font-display);color:#fff;flex:none}
+.pl-capa .kf-i{width:26px;height:26px}
 .pl-capa.n1{background:#2F8F57}.pl-capa.n2{background:#C7432F}.pl-capa.n3{background:#2B2B30}.pl-capa.n4{background:#2742D3}.pl-capa.n5{background:#8A3FB8}
 .faixas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .faixas li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;padding:12px 0;border-top:1px solid var(--kf-line)}
@@ -243,14 +280,14 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .tr-nota.ok b{color:#2F8F57}.tr-nota.med b{color:#B07A12}.tr-nota.ruim b{color:#C7432F}
 .tr-fala{grid-column:1/-1;margin:0;padding:12px 14px;border-radius:4px 16px 16px 16px;background:var(--kf-surface-2)}
 .grafico svg{width:100%;height:auto}
-.g-ok{fill:#2F8F57}.g-med{fill:#D6A23A}.g-ruim{fill:#C7432F}
+
 .g-t{font:600 10px var(--kf-font);fill:var(--kf-muted)}
 .g-meta{stroke:var(--kf-muted);stroke-dasharray:4 4}
 :root[data-theme="dark"] .ch-it.f-tônica em,:root[data-theme="dark"] .ch-it.f-subdominante em,:root[data-theme="dark"] .ch-it.f-dominante em{background:var(--kf-surface)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ch-it em{background:var(--kf-surface)!important;color:var(--kf-ink)!important}:root:not([data-theme="light"]) .tab-n.ok rect{fill:#1F3B2A}:root:not([data-theme="light"]) .tab-n.erro rect{fill:#4A1E18}}
 :root[data-theme="dark"] .tab-n.ok rect{fill:#1F3B2A}:root[data-theme="dark"] .tab-n.erro rect{fill:#4A1E18}
-@media (prefers-reduced-motion:reduce){.prof-fala{animation:none}.chip-est,.circulo .tom circle,.tab-n rect{transition:none}}
-@media (prefers-reduced-motion:reduce){.barra-prog > span,.marca-feita,.af-nota,.af-ponteiro,details[data-kf-secao] > summary::after{transition:none}}
+@media (prefers-reduced-motion:reduce){.perm,.braco-tr .nt circle,.chip-est,.circulo .tom circle,.tab-n rect{transition:none}}
+@media (prefers-reduced-motion:reduce){.barra-prog > span,.af-nota,.af-ponteiro,details[data-kf-secao] > summary::after{transition:none}}
 </style>
 </head>
 <body class="kf-casca">
@@ -259,11 +296,10 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.3.0"></script>
-<script src="aulas.js?v=0.3.0"></script>
-<script src="teoria.js?v=0.3.0"></script>
-<script src="pratica.js?v=0.3.0"></script>
-<script src="musicas.js?v=0.3.0"></script>
-<script src="app.js?v=0.3.0"></script>
+<script src="comum/kit-facil.js?v=0.4.0"></script>
+<script src="teoria.js?v=0.4.0"></script>
+<script src="pratica.js?v=0.4.0"></script>
+<script src="musicas.js?v=0.4.0"></script>
+<script src="app.js?v=0.4.0"></script>
 </body>
 </html>
