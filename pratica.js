@@ -1,6 +1,5 @@
-/* Guitarra Fácil · o treino tocando: o braço e a tablatura do treino, o som de guitarra (limpo ou distorcido, com
-   palm mute, bend, slide, vibrato, pinch, harmônico, nota morta e alavanca) e o tocador, que repete o treino em voltas
-   sem perder o tempo. Também a bateria de acompanhamento. Todo o som é gerado no aparelho.
+/* Guitarra Fácil · o treino tocando: o braço e a tablatura do treino e o tocador, que repete o treino em voltas sem
+   perder o tempo. Também a bateria de acompanhamento. O som (guitarra limpa, bateria e metrônomo) fica em som.js.
    Um treino é uma lista de eventos { d: duração em batidas, n: [[corda, casa, dedo]], t: técnicas }: n vazio é pausa,
    várias notas são um acorde (power chord, oitava, double stop). A corda 0 é a mais grave. */
 'use strict';
@@ -12,28 +11,53 @@ const temTec = (e, k) => tecs(e).includes(k);
 // harmônico natural: a casa diz qual nota soa (12 = oitava, 7 = oitava e quinta, 5 = duas oitavas)
 const HARM = { 12: 12, 7: 19, 19: 19, 5: 24, 24: 24, 4: 28, 9: 28, 16: 28, 3: 31 };
 
-/* braço do treino: só as casas do treino; a nota (ou o acorde) da vez acesa, a próxima tracejada */
+/* braço do treino: o braço inteiro (casa 0 a 24) sempre no mesmo tamanho, como a guitarra no colo. Ele desliza para
+   os lados até as notas da vez; quem desenha a parte visível é a janela do treino (app.js). As notas de um trecho
+   (um compasso nas linhas longas) ficam num grupo à parte, trocado sem redesenhar o braço.
+   BR_L é a largura de uma casa e BR_H a distância entre as cordas, em unidades do desenho. */
+const BR_L = 50, BR_H = 25, BR_X0 = 24, BR_CASAS = 24;
+const brX = k => BR_X0 + k * BR_L;                                        // traste da casa k (k = 0 é a pestana)
+const brMeio = k => k === 0 ? BR_X0 - 13 : brX(k) - BR_L / 2;              // onde o dedo aperta a casa k
+const brY = (N, c) => 26 + (N - 1 - c) * BR_H;                            // corda 0 (a mais grave) embaixo, como na tablatura
+const bracoLargura = () => brX(BR_CASAS) + 12;
 function bracoTreino(ex, de = 0, ate = ex.evs.length) {
-  const A = ex.afin, N = A.length, parte = ex.evs.slice(de, ate), ks = parte.flatMap(e => e.n.map(n => n[1])), pres = ks.filter(k => k > 0);
-  const a = Math.max(1, (pres.length ? Math.min(...pres) : 1) - 1), b = Math.max(a + 4, Math.max(...ks, 1) + 1);
-  const L = 50, H = 25, X0 = 38, x = k => X0 + (k - a + 1) * L, y = c => 26 + (N - 1 - c) * H, fundo = y(0) + 12;
-  let s = `<svg class="braco-tr" viewBox="0 0 ${x(b) + 10} ${fundo + 26}" role="img" aria-label="Braço com as notas de ${esc(ex.nome)}">`;
-  s += `<rect x="${X0}" y="${y(N - 1) - 12}" width="${x(b) - X0}" height="${fundo - y(N - 1) + 12}" rx="4" class="bt-madeira"/>`;
-  for (let k = a - 1; k <= b; k++) s += `<line x1="${x(k)}" y1="${y(N - 1) - 12}" x2="${x(k)}" y2="${fundo}" class="${k === 0 ? 'bt-pestana' : 'bt-traste'}"/>`;
-  for (let k = a; k <= b; k++) {
-    s += `<text x="${x(k) - L / 2}" y="${y(N - 1) - 17}" text-anchor="middle" class="casa-n">${k}</text>`;
-    if ([3, 5, 7, 9, 15, 17, 19, 21].includes(k)) s += `<circle cx="${x(k) - L / 2}" cy="${fundo + 12}" r="3" class="bt-ponto"/>`;
-    if (k === 12 || k === 24) s += `<circle cx="${x(k) - L / 2 - 6}" cy="${fundo + 12}" r="3" class="bt-ponto"/><circle cx="${x(k) - L / 2 + 6}" cy="${fundo + 12}" r="3" class="bt-ponto"/>`;
+  const N = ex.afin.length, topo = brY(N, N - 1) - 12, fundo = brY(N, 0) + 12;
+  let s = `<svg class="braco-tr" viewBox="0 0 ${bracoLargura()} ${fundo + 26}" width="${bracoLargura()}" height="${fundo + 26}" role="img" aria-label="Braço com as notas de ${esc(ex.nome)}">`;
+  s += `<rect x="${BR_X0}" y="${topo}" width="${brX(BR_CASAS) - BR_X0}" height="${fundo - topo}" rx="4" class="bt-madeira"/>`;
+  for (let k = 0; k <= BR_CASAS; k++) s += `<line x1="${brX(k)}" y1="${topo}" x2="${brX(k)}" y2="${fundo}" class="${k === 0 ? 'bt-pestana' : 'bt-traste'}"/>`;
+  for (let k = 1; k <= BR_CASAS; k++) {
+    s += `<text x="${brMeio(k)}" y="${topo - 5}" text-anchor="middle" class="casa-n">${k}</text>`;
+    if ([3, 5, 7, 9, 15, 17, 19, 21].includes(k)) s += `<circle cx="${brMeio(k)}" cy="${fundo + 12}" r="3" class="bt-ponto"/>`;
+    if (k === 12 || k === 24) s += `<circle cx="${brMeio(k) - 6}" cy="${fundo + 12}" r="3" class="bt-ponto"/><circle cx="${brMeio(k) + 6}" cy="${fundo + 12}" r="3" class="bt-ponto"/>`;
   }
-  A.forEach((m, c) => { s += `<line x1="${X0}" y1="${y(c)}" x2="${x(b)}" y2="${y(c)}" class="bt-corda" stroke-width="${1 + (N - 1 - c) * .28}"/><text x="${a === 1 ? 4 : 8}" y="${y(c) + 4}" class="tab-r">${nomeCorda(m)}</text>`; });
-  const vistos = new Map();
-  parte.forEach((e, j) => e.n.forEach(([c, k, d]) => { const ch = c + ',' + k; if (!vistos.has(ch)) vistos.set(ch, { c, k, d, idx: [] }); vistos.get(ch).idx.push(j + de); }));
+  ex.afin.forEach((m, c) => { s += `<line x1="${BR_X0 - 24}" y1="${brY(N, c)}" x2="${brX(BR_CASAS)}" y2="${brY(N, c)}" class="bt-corda" stroke-width="${1 + (N - 1 - c) * .28}"/>`; });
+  return s + `<g class="bt-notas">${notasBraco(ex, de, ate)}</g></svg>`;
+}
+// as notas de um trecho, uma vez cada (data-i lista os eventos em que ela toca)
+function notasBraco(ex, de = 0, ate = ex.evs.length) {
+  const A = ex.afin, N = A.length, vistos = new Map();
+  ex.evs.slice(de, ate).forEach((e, j) => e.n.forEach(([c, k, d]) => { const ch = c + ',' + k; if (!vistos.has(ch)) vistos.set(ch, { c, k, d, idx: [] }); vistos.get(ch).idx.push(j + de); }));
+  let s = '';
   vistos.forEach(({ c, k, d, idx }) => {
-    const cx = k === 0 ? X0 - 15 : x(k) - L / 2, n = pc(A[c] + k), raiz = ex.raiz != null && n === ex.raiz;
+    const cx = brMeio(k), n = pc(A[c] + k), raiz = ex.raiz != null && n === ex.raiz;
     const rot = ex.rotulo === 'grau' && ex.raiz != null ? GRAUS[pc(n - ex.raiz)] : ex.rotulo === 'dedo' && d != null ? (k === 0 ? '0' : d) : CIFRA[n];
-    s += `<g class="nt${raiz ? ' raiz' : ''}" data-i="${[...new Set(idx)].join(' ')}" data-nota="${c},${k}"><circle cx="${cx}" cy="${y(c)}" r="11.5"/><text x="${cx}" y="${y(c) + 4.5}" text-anchor="middle">${rot}</text></g>`;
+    s += `<g class="nt${raiz ? ' raiz' : ''}" data-i="${[...new Set(idx)].join(' ')}" data-nota="${c},${k}" style="--dir:${c >= N / 2 ? 1 : -1}"><circle cx="${cx}" cy="${brY(N, c)}" r="11.5"/><text x="${cx}" y="${brY(N, c) + 4.5}" text-anchor="middle">${rot}</text></g>`;
   });
-  return s + '</svg>';
+  return s;
+}
+// os nomes das cordas, parados à esquerda enquanto o braço desliza
+function cordasBraco(ex) {
+  const N = ex.afin.length, alto = brY(N, 0) + 38;
+  return `<svg class="braco-cordas" viewBox="0 0 22 ${alto}" width="22" height="${alto}" aria-hidden="true">${ex.afin.map((m, c) => `<text x="11" y="${brY(N, c) + 4}" text-anchor="middle" class="tab-r">${nomeCorda(m)}</text>`).join('')}</svg>`;
+}
+// de que casa a que casa vão as notas destes eventos (corda solta conta como casa 0)
+function casasDe(evs) { const ks = evs.flatMap(e => e.n.map(n => n[1])); return ks.length ? [Math.min(...ks), Math.max(...ks)] : null; }
+// o deslocamento (em unidades do desenho) que mostra as casas [a, b] numa janela de largura vis
+function deslocarPara([a, b], vis, atual) {
+  const esq = brMeio(a) - BR_L * .75, dir = brMeio(b) + BR_L * .75, max = Math.max(0, bracoLargura() - vis);
+  if (atual != null && esq >= atual - 1 && dir <= atual + vis + 1) return atual;   // já está à vista: não mexe
+  const alvo = dir - esq <= vis ? (esq + dir) / 2 - vis / 2 : esq;                  // cabe: centraliza; não cabe: começa pela primeira
+  return Math.max(0, Math.min(max, alvo));
 }
 
 /* tablatura: uma coluna por batida (mais larga quando as notas são curtas); PM em cima das notas abafadas,
@@ -60,77 +84,29 @@ function tabSVG(ex) {
   return s + `<line class="tab-cursor" x1="0" y1="2" x2="0" y2="${alto - 2}"/></svg>`;
 }
 
-/* som de guitarra: Karplus-Strong (ruído curto realimentado num filtro), gerado uma vez por nota e guardado */
-const somCache = new Map();
-function somCorda(a, midi) {
-  if (somCache.has(midi)) return somCache.get(midi);
-  const taxa = a.sampleRate, dur = 2.4, n = Math.floor(taxa * dur), buf = a.createBuffer(1, n, taxa), d = buf.getChannelData(0);
-  const per = Math.max(2, Math.round(taxa / hzDeMidi(midi))), linha = new Float32Array(per);
-  for (let i = 0; i < per; i++) linha[i] = Math.random() * 2 - 1;
-  let k = 0;
-  for (let i = 0; i < n; i++) { const prox = (k + 1) % per, v = (linha[k] + linha[prox]) * .4986; d[i] = linha[k]; linha[k] = v; k = prox; }
-  somCache.set(midi, buf); return buf;
-}
-// distorção: um WaveShaper e um filtro de caixa por sessão, na frente da saída do treino
-let curvaDist = null;
-function entradaSom(a, distorcer) {
-  const saida = treino.saida || a.destination;
-  if (!distorcer) return saida;
-  if (treino.dist && treino.distSaida === saida) return treino.dist;
-  if (!curvaDist) { curvaDist = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1024 - 1; curvaDist[i] = Math.tanh(x * 9) * .8; } }
-  const pre = a.createGain(), ws = a.createWaveShaper(), cab = a.createBiquadFilter(), meio = a.createBiquadFilter(), vol = a.createGain();
-  pre.gain.value = 1.6; ws.curve = curvaDist; ws.oversample = '2x'; cab.type = 'lowpass'; cab.frequency.value = 4200; meio.type = 'peaking'; meio.frequency.value = 750; meio.gain.value = -5; meio.Q.value = 1; vol.gain.value = .38;
-  pre.connect(ws); ws.connect(meio); meio.connect(cab); cab.connect(vol); vol.connect(saida);
-  treino.dist = pre; treino.distSaida = saida; return pre;
-}
-// uma nota: técnica (lista) muda o ataque, a duração e a altura no tempo
-function tocarCorda(midi, quando, dur = 1.6, vol = .5, tec, opc = {}) {
-  const a = audio(); if (!a) return;
-  const T = Array.isArray(tec) ? tec : (tec ? [tec] : []), entra = entradaSom(a, opc.distorcer);
-  if (T.includes('x')) { // nota morta: um estalo abafado
-    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = somCorda(a, midi); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = .8;
-    g.gain.setValueAtTime(vol * .9, quando); g.gain.exponentialRampToValueAtTime(.0001, quando + .05); s.connect(f); f.connect(g); g.connect(entra); s.start(quando); s.stop(quando + .08); return;
-  }
-  const s = a.createBufferSource(), g = a.createGain(), f = a.createBiquadFilter();
-  s.buffer = somCorda(a, midi); f.type = 'lowpass';
-  const pm = T.includes('pm'); f.frequency.value = pm ? 650 : 3400;
-  const fim = pm ? Math.min(dur, .16) : dur;
-  if (T.includes('b') || T.includes('b2')) { s.playbackRate.setValueAtTime(1, quando + fim * .12); s.playbackRate.linearRampToValueAtTime(Math.pow(2, (T.includes('b') ? 2 : 1) / 12), quando + fim * .45); }
-  if (T.includes('r')) { s.playbackRate.setValueAtTime(Math.pow(2, 2 / 12), quando); s.playbackRate.linearRampToValueAtTime(1, quando + fim * .5); }
-  if (T.includes('s')) { s.playbackRate.setValueAtTime(Math.pow(2, -2 / 12), quando); s.playbackRate.linearRampToValueAtTime(1, quando + Math.min(.12, fim * .4)); }
-  if (T.includes('dive')) { s.playbackRate.setValueAtTime(1, quando + fim * .2); s.playbackRate.exponentialRampToValueAtTime(.45, quando + fim); }
-  if (T.includes('v') || T.includes('tr')) { const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = T.includes('tr') ? 9 : 5.5; lg.gain.value = T.includes('tr') ? .055 : .016; lfo.connect(lg); lg.connect(s.playbackRate); lfo.start(quando + fim * .15); lfo.stop(quando + fim + .5); }
-  if (T.includes('h') || T.includes('p') || T.includes('t')) vol *= .72;
-  g.gain.setValueAtTime(vol, quando); g.gain.setTargetAtTime(0.0001, quando + fim, pm ? .03 : .08);
-  s.connect(f); f.connect(g); g.connect(entra); s.start(quando); s.stop(quando + fim + .5);
-  if (T.includes('pinch')) { // pinch harmonic: o agudo duas oitavas e uma quinta acima, curto e forte
-    const o = a.createOscillator(), og = a.createGain(); o.type = 'sawtooth'; o.frequency.value = hzDeMidi(midi + 31);
-    og.gain.setValueAtTime(vol * .35, quando); og.gain.exponentialRampToValueAtTime(.0001, quando + Math.min(fim, .9)); o.connect(og); og.connect(entra); o.start(quando); o.stop(quando + fim + .1);
-  }
-}
 // um evento: cada nota do acorde com um pequeno atraso (a palheta descendo)
-function tocarEvento(e, A, quando, seg, vol, distorcer) {
+function tocarEvento(e, A, quando, seg, vol) {
   const T = tecs(e), dur = Math.max(.12, e.d * seg * .95);
   e.n.forEach(([c, k], j) => {
     const m = T.includes('harm') ? A[c] + (HARM[k] || 12) : A[c] + k;
-    tocarCorda(m, quando + j * .007, dur, (e.n.length > 1 ? .32 : .45) * vol, T, { distorcer: distorcer && !T.includes('harm') });
+    tocarCorda(m, quando + j * .012, dur, (e.n.length > 1 ? .32 : .45) * vol * (j ? .9 : 1), T);
   });
 }
 
 /* o tocador: contagem de um compasso e depois o treino em voltas. A próxima volta é pedida (o.proxima) um pouco antes
    do fim da atual e agendada colada nela, então o tempo não quebra. Cada volta fecha em pulsos inteiros do compasso.
    Parar = desligar a saída por onde passa tudo o que foi agendado. */
-const treino = { tocando: false, raf: 0, saida: null, dist: null };
+const treino = { tocando: false, raf: 0, saida: null };
 function treinoTocar(o) {
   const a = audio(); if (!a || treino.tocando) return false;
   const primeira = o.proxima(null); if (!primeira) return false;
-  treino.tocando = true; treino.saida = a.createGain(); treino.saida.connect(a.destination); treino.dist = null;
+  treino.tocando = true; treino.saida = a.createGain(); treino.saida.connect(somMestre(a));
   const rodadas = [];
   const agendar = (r, ini) => {
     const seg = 60 / r.bpm, [cn, cp] = r.ex.compasso || [4, 1]; let t = 0;
     r.ex.evs.forEach(e => {
-      if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1, o.distorcer);
-      if (o.harmonia && e.n.length === 1 && !tecs(e).some(x => x === 'x' || x === 'harm')) { const [c, k] = e.n[0]; tocarCorda(harmonizar(r.ex.afin[c] + k, r.ex, o.harmonia), ini + t * seg + .004, Math.max(.12, e.d * seg * .95), .3, tecs(e), { distorcer: o.distorcer }); }
+      if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1);
+      if (o.harmonia && e.n.length === 1 && !tecs(e).some(x => x === 'x' || x === 'harm')) { const [c, k] = e.n[0]; tocarCorda(harmonizar(r.ex.afin[c] + k, r.ex, o.harmonia), ini + t * seg + .004, Math.max(.12, e.d * seg * .95), .3, tecs(e)); }
       t += e.d;
     });
     const pulsos = Math.max(1, Math.ceil(t / cp - 1e-6)), batidas = pulsos * cp;
@@ -149,7 +125,7 @@ function treinoTocar(o) {
   const encerrar = parado => {
     if (!treino.tocando) return; const r = resumo(parado);
     treino.tocando = false; cancelAnimationFrame(treino.raf);
-    if (treino.saida) { try { treino.saida.disconnect(); } catch {} treino.saida = null; } treino.dist = null;
+    if (treino.saida) { try { treino.saida.disconnect(); } catch {} treino.saida = null; }
     o.aoFim && o.aoFim(r);
   };
   const passo = () => {
@@ -172,7 +148,7 @@ function treinoTocar(o) {
 
 /* bateria no treino: em 4/4, o estilo escolhido; nos outros compassos, bumbo em cada pulso, caixa no meio do compasso */
 function tocarBateriaNoTreino(a, estilo, ini, seg, batidas, [cn, cp]) {
-  const dest = treino.saida || a.destination;
+  const dest = treino.saida || somMestre(a);
   if (cn * cp === 4 && cp === 1) {
     const [, , ppb, P] = ESTILOS_BATERIA.find(e => e[0] === estilo) || ESTILOS_BATERIA[0], tot = ppb * 4;
     for (let i = 0; i < Math.round(batidas * ppb); i++) { const p = i % tot, q = ini + i * seg / ppb; if (P.b.includes(p)) peca(a, 'b', q, dest); if (P.c.includes(p)) peca(a, 'c', q, dest); if (P.h.includes(p)) peca(a, 'h', q, dest); }
@@ -268,17 +244,9 @@ const ESTILOS_BATERIA = [
 ];
 const ESTILOS_TREINO = ['metal', 'duplo', 'blast', 'dbeat', 'skank', 'galope', 'meio', 'rock', 'shuffle', 'funk']; // os que acompanham o treino
 const bateria = { ligada: false, t: null, prox: 0, passo: 0 };
-let ruidoBuf = null;
-function ruido(a) { if (ruidoBuf) return ruidoBuf; const n = a.sampleRate * .5, b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return (ruidoBuf = b); }
-function peca(a, tipo, q, dest) {
-  dest = dest || a.destination;
-  if (tipo === 'b') { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(140, q); o.frequency.exponentialRampToValueAtTime(42, q + .12); g.gain.setValueAtTime(.9, q); g.gain.exponentialRampToValueAtTime(.001, q + .3); o.connect(g); g.connect(dest); o.start(q); o.stop(q + .32); return; }
-  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = ruido(a);
-  f.type = tipo === 'c' ? 'bandpass' : 'highpass'; f.frequency.value = tipo === 'c' ? 1800 : 7000;
-  const dur = tipo === 'c' ? .18 : .05; g.gain.setValueAtTime(tipo === 'c' ? .7 : .25, q); g.gain.exponentialRampToValueAtTime(.001, q + dur);
-  s.connect(f); f.connect(g); g.connect(dest); s.start(q); s.stop(q + dur + .02);
-  if (tipo === 'c') { const o = a.createOscillator(), g2 = a.createGain(); o.frequency.value = 190; g2.gain.setValueAtTime(.35, q); g2.gain.exponentialRampToValueAtTime(.001, q + .1); o.connect(g2); g2.connect(dest); o.start(q); o.stop(q + .12); }
-}
+// as peças da bateria: bumbo, caixa e chimbal gravados (som.js)
+const PECAS_BATERIA = { b: 'bumbo', c: 'caixa', h: 'chimbal' };
+function peca(a, tipo, q, dest) { somPeca(a, PECAS_BATERIA[tipo] || tipo, q, dest); }
 function bateriaLigar(estilo, bpmFn, aoPasso) {
   const a = audio(); if (!a) return;
   const [, , ppb, P] = ESTILOS_BATERIA.find(e => e[0] === estilo) || ESTILOS_BATERIA[0];

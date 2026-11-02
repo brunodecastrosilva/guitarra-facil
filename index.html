@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.7.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.8.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -222,9 +222,37 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .tr-aviso[hidden],.tr-vista[hidden]{display:none}
 .tab .tab-pm{font:700 10px var(--kf-font-mono);fill:var(--kf-muted)}
 .tab .tab-pml{stroke:var(--kf-muted);stroke-dasharray:3 3}
-/* braço do treino */
-.tr-braco{padding:6px 6px 0}
-.braco-tr{width:100%;height:auto;display:block;max-height:230px}
+/* braço do treino: sempre no mesmo tamanho (--br-esc), deslizando até as notas da vez */
+html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça continua livre */
+.tr-braco{position:relative;padding:0;--br-esc:1.1}
+@media (min-width:820px){.tr-braco{--br-esc:1.2}}
+.tr-braco[hidden],.tab-wrap[hidden],.tr-dica[hidden]{display:none}
+.tr-braco-vis{overflow:hidden;margin-left:calc(22px * var(--br-esc))}
+.tr-braco-trilho{width:max-content;transition:transform 560ms cubic-bezier(.45,0,.2,1);will-change:transform}
+.tr-braco-cordas{position:absolute;left:0;top:0;bottom:0;background:var(--kf-surface)}
+.braco-cordas{display:block;width:calc(22px * var(--br-esc));height:auto}
+.braco-cordas .tab-r{font:700 11px var(--kf-font-mono);fill:var(--kf-muted)}
+.braco-tr{display:block;width:calc(1236px * var(--br-esc));height:auto;max-width:none}
+.braco-tr .nt{transform-box:fill-box;transform-origin:center}
+.braco-tr .nt > *{transform-box:fill-box;transform-origin:center}
+/* técnicas no braço: bend e volta (a nota sai da corda), slide (a nota corre pela corda), ligados e tapping
+   (o dedo bate ou puxa) e vibrato ou trinado (a nota balança); --d é a duração da nota e --dir o lado do bend */
+.braco-tr .nt.an-b{--dy:calc(var(--dir) * 18px);animation:gf-bend var(--d) ease-in-out both}
+.braco-tr .nt.an-b2{--dy:calc(var(--dir) * 9px);animation:gf-bend var(--d) ease-in-out both}
+.braco-tr .nt.an-r{--dy:calc(var(--dir) * 18px);animation:gf-volta var(--d) ease-in-out both}
+.braco-tr .nt.an-s{animation:gf-slide calc(var(--d) * .4 + .08s) cubic-bezier(.45,0,.2,1) both}
+.braco-tr .nt.an-h,.braco-tr .nt.an-t{animation:gf-martelo .3s ease-out both}
+.braco-tr .nt.an-p{animation:gf-puxa .3s ease-out both}
+.braco-tr .nt.an-v > *{animation:gf-vib .2s ease-in-out calc(var(--d) * .2) infinite alternate}
+.braco-tr .nt.an-tr > *{animation:gf-vib .11s ease-in-out infinite alternate}
+@keyframes gf-bend{0%,12%{transform:translateY(0)}45%,100%{transform:translateY(var(--dy))}}
+@keyframes gf-volta{0%,5%{transform:translateY(var(--dy))}50%,100%{transform:translateY(0)}}
+@keyframes gf-slide{from{transform:translateX(-100px);opacity:.55}to{transform:none;opacity:1}}
+@keyframes gf-martelo{0%{transform:scale(1.5)}40%{transform:scale(.88)}70%{transform:scale(1.06)}100%{transform:none}}
+@keyframes gf-puxa{0%{transform:translateY(calc(var(--dir) * -7px))}60%{transform:translateY(calc(var(--dir) * 2px))}100%{transform:none}}
+@keyframes gf-vib{from{transform:translateY(-2.5px)}to{transform:translateY(2.5px)}}
+@media (prefers-reduced-motion:reduce){.tr-braco-trilho{transition:none}.braco-tr .nt[class*="an-"],.braco-tr .nt[class*="an-"] > *{animation:none}}
+.tr-dica{margin:10px 0 0;text-align:center;font-size:var(--kf-t-corpo);color:var(--kf-ink)}
 .braco-tr .bt-madeira{fill:var(--kf-surface-2)}
 .braco-tr .bt-traste{stroke:var(--kf-line-2);stroke-width:2}
 .braco-tr .bt-pestana{stroke:var(--kf-muted);stroke-width:6}
@@ -315,6 +343,7 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .tr-chip{font:700 13px/1 var(--kf-font);padding:6px 10px;border-radius:99px;background:var(--kf-surface-2);color:var(--kf-ink);font-variant-numeric:tabular-nums}
 #tr-tempo{background:var(--kf-accent);color:var(--kf-accent-ink)}
 .tr-palco .tr-braco{padding-top:34px}
+.tr-palco .tr-braco-cordas{top:34px;bottom:auto}
 .tr-legenda{margin:6px 0 0;font-size:12.5px;color:var(--kf-muted);text-align:center}
 .tr-ctrl{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:14px}
 .tr-bpm{display:flex;align-items:center;justify-content:center;gap:8px}
@@ -399,12 +428,13 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.7.0"></script>
-<script src="teoria.js?v=0.7.0"></script>
-<script src="catalogo.js?v=0.7.0"></script>
-<script src="metal.js?v=0.7.0"></script>
-<script src="pratica.js?v=0.7.0"></script>
-<script src="musicas.js?v=0.7.0"></script>
-<script src="app.js?v=0.7.0"></script>
+<script src="comum/kit-facil.js?v=0.8.0"></script>
+<script src="teoria.js?v=0.8.0"></script>
+<script src="catalogo.js?v=0.8.0"></script>
+<script src="metal.js?v=0.8.0"></script>
+<script src="som.js?v=0.8.0"></script>
+<script src="pratica.js?v=0.8.0"></script>
+<script src="musicas.js?v=0.8.0"></script>
+<script src="app.js?v=0.8.0"></script>
 </body>
 </html>

@@ -138,6 +138,35 @@ test('janela do treino: afinação, rótulos, etapa por posição com aviso ante
   await a.fechar();
 });
 
+test('treino: braço sempre do mesmo tamanho, deslizando até as notas; braço e tablatura podem sair um de cada vez; som gravado e limpo', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  assert.equal(await p.evaluate(() => getComputedStyle(document.documentElement).touchAction), 'manipulation', 'toque duplo não dá zoom');
+  const largura = async id => { await p.evaluate(i => abrirTreino(i), id); await dlg(p).waitFor(); const w = await dlg(p).locator('.braco-tr').evaluate(s => s.getBoundingClientRect().width); await p.evaluate(() => KitFacil.dialogo.fechar()); await dlg(p).waitFor({ state: 'detached' }); return w; };
+  const w1 = await largura('riffs:doom:1:curto:0'), w2 = await largura('solos:shred:3:curto:1');
+  assert.ok(Math.abs(w1 - w2) < 1, 'o braço tem o mesmo tamanho em qualquer treino');
+  await p.evaluate(() => abrirTreino('solos:shred:3:curto:1'));
+  const d = dlg(p); await d.waitFor();
+  assert.match(await d.locator('#tr-trilho').evaluate(t => t.style.transform), /translateX\(-\d/, 'um solo na casa 12 faz o braço deslizar até lá');
+  assert.ok(await d.locator('#tr-tab').isVisible() && await d.locator('#tr-braco').isVisible(), 'braço e tablatura juntos');
+  assert.match(await d.locator('#tr-dica').textContent(), /nota acesa/);
+  await d.locator('#tr-aj').click();
+  assert.equal(await d.locator('[data-som]').count(), 0, 'sem a escolha de som distorcido');
+  await d.locator('#tr-verBraco').uncheck();
+  await d.locator('#tr-verTab').uncheck();
+  assert.equal(await d.locator('#tr-verBraco').isChecked(), true, 'sempre fica um dos dois');
+  await d.locator('[data-tr-pronto]').click();
+  assert.equal(await d.locator('#tr-tab').isHidden(), true);
+  assert.equal(await d.locator('#tr-braco').isVisible(), true);
+  await d.locator('#tr-ir').click();
+  assert.ok(await esperar(() => p.evaluate(() => SOM.notas.size === 64 && SOM.pecas.size === 10)), 'guitarra e bateria gravadas carregadas');
+  assert.ok(await esperar(() => p.evaluate(() => !!document.querySelector('.braco-tr .nt.agora'))), 'a nota da vez acende');
+  await d.locator('#tr-ir').click();
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
 test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, com aviso', async () => {
   const a = await aparelho(amb);
   const p = a.page;

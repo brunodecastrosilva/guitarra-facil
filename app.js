@@ -3,7 +3,7 @@
    nível, duração e lista, um toque por vez), Afinador, Teoria, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e
    Progresso. Tudo fica neste aparelho; a sincronização opcional e a moldura vêm do Kit Fácil (comum/). */
 'use strict';
-const VERSAO = '0.7.0';
+const VERSAO = '0.8.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -401,6 +401,7 @@ VIEWS.ajustes = () => KitFacil.ajustes.html({
     html: `<div class="kf-bloco"><h3>Meta diária</h3>
       <div class="campo"><label class="kf-rotulo" for="aj-meta">Minutos de prática por dia</label><select id="aj-meta">${[10, 15, 20, 30, 45, 60, 90].map(m => `<option value="${m}"${DB.cfg.meta === m ? ' selected' : ''}>${m} minutos</option>`).join('')}</select></div>
       <p class="apoio">Treinos, metrônomo e bateria contam para a meta.</p></div>` }],
+  extras: { sobre: `<div class="kf-bloco"><h3>Sons</h3><p class="apoio">Guitarra, bateria e metrônomo do banco Fluid (R3), de Frank Wen (2000–2002, 2008), com a versão mono de Michael Cowgill (2014–2016), sob a licença MIT. A licença completa acompanha o app, no arquivo <a href="sons/LICENCA-FluidR3.txt" target="_blank" rel="noopener">sons/LICENCA-FluidR3.txt</a>.</p></div>` },
 });
 // a Teoria leva aos treinos: a escala e a posição equivalentes no catálogo
 function modeloDaTeoria() {
@@ -462,22 +463,15 @@ VIEWS.teoria = () => {
 /* ================= ferramentas: som ================= */
 const CORDAS = [['E', 'Mi grave', 82.41], ['A', 'Lá', 110], ['D', 'Ré', 146.83], ['G', 'Sol', 196], ['B', 'Si', 246.94], ['E', 'Mi agudo', 329.63]];
 let ctxAudio = null;
-const audio = () => { if (!ctxAudio) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctxAudio = new C(); } if (ctxAudio.state === 'suspended') ctxAudio.resume(); return ctxAudio; };
+const audio = () => { if (!ctxAudio) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctxAudio = new C(); somPreparar(ctxAudio); } if (ctxAudio.state === 'suspended') ctxAudio.resume(); return ctxAudio; };
 function tocarNota(hz, dur = 2.2) {
   const a = audio(); if (!a) return;
-  if (typeof tocarCorda === 'function') { tocarCorda(Math.round(12 * Math.log2(hz / 440) + 69), a.currentTime + .01, Math.min(dur, 1.8)); return; }
-  const t = a.currentTime, o = a.createOscillator(), o2 = a.createOscillator(), g = a.createGain();
-  o.type = 'triangle'; o.frequency.value = hz; o2.type = 'sine'; o2.frequency.value = hz * 2;
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g); o2.connect(g); g.connect(a.destination); o.start(t); o2.start(t); o.stop(t + dur); o2.stop(t + dur);
+  tocarCorda(Math.round(12 * Math.log2(hz / 440) + 69), a.currentTime + .01, Math.min(dur, 1.8));
 }
 const metro = { ligado: false, t: null, prox: 0, batida: 0, inicio: 0 };
 function clique(acento, quando) {
   const a = audio(); if (!a) return;
-  const o = a.createOscillator(), g = a.createGain();
-  o.frequency.value = acento ? 1600 : 1000;
-  g.gain.setValueAtTime(0.0001, quando); g.gain.exponentialRampToValueAtTime(0.5, quando + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, quando + 0.06);
-  o.connect(g); g.connect((typeof treino !== 'undefined' && treino.saida) || a.destination); o.start(quando); o.stop(quando + 0.07);
+  somPeca(a, acento ? 'metronomo-forte' : 'metronomo', quando, (typeof treino !== 'undefined' && treino.saida) || somMestre(a));
 }
 function metroLigar() {
   const a = audio(); metro.ligado = true; metro.batida = 0; metro.inicio = Date.now();
@@ -650,7 +644,7 @@ const iluPlano = (a, b) => { const k = 3 + (b - a) / 80 * 5; return ilu([0, 1, 2
 const SUBIDAS = [[0, 'Manter o andamento'], [1, '+1 bpm a cada volta'], [2, '+2 bpm a cada volta'], [5, '+5 bpm a cada volta']];
 const BPM_MIN = 30, BPM_MAX = 260;
 function abrirTreino(id, op = {}) {
-  const fila = op.fila || null; let filaI = 0;
+  const fila = op.fila || null; let filaI = 0, obsBraco = null;
   let m = modelo(fila ? fila[0] : id); if (!m) return;
   const cfgDe = (mm, extra) => ({ ...cfgPadrao(mm), ...((DB.cfg.trCfg || {})[mm.id] || {}), ...(extra || {}) });
   let cfg = cfgDe(m, op.cfg), inteiro = volta(m, cfg), trecho = null, ex = inteiro;
@@ -669,13 +663,14 @@ function abrirTreino(id, op = {}) {
     ${fila ? '' : sel('tr-perc', [['repetir', 'Repetir o mesmo treino'], ...(m.usaTom ? [['tom', 'Ir para o próximo tom (ciclo das quartas)']] : []), ...(R.length > 1 ? [['posicao', 'Ir para a próxima posição']] : [])], percurso(), 'A cada etapa')}
     ${seg('voltas', [[2, '2 voltas'], [4, '4 voltas'], [8, '8 voltas']], voltasEtapa(), fila ? 'Voltas de cada treino' : 'Tamanho da etapa')}
     ${sel('tr-sobe', SUBIDAS, DB.cfg.trSobe || 0, 'Subir o andamento')}
-    ${seg('som', [['dist', 'Distorcido'], ['limpo', 'Limpo']], DB.cfg.trSom || 'dist', 'Som do exemplo')}
     ${seg('acomp', [['metronomo', 'Metrônomo'], ['bateria', 'Bateria'], ['nenhum', 'Nada']], acomp(), 'Acompanhamento')}
     <div id="tr-bat-campo"${acomp() === 'bateria' ? '' : ' hidden'}>${sel('tr-bat', ESTILOS_TREINO.map(k => [k, ESTILOS_BATERIA.find(e => e[0] === k)[1]]), DB.cfg.trBateria || 'metal', 'Estilo da bateria')}</div>
     ${ex.evs.some(e => e.n.length === 1) ? seg('harm', [['', 'Nenhuma'], ['tercas', 'Terças'], ['quintas', 'Quintas'], ['oitava', 'Oitava']], DB.cfg.trHarmonia || '', 'Segunda guitarra (harmonia)') : ''}
     ${seg('pct', [[50, '50%'], [70, '70%'], [85, '85%'], [100, '100%']], '', 'Ir para uma parte da meta de andamento')}
     ${seg('rot', [['dedo', 'Dedos'], ['nota', 'Notas'], ...(ex.raiz != null ? [['grau', 'Graus']] : [])], cfg.rotulo || m.rotulo || 'nota', 'No braço, mostrar')}
-    <div class="tr-op"><label class="kf-check"><input type="checkbox" id="tr-guia" ${DB.cfg.trGuia !== false ? 'checked' : ''}><span>Tocar o exemplo junto comigo</span></label>
+    <div class="tr-op"><label class="kf-check"><input type="checkbox" id="tr-verBraco" ${DB.cfg.trVerBraco !== false ? 'checked' : ''}><span>Mostrar o braço</span></label>
+      <label class="kf-check"><input type="checkbox" id="tr-verTab" ${DB.cfg.trVerTab !== false ? 'checked' : ''}><span>Mostrar a tablatura</span></label>
+      <label class="kf-check"><input type="checkbox" id="tr-guia" ${DB.cfg.trGuia !== false ? 'checked' : ''}><span>Tocar o exemplo junto comigo</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-ritmo" ${DB.cfg.trRitmo ? 'checked' : ''}><span>${I.mic}Conferir meu ritmo pelo microfone (só o tempo de cada palhetada; nada é gravado nem enviado)</span></label></div>
     <p class="apoio">Para conferir o ritmo, use fones de ouvido ou desligue o exemplo: assim o microfone ouve só a sua guitarra.</p>
     <button type="button" class="kf-btn kf-pri" data-tr-pronto>${I.check}Pronto</button>`; };
@@ -686,7 +681,8 @@ function abrirTreino(id, op = {}) {
     corpo: `<div class="tr-vista" id="tr-v-palco">
         <div class="tr-palco"><div class="tr-topo"><button type="button" class="tr-fav" id="tr-fav" aria-pressed="${favorito(m.id)}" aria-label="Favorito">${favorito(m.id) ? '★' : '☆'}</button><span class="tr-chip" id="tr-parte">${esc(ex.partes ? ex.partes[0].nome : m.cat === 'escalas' ? m.grupo : 'Treino')}</span><span class="tr-chip" id="tr-volta">${(ex.compasso || [4, 1])[0]}/${(ex.compasso || [4, 1])[1] === 1 ? 4 : 8}</span></div>
           <div class="tr-aviso" id="tr-aviso" hidden></div>
-          <div class="tr-braco" id="tr-braco">${bracoTreino(ex)}</div><div class="tab-wrap" id="tr-tab">${tabSVG(ex)}</div><div class="tr-conta" id="tr-conta" aria-live="assertive"></div></div>
+          <div class="tr-braco" id="tr-braco"${DB.cfg.trVerBraco === false ? ' hidden' : ''}><div class="tr-braco-vis"><div class="tr-braco-trilho" id="tr-trilho">${bracoTreino(ex)}</div></div><div class="tr-braco-cordas" id="tr-cordas">${cordasBraco(ex)}</div></div><div class="tab-wrap" id="tr-tab"${DB.cfg.trVerTab === false ? ' hidden' : ''}>${tabSVG(ex)}</div><div class="tr-conta" id="tr-conta" aria-live="assertive"></div></div>
+        <p class="tr-dica" id="tr-dica"></p>
         <p class="tr-legenda" id="tr-legenda">${legenda(ex)}</p>
         <div class="tr-ctrl"><div class="tr-bpm" role="group" aria-label="Andamento"><button type="button" class="kf-btn kf-sec" data-tr-bpm="-5" aria-label="5 batidas a menos">−5</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="-1" aria-label="1 batida a menos">−1</button><span class="tr-bpm-v"><output id="tr-bpm">${bpm}</output><small id="tr-pct">bpm · ${Math.round(bpm / m.alvo * 100)}% da meta</small></span><button type="button" class="kf-btn kf-sec" data-tr-bpm="1" aria-label="1 batida a mais">+1</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="5" aria-label="5 batidas a mais">+5</button></div>
           <div class="tr-botoes"><button type="button" class="tr-rec" id="tr-rec" aria-pressed="false" aria-label="Gravar o treino">${I.mic}<span>Gravar</span></button><button type="button" class="play-grande" id="tr-ir" aria-label="Começar">${I.play}</button><span class="tr-rec-lado" aria-hidden="true"></span></div></div>
@@ -695,24 +691,49 @@ function abrirTreino(id, op = {}) {
         <div class="tr-res" id="tr-res" hidden></div></div>
       <div class="tr-vista pilha" id="tr-v-ajustes" hidden></div>`,
     pe: `<button type="button" class="kf-btn kf-sec" id="tr-aj">${I.ajustes}Ajustes</button><button type="button" class="kf-btn kf-sec" id="tr-exemplo">${I.ouvir}Ouvir uma volta</button>`,
-    aoFechar: () => { if (treino.tocando) treino.parar(); micDesligar().then(micApagarGravacao); },
+    aoFechar: () => { if (treino.tocando) treino.parar(); micDesligar().then(micApagarGravacao); if (obsBraco) obsBraco.disconnect(); },
     aoMontar: d => {
       const vP = $('#tr-v-palco', d), vA = $('#tr-v-ajustes', d), tabW = $('#tr-tab', d), brW = $('#tr-braco', d), conta = $('#tr-conta', d), res = $('#tr-res', d), status = $('#tr-status', d), parteC = $('#tr-parte', d), voltaC = $('#tr-volta', d), aviso = $('#tr-aviso', d);
       let desenhado = null, tabN = [], brN = [], cur = null, ultI = -2, px = pxDe(ex), voltasNa = 0, feitos = [];
       const meta = () => { status.textContent = `Meta: ${m.alvo} bpm${melhorLimpo(m.id) ? ` · seu melhor limpo: ${melhorLimpo(m.id)} bpm` : ''}`; };
       const titulo = e => { const h = $('.kf-dlg-cab h2', d), s = $('.kf-dlg-sub', d); if (h) h.textContent = tituloDe(e.modelo); if (s) s.textContent = subDe(); $('#tr-legenda', d).innerHTML = legenda(e); const f = $('#tr-fav', d); f.setAttribute('aria-pressed', favorito(e.modelo.id)); f.textContent = favorito(e.modelo.id) ? '★' : '☆'; };
       // o braço mostra um compasso de cada vez nas linhas longas (senão fica pequeno demais) e troca junto com a música
-      let janelas = [[0, 0]], jan = -1, compTxt = '';
+      let janelas = [[0, 0]], jan = -1, compTxt = '', desenhado0 = false;
       const calcJanelas = e => { const [cn, cp] = e.compasso || [4, 1], bl = cn * cp, tot = e.evs.reduce((s, x) => s + x.d, 0); if (tot <= 2 * bl + 1e-6) return [[0, e.evs.length]]; const r = []; let t = 0, ini = 0, b = 1; e.evs.forEach((x, i) => { if (t >= b * bl - 1e-6) { r.push([ini, i]); ini = i; b++; } t += x.d; }); r.push([ini, e.evs.length]); return r; };
-      const desenharBraco = (e, j) => { jan = j; brW.innerHTML = bracoTreino(e, ...janelas[j]); brN = []; $$('.nt', brW).forEach(g => g.dataset.i.split(' ').forEach(i => (brN[+i] = brN[+i] || []).push(g))); voltaC.textContent = janelas.length > 1 ? `compasso ${j + 1} de ${janelas.length} · ${compTxt}` : compTxt; };
+      // o braço fica sempre no mesmo tamanho e desliza até as notas da vez; só as notas mudam de um compasso para o outro
+      const trilho = $('#tr-trilho', d), vis = $('.tr-braco-vis', d); let chaveBr = null, desloc = null, ultMira = null;
+      const escala = () => { const sv = $('.braco-tr', trilho); return sv ? sv.getBoundingClientRect().width / bracoLargura() || 1 : 1; };
+      const mirar = (evs, mover = true) => {
+        if (brW.hidden) return; const r = casasDe(evs.filter(x => x.n.length)); if (!r) return; ultMira = evs;
+        const k = escala(), novo = deslocarPara(r, vis.clientWidth / k, desloc); if (novo === desloc) return; desloc = novo;
+        if (!mover) { trilho.style.transition = 'none'; trilho.style.transform = `translateX(${-novo * k}px)`; void trilho.offsetWidth; trilho.style.transition = ''; }
+        else trilho.style.transform = `translateX(${-novo * k}px)`;
+      };
+      if (window.ResizeObserver) { obsBraco = new ResizeObserver(() => { if (ultMira) { desloc = null; mirar(ultMira, false); } }); obsBraco.observe(vis); }
+      const desenharBraco = (e, j, mover = true) => {
+        jan = j; const ch = e.afin.join(',') + '|' + e.nome;
+        if (chaveBr !== ch) { trilho.innerHTML = bracoTreino(e, ...janelas[j]); $('#tr-cordas', d).innerHTML = cordasBraco(e); chaveBr = ch; }
+        else $('.bt-notas', trilho).innerHTML = notasBraco(e, ...janelas[j]);
+        brN = []; $$('.nt', trilho).forEach(g => g.dataset.i.split(' ').forEach(i => (brN[+i] = brN[+i] || []).push(g)));
+        voltaC.textContent = janelas.length > 1 ? `compasso ${j + 1} de ${janelas.length} · ${compTxt}` : compTxt;
+        mirar(e.evs.slice(...janelas[j]), mover);
+      };
+      // bend, volta do bend, slide, ligados, tapping, vibrato e trinado se movem no braço junto com a nota
+      const ANIMA = ['b', 'b2', 'r', 's', 'h', 'p', 't', 'v', 'tr'];
+      const animar = (g, T, dur) => { ANIMA.forEach(t => g.classList.remove('an-' + t)); const t = T.filter(x => ANIMA.includes(x)); if (!t.length) return; g.style.setProperty('--d', Math.max(.12, dur).toFixed(3) + 's'); void g.getBoundingClientRect(); t.forEach(x => g.classList.add('an-' + x)); };
+      const apagarNotas = () => brN.forEach(gs => gs && gs.forEach(g => { g.classList.remove('agora', 'prox'); ANIMA.forEach(t => g.classList.remove('an-' + t)); }));
+      const dica = $('#tr-dica', d);
+      const pintarDica = tocando => { dica.hidden = tocando; dica.textContent = brW.hidden ? 'Aperte ▶ e toque junto, seguindo a tablatura.' : 'Aperte ▶ e toque a nota acesa no braço. A próxima fica tracejada.'; };
+      pintarDica(false);
       const desenhar = e => {
         const ch = JSON.stringify([e.id, e.cfg, e.rotulo, e.afinId]); if (desenhado === ch) return; desenhado = ch;
         const [cn, cp] = e.compasso || [4, 1]; compTxt = `${cn}/${cp === 1 ? 4 : cp === .5 ? 8 : 16}`;
-        janelas = calcJanelas(e); desenharBraco(e, 0);
+        janelas = calcJanelas(e); desenharBraco(e, 0, desenhado0); desenhado0 = true;
         tabW.innerHTML = tabSVG(e); tabW.scrollLeft = 0; px = pxDe(e);
         cur = $('.tab-cursor', tabW); tabN = []; $$('.tab-n', tabW).forEach(g => tabN[+g.dataset.i] = g); ultI = -2; titulo(e);
         parteC.textContent = e.partes ? e.partes[0].nome : e.modelo.cat === 'escalas' ? e.modelo.grupo : 'Treino';
       };
+      const aplicarVista = () => { brW.hidden = DB.cfg.trVerBraco === false; tabW.hidden = DB.cfg.trVerTab === false; pintarDica(false); if (!brW.hidden) { desloc = null; mirar(ex.evs.slice(...(janelas[jan] || [0, ex.evs.length])), false); } };
       desenhar(ex); meta();
       const setBpm = v => { bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(v))); $('#tr-bpm', d).textContent = bpm; $('#tr-pct', d).textContent = `bpm · ${Math.round(bpm / m.alvo * 100)}% da meta`; };
       $$('[data-tr-bpm]', d).forEach(b => b.onclick = () => setBpm(bpm + +b.dataset.trBpm));
@@ -747,13 +768,18 @@ function abrirTreino(id, op = {}) {
         const segL = (attr, f) => $$(`[data-${attr}]`, vA).forEach(b => b.onclick = () => { $$(`[data-${attr}]`, vA).forEach(x => x.setAttribute('aria-pressed', x === b)); f(b.dataset[attr]); });
         segL('tam', v => { cfg.tam = v; muda(); });
         segL('voltas', v => { DB.cfg.trVoltas = +v; commit(); });
-        segL('som', v => { DB.cfg.trSom = v; commit(); });
         segL('acomp', v => { DB.cfg.trAcomp = v; commit(); $('#tr-bat-campo', vA).hidden = v !== 'bateria'; });
         $('#tr-bat', vA).addEventListener('change', e => { DB.cfg.trBateria = e.target.value; commit(); });
         segL('harm', v => { DB.cfg.trHarmonia = v; commit(); });
         segL('pct', v => { setBpm(m.alvo * +v / 100); KitFacil.avisar(`Andamento: ${bpm} bpm, ${v}% da meta.`); });
         segL('rot', v => { cfg.rotulo = v; muda(); });
         ['guia', 'ritmo'].forEach(k => $('#tr-' + k, vA).addEventListener('change', e => { DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked; commit(); }));
+        const vista = (k, outro, nome) => $('#tr-' + k, vA).addEventListener('change', e => {
+          DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked;
+          if (!e.target.checked && DB.cfg['tr' + outro[0].toUpperCase() + outro.slice(1)] === false) { DB.cfg['tr' + outro[0].toUpperCase() + outro.slice(1)] = true; $('#tr-' + outro, vA).checked = true; KitFacil.avisar(`O treino precisa de um dos dois: ${nome} voltou.`); }
+          commit(); aplicarVista();
+        });
+        vista('verBraco', 'verTab', 'a tablatura'); vista('verTab', 'verBraco', 'o braço');
         $('[data-tr-pronto]', vA).onclick = fecharAjustes;
       };
       const fecharAjustes = () => { vA.hidden = true; vP.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'false'); KitFacil.movimento.entrar(vP, { de: 'tela' }); $('#tr-ir', d).focus(); };
@@ -794,14 +820,15 @@ function abrirTreino(id, op = {}) {
         const evs = r.ex.evs, k = i < -1 ? -1 - i : i;
         if (k >= 0) { const j = janelas.findIndex(([a, b]) => k >= a && k < b); if (j >= 0 && j !== jan) desenharBraco(r.ex, j); }
         tabN.forEach((g, j) => g && g.classList.toggle('agora', j === i));
-        brN.forEach(gs => gs && gs.forEach(g => g.classList.remove('agora', 'prox')));
+        apagarNotas();
         let prox = k < 0 ? 0 : k + 1; while (prox < evs.length && !evs[prox].n.length) prox++;
         if (brN[prox]) brN[prox].forEach(g => g.classList.add('prox'));
-        if (i >= 0 && brN[i]) brN[i].forEach(g => { g.classList.remove('prox'); g.classList.add('agora'); });
+        if (i >= 0 && brN[i]) { const T = tecs(evs[i]); brN[i].forEach(g => { g.classList.remove('prox'); animar(g, T, evs[i].d * r.seg); g.classList.add('agora'); }); }
+        if (k >= 0 && janelas[jan]) mirar(evs.slice(Math.max(k, janelas[jan][0]), Math.min(janelas[jan][1], k + 4)));
         if (r.ex.partes && k >= 0) { const p = r.ex.partes.filter(q => q.i <= k).pop(); if (p && parteC.textContent !== p.nome) parteC.textContent = p.nome; }
       };
-      const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; recBt.disabled = tocando; recBt.classList.toggle('gravando', tocando && !!mic.gravador); recTexto(); };
-      const limpar = () => { if (jan > 0) desenharBraco(ex, 0); conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g && g.classList.remove('agora')); brN.forEach(gs => gs && gs.forEach(g => g.classList.remove('agora', 'prox'))); ultI = -2; aviso.hidden = true; };
+      const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; recBt.disabled = tocando; recBt.classList.toggle('gravando', tocando && !!mic.gravador); recTexto(); pintarDica(tocando); };
+      const limpar = () => { if (jan > 0) desenharBraco(ex, 0); else mirar(ex.evs.slice(...janelas[0])); conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g && g.classList.remove('agora')); apagarNotas(); ultI = -2; aviso.hidden = true; };
       const registrar = (mm, cc, voltas, bpmR, min, extra = {}) => { const rec = { id: uid(), ex: mm.id, cfg: { ...cc }, voltas, bpm: bpmR, min, limpo: null, em: Date.now(), ...extra }; DB.treinos.push(rec); return rec; };
       // o que o microfone trouxe: a nota do ritmo e os botões da gravação (que fica só neste aparelho)
       const extrasMic = ritmo => `${ritmo ? `<p class="tr-ritmo"><b>Saiu no tempo: ${ritmo.pct}%</b> das ${ritmo.total} palhetadas${ritmo.media ? ` · em média ${Math.abs(ritmo.media)} ms ${ritmo.media < 0 ? 'adiantado' : 'atrasado'}` : ''}${ritmo.pior ? ` · mais erros no compasso ${ritmo.pior}` : ''}.</p>` : ''}
@@ -846,7 +873,7 @@ function abrirTreino(id, op = {}) {
         botoes(true); // agora o botão de gravar mostra se está gravando
         const ac = acomp();
         const ok = treinoTocar({ guia: exemplo || DB.cfg.trGuia !== false, metronomo: ac === 'metronomo', bateria: ac === 'bateria' ? (DB.cfg.trBateria || 'metal') : null, harmonia: DB.cfg.trHarmonia || null,
-          distorcer: (DB.cfg.trSom || 'dist') === 'dist', proxima, aoRodada, aoQuadro,
+          proxima, aoRodada, aoQuadro,
           aoFim: async info => {
             botoes(false); limpar(); meta();
             const a = audio(), fimT = a ? a.currentTime : 0, temMic = !!mic.fluxo;
@@ -998,7 +1025,7 @@ KitFacil.iniciar({
   copia: { descricao: 'Baixe um arquivo com os treinos, as músicas e o tempo de prática.',
     baixar: () => KitFacil.copia.baixar({ db: DB }, 1),
     restaurar: async f => { const j = await KitFacil.copia.ler(f); if (!j || !j.dados || !j.dados.db) { KitFacil.avisar('Esse arquivo não é uma cópia do Guitarra Fácil.'); return; } DB = { ...vazio(), ...j.dados.db }; commit(); snapTodos(); render(); KitFacil.avisar('Cópia restaurada.'); } },
-  novidades: [{ versao: '0.7.0', itens: ['Repita só um trecho: toque nos compassos embaixo da tablatura para tocar só eles em laço.', 'Andamento em porcentagem da meta (50%, 70%, 85% ou 100%) e a porcentagem sempre embaixo do número.', 'Bateria no treino, no lugar do metrônomo: bumbo duplo, blast beat, d-beat, thrash, galope, meio tempo e outros.', 'Segunda guitarra em harmonia: terças, quintas ou oitava junto com a sua linha.', 'Conferir o ritmo pelo microfone (só o tempo de cada palhetada) e gravar o treino para ouvir depois; nada sai do aparelho.', 'Plano de 4 semanas: escolha a técnica, o nível e a meta de andamento; o app monta quatro treinos por semana até lá.'] }, { versao: '0.6.0', itens: [`Rock e metal: ${MODELOS.length.toLocaleString('pt-BR')} treinos em riffs, solos e técnica, de 17 estilos (do hard rock ao djent) e 17 técnicas.`, 'Cada nível tem os seus treinos; a dificuldade vem da complexidade: técnicas misturadas, quiálteras, compassos ímpares e polirritmia.', 'O tamanho agora é o tamanho da linha: curto (1 compasso), moderado (2 a 4), longo (8, partes A e B) e muito longo (16 ou mais, com riff, breakdown e solo).', 'Afinações drop e sete cordas, com som distorcido, palm mute, pinch, harmônicos, notas mortas e alavanca.', 'Treino do dia, favoritos e aviso antes de trocar de etapa.', 'Visual mais escuro, com o vermelho do pedal.'] }, { versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
+  novidades: [{ versao: '0.8.0', itens: ['Som novo: guitarra limpa, bateria e metrônomo gravados de instrumentos de verdade, mais altos e por igual. Funciona sem internet.', 'O braço do treino fica sempre no mesmo tamanho e desliza até as notas da vez.', 'Bends, slides, ligados e vibratos se movem no braço junto com a nota.', 'Braço e tablatura juntos; em Ajustes do treino dá para esconder um ou outro.', 'O toque duplo não dá mais zoom no app.'] }, { versao: '0.7.0', itens: ['Repita só um trecho: toque nos compassos embaixo da tablatura para tocar só eles em laço.', 'Andamento em porcentagem da meta (50%, 70%, 85% ou 100%) e a porcentagem sempre embaixo do número.', 'Bateria no treino, no lugar do metrônomo: bumbo duplo, blast beat, d-beat, thrash, galope, meio tempo e outros.', 'Segunda guitarra em harmonia: terças, quintas ou oitava junto com a sua linha.', 'Conferir o ritmo pelo microfone (só o tempo de cada palhetada) e gravar o treino para ouvir depois; nada sai do aparelho.', 'Plano de 4 semanas: escolha a técnica, o nível e a meta de andamento; o app monta quatro treinos por semana até lá.'] }, { versao: '0.6.0', itens: [`Rock e metal: ${MODELOS.length.toLocaleString('pt-BR')} treinos em riffs, solos e técnica, de 17 estilos (do hard rock ao djent) e 17 técnicas.`, 'Cada nível tem os seus treinos; a dificuldade vem da complexidade: técnicas misturadas, quiálteras, compassos ímpares e polirritmia.', 'O tamanho agora é o tamanho da linha: curto (1 compasso), moderado (2 a 4), longo (8, partes A e B) e muito longo (16 ou mais, com riff, breakdown e solo).', 'Afinações drop e sete cordas, com palm mute, pinch, harmônicos, notas mortas e alavanca.', 'Treino do dia, favoritos e aviso antes de trocar de etapa.', 'Visual mais escuro, com o vermelho do pedal.'] }, { versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
   // sem boas-vindas do Kit: o Início já é o menu de tudo
   boasVindas: { novo: () => PRIMEIRO_USO },
 });

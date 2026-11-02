@@ -2,6 +2,17 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.8.0 · 2026-11-02
+
+- Som novo: guitarra limpa, bateria e metrônomo gravados de instrumentos de verdade (banco FluidR3, licença MIT), no lugar do som gerado. O som distorcido saiu: o app toca só limpo. A escolha "Som do exemplo" saiu dos Ajustes do treino.
+- Volume mais alto e por igual: cada nota é nivelada e a saída tem um limitador, para guitarra, segunda guitarra e bateria tocarem juntas sem estourar.
+- Os sons ficam guardados no aparelho (1,5 MB) e funcionam sem internet. Enquanto carregam, o app toca a corda gerada no aparelho.
+- Braço do treino sempre no mesmo tamanho: ele mostra o braço inteiro (casa 0 a 24) e desliza até as notas da vez quando o treino muda de região. Os nomes das cordas ficam parados à esquerda.
+- Técnicas animadas no braço: no bend a nota sai da corda, na volta do bend ela volta, no slide ela corre pela corda, nos ligados e no tapping o dedo bate ou puxa, e no vibrato e no trinado a nota balança. Com o movimento reduzido do aparelho ligado, nada se mexe.
+- Braço e tablatura aparecem juntos. Em Ajustes do treino dá para esconder um ou outro (sempre fica um dos dois).
+- Dica na tela do treino: "Aperte ▶ e toque a nota acesa no braço. A próxima fica tracejada."
+- Correção: o toque duplo dava zoom no app. Agora não dá; o gesto de pinça continua funcionando.
+
 ## 0.7.0 · 2026-11-02
 
 - Trecho em laço: embaixo da tablatura aparecem os compassos do treino. Toque num compasso e depois em outro para repetir só esse trecho; toque de novo para voltar à linha inteira.
