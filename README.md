@@ -4,7 +4,7 @@ Treinos de guitarra de rock e metal no celular e no computador: riffs, solos e t
 quatro tamanhos de linha, com afinações drop e sete cordas. O app conta, toca junto com som de guitarra limpa gravada,
 acende a nota da vez no braço desenhado (que desliza até ela e mostra bends, slides e ligados) e rola a tablatura.
 
-**Fase de testes** · versão 0.8.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.9.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.
@@ -14,8 +14,13 @@ globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste ap
 Barra de baixo: **Início, Treinos, Afinador, Teoria e Mais** (Metrônomo, Bateria, Mapa do braço, Acordes, Músicas,
 Progresso e Ajustes).
 
-- **Início:** a sequência de dias numa linha, o **treino do dia**, o último treino para continuar e o menu de onze
-  botões grandes (com **Favoritos** e **Plano de 4 semanas**).
+- **Início:** a sequência de dias numa linha e, em destaque, o que fazer agora. Para quem começa, o **próximo passo
+  do caminho do iniciante** e o caminho inteiro (cinco etapas, com "Você está aqui"); quem já toca escolhe onde
+  começar ("Já toco: escolher onde começar") ou vai direto ao **treino do dia**, com o último treino para continuar.
+  Atalhos só para o que não está na barra de baixo (treino do dia, favoritos e plano de 4 semanas).
+- **Caminho do iniciante:** cinco etapas de quatro passos (Primeiro contato, Palhetada e ritmo, Power chords, Primeiros
+  riffs e Primeiros solos), do primeiro toque numa corda solta ao primeiro bend. Cada passo é um treino curto e
+  original, com os dedos no braço e uma dica do que fazer; conta quando a pessoa marca "Saiu limpo".
 - **Treinos** (um toque por vez): categoria (Riffs, Solos e licks, Técnica, Escalas e arpejos) › estilo ou técnica ›
   nível › tamanho › lista de 8. São 4.934 treinos.
   - **17 estilos:** hard rock, punk e hardcore, heavy clássico, thrash, speed e power, groove, death, death
@@ -62,7 +67,7 @@ memória do aparelho, para ouvir na hora, e apaga ao fechar a janela do treino. 
 
 ## Modelo de dados
 
-Um só objeto (`guitarrafacil.db`, versão 1): `cfg` (meta, metrônomo, afinação do afinador, os últimos ajustes de cada
+Um só objeto (`guitarrafacil.db`, versão 1): `cfg` (meta, onde o caminho do iniciante começa em `caminhoDe`, metrônomo, afinação do afinador, os últimos ajustes de cada
 treino em `trCfg`, voltas por etapa, percurso, o que mostrar (braço e tablatura), acompanhamento, bateria, harmonia, conferir o ritmo e o plano de
 4 semanas em `plano` = `{ tec, nivel, ini, meta, em, fim }`) e as listas `musicas`, `praticas`, `treinos` (modelo, ajustes,
 voltas, andamento, minutos, se saiu limpo, se foi do treino do dia, o trecho repetido e a nota do ritmo), `conquistas` e `favoritos`. `feitas` e
@@ -92,6 +97,7 @@ constante `VERSAO` (`app.js`), no cache do `sw.js`, no `?v=` do `index.html`, no
 | `index.html` | moldura e visual (grafite de amplificador) |
 | `teoria.js` | motor de teoria (escalas, acordes, intervalos, campo harmônico), afinações e conversão entre elas, e os desenhos do braço e do círculo |
 | `catalogo.js` | níveis, tamanhos, categorias, posições pelo braço, escalas, sequências e arpejos, e a volta do treino (afinação, dedos, compasso) |
+| `caminho.js` | o caminho do iniciante: as cinco etapas, os vinte passos (notas, dedos e dica) e o registro deles como treinos |
 | `metal.js` | os 17 estilos e as 17 técnicas, o gerador de riffs (ritmo, texturas, partes, breakdown), de frases de solo e de técnica, e o registro dos treinos |
 | `som.js` | o som: guitarra limpa (palm mute, pinch, harmônico, nota morta, bend, slide, vibrato, alavanca), peças da bateria e metrônomo, a partir das gravações de `sons/`, com nivelamento e limitador na saída |
 | `pratica.js` | braço do treino (tamanho fixo, deslizando) e tablatura, tocador em voltas, trecho em laço, harmonia, microfone (ritmo e gravação) e bateria |

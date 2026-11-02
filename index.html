@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.8.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.9.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -253,6 +253,22 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 @keyframes gf-vib{from{transform:translateY(-2.5px)}to{transform:translateY(2.5px)}}
 @media (prefers-reduced-motion:reduce){.tr-braco-trilho{transition:none}.braco-tr .nt[class*="an-"],.braco-tr .nt[class*="an-"] > *{animation:none}}
 .tr-dica{margin:10px 0 0;text-align:center;font-size:var(--kf-t-corpo);color:var(--kf-ink)}
+/* caminho do iniciante: as etapas numa linha vertical; feita = marca e texto, atual = vermelho e "Você está aqui" */
+.caminho h2,.cam-etapa h2{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:var(--kf-t-titulo,18px)}
+.cam-lista{list-style:none;margin:0;padding:0}
+.cam-lista li{position:relative}
+.cam-lista li:not(:last-child)::before{content:"";position:absolute;left:29px;top:44px;bottom:-4px;width:2px;background:var(--kf-line-2)}
+.cam-lista button{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 10px 8px 14px;border:0;border-radius:var(--kf-r-md);background:none;color:var(--kf-ink);font:inherit;text-align:left;cursor:pointer}
+.cam-lista button:hover{background:var(--kf-surface-2)}
+.cam-lista .ld-tx{flex:1;min-width:0}.cam-lista small{display:block;color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+.cam-n{position:relative;z-index:1;flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--kf-surface);color:var(--kf-muted);box-shadow:inset 0 0 0 2px var(--kf-line-2)}
+.cam-n .kf-i{width:16px;height:16px}
+.cam-lista .feita .cam-n,.cam-etapa .cam-n{background:var(--kf-accent);color:var(--kf-accent-ink);box-shadow:none}
+.cam-lista .atual .cam-n{background:var(--gf-vermelho);color:#fff;box-shadow:none}
+.cam-lista .atual b{color:var(--kf-ink)}.cam-lista .atual small{color:var(--kf-ink)}
+.cam-pular{margin-top:10px;width:100%}
+.cam-ok{color:var(--gf-vermelho)}
+.cam-agora{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--gf-vermelho);color:#fff;font-size:12px;vertical-align:1px}
 .braco-tr .bt-madeira{fill:var(--kf-surface-2)}
 .braco-tr .bt-traste{stroke:var(--kf-line-2);stroke-width:2}
 .braco-tr .bt-pestana{stroke:var(--kf-muted);stroke-width:6}
@@ -428,13 +444,14 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.8.0"></script>
-<script src="teoria.js?v=0.8.0"></script>
-<script src="catalogo.js?v=0.8.0"></script>
-<script src="metal.js?v=0.8.0"></script>
-<script src="som.js?v=0.8.0"></script>
-<script src="pratica.js?v=0.8.0"></script>
-<script src="musicas.js?v=0.8.0"></script>
-<script src="app.js?v=0.8.0"></script>
+<script src="comum/kit-facil.js?v=0.9.0"></script>
+<script src="teoria.js?v=0.9.0"></script>
+<script src="catalogo.js?v=0.9.0"></script>
+<script src="metal.js?v=0.9.0"></script>
+<script src="caminho.js?v=0.9.0"></script>
+<script src="som.js?v=0.9.0"></script>
+<script src="pratica.js?v=0.9.0"></script>
+<script src="musicas.js?v=0.9.0"></script>
+<script src="app.js?v=0.9.0"></script>
 </body>
 </html>

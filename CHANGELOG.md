@@ -2,6 +2,14 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.9.0 · 2026-11-02
+
+- Caminho do iniciante: cinco etapas de quatro passos (Primeiro contato, Palhetada e ritmo, Power chords, Primeiros riffs e Primeiros solos), do primeiro toque numa corda solta ao primeiro bend, com os dedos no braço e uma dica de como fazer em cada passo. Um passo conta quando você marca "Saiu limpo".
+- Início novo: em destaque, o que fazer agora. Para quem começa, o próximo passo e o caminho inteiro, com "Você está aqui"; para quem já toca, o treino do dia. Os botões que repetiam a barra de baixo saíram; ficaram os atalhos para o treino do dia, os favoritos e o plano de 4 semanas.
+- Quem já toca escolhe onde começar: do primeiro passo, nos primeiros riffs ou direto no treino do dia. Dá para mudar a qualquer momento.
+- Tela "Caminho do iniciante", com todos os passos de cada etapa.
+- Ao começar um treino, a janela volta para o topo e o braço fica à vista.
+
 ## 0.8.0 · 2026-11-02
 
 - Som novo: guitarra limpa, bateria e metrônomo gravados de instrumentos de verdade (banco FluidR3, licença MIT), no lugar do som gerado. O som distorcido saiu: o app toca só limpo. A escolha "Som do exemplo" saiu dos Ajustes do treino.

@@ -32,13 +32,12 @@ test('abre sem erros em celular, tablet e computador, com a moldura da família 
   }
 });
 
-test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início tem treino do dia e onze botões', async () => {
+test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início não repete a barra', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Afinador', 'Teoria', 'Mais']);
-  assert.equal(await p.locator('nav.ladrilhos .ladrilho').count(), 11);
-  assert.equal(await p.locator('.dia-hero').count(), 1);
+  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Treino do dia', 'Favoritos', 'Plano de 4 semanas']);
   for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Mapa do braço', 'Mapa do braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
@@ -58,9 +57,9 @@ test('catálogo de rock e metal: estilos, técnicas, níveis exclusivos e tamanh
     const erros = [], comp = {}, tecPorNivel = { 1: 0, 2: 0, 3: 0 }, contaNivel = { 1: 0, 2: 0, 3: 0 };
     MODELOS.forEach(m => { const v = volta(m, cfgPadrao(m)), N = v.afin.length;
       v.evs.forEach(e => { if (!(e.d > 0)) erros.push(m.id + ' dur'); e.n.forEach(([s, k]) => { if (!(s >= 0 && s < N && k >= 0 && k <= 24)) erros.push(m.id); }); });
-      if (m.cat !== 'escalas') { const [cn, cp] = v.compasso, b = v.evs.reduce((s, e) => s + e.d, 0) / (cn * cp); (comp[m.tamanho] = comp[m.tamanho] || new Set()).add(Math.round(b)); if (Math.abs(b - Math.round(b)) > 1e-6) erros.push(m.id + ' compasso');
+      if (m.cat !== 'escalas' && m.cat !== 'caminho') { const [cn, cp] = v.compasso, b = v.evs.reduce((s, e) => s + e.d, 0) / (cn * cp); (comp[m.tamanho] = comp[m.tamanho] || new Set()).add(Math.round(b)); if (Math.abs(b - Math.round(b)) > 1e-6) erros.push(m.id + ' compasso');
         tecPorNivel[m.nivel] += new Set(v.evs.flatMap(e => tecs(e)).concat(v.evs.some(e => e.d < .24) ? ['rapido'] : [])).size; contaNivel[m.nivel]++; } });
-    const ids = n => new Set(MODELOS.filter(m => m.nivel === n && m.cat !== 'escalas').map(m => JSON.stringify(volta(m, cfgPadrao(m)).evs.map(e => [e.d, e.n]))));
+    const ids = n => new Set(MODELOS.filter(m => m.nivel === n && m.cat !== 'escalas' && m.cat !== 'caminho').map(m => JSON.stringify(volta(m, cfgPadrao(m)).evs.map(e => [e.d, e.n]))));
     const um = ids(1), tres = ids(3); let comuns = 0; tres.forEach(x => { if (um.has(x)) comuns++; });
     return { porCat, estilos: ESTILOS.length, tecnicas: TECNICAS_TREINO.length, erros: [...new Set(erros)].slice(0, 5), comp: Object.fromEntries(Object.entries(comp).map(([k, v]) => [k, [...v].sort((a, b) => a - b).join(',')])), comuns,
       riqueza: [1, 2, 3].map(n => tecPorNivel[n] / contaNivel[n]),
@@ -138,6 +137,40 @@ test('janela do treino: afinação, rótulos, etapa por posição com aviso ante
   await a.fechar();
 });
 
+test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo avança e quem já toca escolhe onde começar', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  assert.match(await p.textContent('.passo-hero'), /Seu próximo passo · 1 de 4 · Primeiro contato[\s\S]*A primeira nota/);
+  assert.equal(await p.locator('.cam-lista li').count(), 5);
+  assert.match(await p.textContent('.cam-lista li.atual'), /Você está aqui/, 'a etapa atual diz em palavras, não só na cor');
+  const r = await p.evaluate(() => CAMINHO.flatMap(e => e.ids).map(id => { const v = volta(modelo(id), {}); const b = v.evs.reduce((s, e) => s + e.d, 0) / 4; return [id, Math.abs(b - Math.round(b)) < 1e-6, v.evs.every(e => e.n.every(([c, k]) => c >= 0 && c < 6 && k >= 0 && k <= 24)), !!modelo(id).dica]; }).filter(x => !x[1] || !x[2] || !x[3]));
+  assert.deepEqual(r, [], 'todo passo fecha o compasso, cabe no braço e tem dica');
+  await p.evaluate(() => { modelo('cam:contato:1').bpm = 260; });
+  await p.click('.passo-hero');
+  const d = dlg(p); await d.waitFor();
+  assert.match(await d.locator('#tr-dica').textContent(), /palheta/);
+  assert.equal(await d.locator('#tr-parte').textContent(), 'Passo 1 de 4');
+  await d.locator('#tr-ir').click();
+  await p.waitForTimeout(4500);
+  await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; }); // conta como treino de verdade (15 s ou mais)
+  await d.locator('#tr-ir').click();
+  await d.locator('[data-limpo="1"]').click();
+  await p.keyboard.press('Escape');
+  assert.ok(await esperar(async () => /A primeira nota/.test(await p.textContent('.cam-lista')) || /2 de 4/.test(await p.textContent('.passo-hero'))));
+  assert.match(await p.textContent('.passo-hero'), /2 de 4[\s\S]*As seis cordas soltas/, 'o passo limpo avança o caminho');
+  await p.click('[data-caminho-pular]');
+  await p.click('[data-caminho-de="3"]');
+  assert.match(await p.textContent('.passo-hero'), /Primeiros riffs[\s\S]*Motor/);
+  assert.match(await p.textContent('.cam-lista li >> nth=0'), /Pulada|Feita/);
+  await p.click('[data-caminho-pular]');
+  await p.click('[data-caminho-de="5"]');
+  assert.equal(await p.locator('.dia-hero').count(), 1, 'quem já toca vê o treino do dia');
+  assert.equal(await p.locator('.passo-hero').count(), 0);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
 test('treino: braço sempre do mesmo tamanho, deslizando até as notas; braço e tablatura podem sair um de cada vez; som gravado e limpo', async () => {
   const a = await aparelho(amb);
   const p = a.page;
@@ -171,6 +204,7 @@ test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, co
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
+  await p.evaluate(() => { DB.cfg.caminhoDe = CAMINHO.length; commit(); render(); }); // quem já toca: o Início mostra o treino do dia
   await p.click('.dia-hero');
   assert.equal(await p.locator('.dia-nivel').count(), 3);
   assert.equal(await p.locator('.dia-nivel >> nth=1 >> .dia-lista li').count(), 4);
@@ -433,7 +467,7 @@ test('início e progresso: sequência de dias, continuar, abas de progresso e co
   const p = a.page;
   await pronto(p);
   assert.match(await p.textContent('.seq'), /Comece sua sequência hoje/);
-  await p.evaluate(() => { const d = 864e5, n = Date.now(); [0, 1, 2, 5].forEach(k => DB.praticas.push({ id: 'p' + k, em: n - k * d, min: 25 })); DB.treinos.push({ id: 't0', ex: 'ex-penta', bpm: 80, acerto: 95, em: n - 2 * d }, { id: 't1', ex: 'riffs:thrash:3:longo:2', cfg: {}, voltas: 2, bpm: 140, limpo: true, em: n - 3600e3 }); commit(); conferirConquistas(false); render(); });
+  await p.evaluate(() => { DB.cfg.caminhoDe = CAMINHO.length; const d = 864e5, n = Date.now(); [0, 1, 2, 5].forEach(k => DB.praticas.push({ id: 'p' + k, em: n - k * d, min: 25 })); DB.treinos.push({ id: 't0', ex: 'ex-penta', bpm: 80, acerto: 95, em: n - 2 * d }, { id: 't1', ex: 'riffs:thrash:3:longo:2', cfg: {}, voltas: 2, bpm: 140, limpo: true, em: n - 3600e3 }); commit(); conferirConquistas(false); render(); });
   assert.match(await p.textContent('.seq'), /3 dias seguidos[\s\S]*25 de 20 min hoje · meta batida/);
   assert.match(await p.textContent('.continuar'), /Thrash metal/);
   assert.ok(await p.evaluate(() => ['primeiro', 'meta', 'dias3', 'avancado', 'limpo140'].every(id => temConquista(id))));
