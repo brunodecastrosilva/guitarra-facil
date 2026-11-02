@@ -2,6 +2,14 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.15.0 · 2026-11-02
+
+- Estúdio (em Mais e nos atalhos do Início): crie riffs e ideias tocando no braço ou escolhendo corda e casa. Escolha a duração de cada nota, ponha pausas, junte notas em acorde e marque técnicas (palm mute, ligados, bend, slide, vibrato e nota morta). A tablatura mostra a ideia com o ritmo; toque numa nota dela para escolher, mudar ou apagar (com Desfazer).
+- Cada ideia tem nome, afinação, compasso e andamento. Ouça na hora ou abra em "Treinar com bateria": a ideia vira um treino, com acompanhamento, trecho em laço e segunda guitarra.
+- "Fazer uma variação" copia a ideia para experimentar sem perder a original.
+- Do Braço, no modo livre, "Levar ao Estúdio" começa uma ideia com as notas escolhidas.
+- Uma ideia pode guardar de onde veio, para o trecho que você tirou de ouvido: fica só com você, para uso pessoal. As ideias sincronizam entre aparelhos.
+
 ## 0.14.0 · 2026-11-02
 
 - O Mapa do braço virou o Braço, um laboratório: o braço inteiro no mesmo tamanho fixo do treino, da corda solta à casa 22, em cinco modos. Notas (naturais ou todas), Escala (tom e escala, com notas ou graus), Acorde (as notas do acorde por todo o braço), Intervalos (toque numa nota e veja a distância das outras) e Livre (escolha até seis notas, ouça juntas ou em sequência e veja o nome do acorde).

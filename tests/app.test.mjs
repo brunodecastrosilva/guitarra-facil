@@ -37,7 +37,7 @@ test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início não 
   const p = a.page;
   await pronto(p);
   assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Afinador', 'Teoria', 'Mais']);
-  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Sessão de hoje', 'Treino do dia', 'Favoritos', 'Plano de 4 semanas']);
+  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Sessão de hoje', 'Treino do dia', 'Favoritos', 'Estúdio', 'Plano de 4 semanas']);
   for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Braço', 'Braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
@@ -318,6 +318,49 @@ test('fase 4: braço laboratório com notas, escala, acorde, intervalos e modo l
   assert.match(await d.locator('#tr-teoria').textContent(), /pentatônica menor/);
   await d.locator('[data-tr-braco]').click();
   assert.ok(await esperar(() => p.evaluate(() => rota() === 'braco' && LAB.modo === 'escala' && LAB.escala === 'penta-menor')));
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('fase 5: Estúdio cria, edita, ouve, treina e faz variação de uma ideia; do laboratório para o Estúdio', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  await irPelaNav(p, 'Estúdio');
+  assert.match(await p.textContent('main'), /Nenhuma ideia ainda/);
+  await p.click('[data-ideia-nova] >> nth=0');
+  assert.ok(await esperar(() => p.evaluate(() => rota() === 'estudio' && !!ideiaDe(parte(1)))));
+  for (const n of ['0,0', '0,0', '0,3']) await p.click(`[data-pos="${n}"]`);
+  await p.click('[data-ed-tec="pm"]');
+  await p.click('[data-ed-acorde]'); await p.click('[data-pos="1,5"]'); await p.click('[data-ed-acorde]');
+  await p.click('[data-ed-dur="2"]');
+  await p.click('[data-ed-pausa]');
+  await p.selectOption('#ed-corda', '1').catch(async () => p.evaluate(() => { const s = document.querySelector('#ed-corda'); s.value = '1'; s.dispatchEvent(new Event('change')); }));
+  await p.fill('#ed-casa', '7'); await p.click('[data-ed-por]');
+  const x = await p.evaluate(() => DB.ideias[0]);
+  assert.deepEqual(x.evs.map(e => [e.d, e.n.map(n => n.slice(0, 2)), e.t]), [[.5, [[0, 0]], ''], [.5, [[0, 0]], ''], [2, [[0, 3], [1, 5]], 'pm'], [2, [], ''], [2, [[1, 7]], '']]);
+  assert.ok(await p.locator('.ed-tab .tab-ritmo .rt-a').count() >= 1, 'a tablatura mostra o ritmo da ideia');
+  // escolher na tablatura e apagar, com desfazer
+  await p.click('.ed-tab .tab-n >> nth=0');
+  await p.click('[data-ed-apagar]');
+  assert.equal(await p.evaluate(() => DB.ideias[0].evs.length), 4);
+  await p.click('.kf-toast button');
+  assert.equal(await p.evaluate(() => DB.ideias[0].evs.length), 5, 'desfazer volta a nota');
+  // nome e origem pessoal
+  await p.click('.ed-dados summary');
+  await p.fill('#ed-nome', 'Riff da garagem'); await p.press('#ed-nome', 'Tab');
+  assert.equal(await p.evaluate(() => modelo('ideia:' + DB.ideias[0].id).nome), 'Riff da garagem', 'a ideia vira exercício');
+  await p.click('[data-ed-treinar]');
+  const d = dlg(p); await d.waitFor();
+  assert.match(await d.locator('.kf-dlg-cab h2').textContent(), /Riff da garagem · Estúdio/);
+  await p.keyboard.press('Escape');
+  await p.click('[data-ed-variacao]');
+  assert.ok(await esperar(() => p.evaluate(() => DB.ideias.length === 2 && /variação/.test(DB.ideias[1].nome))));
+  // do laboratório
+  await irPelaNav(p, 'Braço');
+  await p.click('[data-lab-modo="livre"]'); await p.click('[data-lab="0,0"]'); await p.click('[data-lab="1,2"]');
+  await p.click('[data-lab-estudio]');
+  assert.ok(await esperar(() => p.evaluate(() => DB.ideias.length === 3 && DB.ideias[2].evs[0].n.length === 2)), 'as notas do braço viram o primeiro acorde');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });

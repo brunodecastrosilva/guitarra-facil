@@ -88,7 +88,9 @@ const fmtTempo = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 
 const favorito = id => DB.favoritos.some(f => f.id === id);
 function alternarFavorito(id) { const k = DB.favoritos.findIndex(f => f.id === id); if (k >= 0) DB.favoritos.splice(k, 1); else DB.favoritos.push({ id, em: Date.now() }); commit(); conferirConquistas(); return k < 0; }
 // nome de um treino com o estilo ou a técnica: "Bigorna · Thrash metal"
-const tituloDe = m => m.cat === 'escalas' ? m.nome : m.cat === 'caminho' ? `${m.nome} · ${etapaDe(m.sub).nome}` : `${m.nome} · ${m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub).nome : estiloDe(m.sub).nome}`;
+// o nome de cada categoria, inclusive as que não estão no catálogo (caminho, biblioteca e estúdio)
+const nomeCategoria = cat => (CATEGORIAS.find(c => c[0] === cat) || [0, { caminho: 'Caminho do iniciante', biblioteca: 'Biblioteca', estudio: 'Estúdio' }[cat] || cat])[1];
+const tituloDe = m => m.cat === 'escalas' ? m.nome : m.cat === 'caminho' ? `${m.nome} · ${etapaDe(m.sub).nome}` : m.cat === 'estudio' ? `${m.nome} · Estúdio` : m.cat === 'biblioteca' ? `${m.nome} · ${m.autor || 'Biblioteca'}` : `${m.nome} · ${m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub).nome : estiloDe(m.sub).nome}`;
 
 /* ================= treino do dia ================= */
 // quatro treinos do nível escolhido, sorteados pelo dia: aquecimento de técnica, riff, solo e uma linha muito longa

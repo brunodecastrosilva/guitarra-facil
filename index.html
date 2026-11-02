@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&family=Big+Shoulders+Display:wght@700..900&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.14.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.15.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -437,6 +437,19 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 .braco-tr .nt.apagada{opacity:.35}.braco-tr .nt.apagada:hover{opacity:.7}
 .braco-tr .nt.base circle,.braco-tr .nt.lab.sel circle{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}.braco-tr .nt.base text,.braco-tr .nt.lab.sel text{fill:#fff}
 .lab-leitura{margin:0;font-size:var(--kf-t-corpo)}.lab-bts{display:flex;flex-wrap:wrap;gap:8px}
+.nt.ed circle{transition:none}
+/* Estúdio */
+.ed-linha{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-items:end}
+.ed-dados{display:grid;gap:12px}.ed-ferr{display:grid;gap:8px}
+.kf-seg.ed-dur{display:flex;flex-wrap:wrap;max-width:none}.kf-seg.ed-dur button{flex:1 1 44px;font-size:17px}
+.ed-tecs,.ed-bts,.ed-fim{display:flex;flex-wrap:wrap;gap:8px}
+.ed-tecs .chip-1a{min-width:48px;justify-content:center;font-family:var(--kf-font-mono)}.chip-1a:disabled{opacity:.4;cursor:default}
+.kf-btn[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--gf-vermelho)}
+.braco-tr .nt.ed.vazia circle{fill:transparent;stroke:transparent}.braco-tr .nt.ed.vazia:hover circle,.braco-tr .nt.ed.vazia:focus-visible circle{fill:var(--kf-surface-2);stroke:var(--kf-line-2)}
+.braco-tr .nt.ed.usada circle{fill:var(--kf-surface-2);stroke:var(--kf-line-2)}
+.braco-tr .nt.ed.sel circle{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}.braco-tr .nt.ed.sel text{fill:#fff}
+.braco-tr .nt.ed{cursor:pointer}.braco-tr .nt.ed:focus-visible{outline:none}
+.ed-tab .tab-n{cursor:pointer}.ed-dica{margin:0}
 .tr-teoria{margin:4px 0 0;text-align:center;font-size:13px;color:var(--kf-muted)}.tr-teoria:empty{display:none}
 /* sessão */
 .ses-dur{flex-wrap:wrap;margin:6px 0}
@@ -511,28 +524,29 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.14.0"></script>
-<script src="base.js?v=0.14.0"></script>
-<script src="teoria.js?v=0.14.0"></script>
-<script src="catalogo.js?v=0.14.0"></script>
-<script src="metal.js?v=0.14.0"></script>
-<script src="caminho.js?v=0.14.0"></script>
-<script src="exercicios.js?v=0.14.0"></script>
-<script src="som.js?v=0.14.0"></script>
-<script src="pratica.js?v=0.14.0"></script>
-<script src="musicas.js?v=0.14.0"></script>
-<script src="dados.js?v=0.14.0"></script>
-<script src="plano.js?v=0.14.0"></script>
-<script src="sessao.js?v=0.14.0"></script>
-<script src="evolucao.js?v=0.14.0"></script>
-<script src="tela-inicio.js?v=0.14.0"></script>
-<script src="tela-treinos.js?v=0.14.0"></script>
-<script src="ferramentas.js?v=0.14.0"></script>
-<script src="tela-musicas.js?v=0.14.0"></script>
-<script src="tela-progresso.js?v=0.14.0"></script>
-<script src="tela-teoria.js?v=0.14.0"></script>
-<script src="laboratorio.js?v=0.14.0"></script>
-<script src="janela-treino.js?v=0.14.0"></script>
-<script src="app.js?v=0.14.0"></script>
+<script src="comum/kit-facil.js?v=0.15.0"></script>
+<script src="base.js?v=0.15.0"></script>
+<script src="teoria.js?v=0.15.0"></script>
+<script src="catalogo.js?v=0.15.0"></script>
+<script src="metal.js?v=0.15.0"></script>
+<script src="caminho.js?v=0.15.0"></script>
+<script src="exercicios.js?v=0.15.0"></script>
+<script src="som.js?v=0.15.0"></script>
+<script src="pratica.js?v=0.15.0"></script>
+<script src="musicas.js?v=0.15.0"></script>
+<script src="dados.js?v=0.15.0"></script>
+<script src="plano.js?v=0.15.0"></script>
+<script src="sessao.js?v=0.15.0"></script>
+<script src="evolucao.js?v=0.15.0"></script>
+<script src="tela-inicio.js?v=0.15.0"></script>
+<script src="tela-treinos.js?v=0.15.0"></script>
+<script src="ferramentas.js?v=0.15.0"></script>
+<script src="tela-musicas.js?v=0.15.0"></script>
+<script src="tela-progresso.js?v=0.15.0"></script>
+<script src="tela-teoria.js?v=0.15.0"></script>
+<script src="laboratorio.js?v=0.15.0"></script>
+<script src="estudio.js?v=0.15.0"></script>
+<script src="janela-treino.js?v=0.15.0"></script>
+<script src="app.js?v=0.15.0"></script>
 </body>
 </html>
