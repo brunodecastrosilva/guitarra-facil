@@ -1,70 +1,7 @@
-/* Guitarra Fácil · treinos: o catálogo de exercícios, o cromático 1-2-3-4 com as 24 combinações, as escalas nos cinco
-   desenhos, o braço e a tablatura do treino e o tocador, que repete o exercício em voltas sem perder o tempo.
-   Também a bateria de acompanhamento. Todo o som é gerado no aparelho. */
+/* Guitarra Fácil · o treino tocando: o braço e a tablatura do treino, o som de guitarra (com bend, slide e vibrato) e
+   o tocador, que repete o exercício em voltas sem perder o tempo. Também a bateria de acompanhamento.
+   Todo o som é gerado no aparelho. O catálogo de treinos fica em catalogo.js. */
 'use strict';
-/* uma nota: [corda (0 = 6ª), casa, duração em batidas, dedo (0 = corda solta)] */
-const sobeDesce = n => [...n, ...n.slice(0, -1).reverse()];
-const comDedos = notas => { const pres = notas.filter(n => n[1] > 0).map(n => n[1]), min = pres.length ? Math.min(...pres) : 1; return notas.map(([c, k, d, f]) => [c, k, d, f ?? (k === 0 ? 0 : Math.min(4, k - min + 1))]); };
-
-const CATEGORIAS_TREINO = [
-  ['cromatico', 'Cromático 1-2-3-4', 'Um dedo por casa, nas 24 ordens possíveis.'],
-  ['escalas', 'Escalas', 'Pentatônica e blues nos cinco desenhos, em qualquer tom.'],
-  ['tecnica', 'Palhetada e arpejos', 'Cordas soltas e acordes tocados nota por nota.'],
-  ['riffs', 'Riffs e frases', 'Ideias originais do app para tocar no tempo.'],
-];
-// exercícios prontos (texto e notas próprios do app)
-const TREINOS_FIXOS = [
-  { id: 'ex-soltas', cat: 'tecnica', nome: 'Cordas soltas', resumo: 'Palhetada alternada, da 6ª à 1ª corda e de volta.', bpm: 60, alvo: 100, notas: sobeDesce([0, 1, 2, 3, 4, 5].map(c => [c, 0, 1])) },
-  { id: 'ex-em', cat: 'tecnica', nome: 'Arpejo de Mi menor', resumo: 'O acorde de Mi menor, uma corda por vez.', bpm: 60, alvo: 100, notas: sobeDesce([[0, 0, 1], [1, 2, 1, 2], [2, 2, 1, 3], [3, 0, 1], [4, 0, 1], [5, 0, 1]]) },
-  { id: 'ex-am', cat: 'tecnica', nome: 'Arpejo de Lá menor', resumo: 'Lá menor nota por nota, sem a 6ª corda.', bpm: 60, alvo: 100, notas: sobeDesce([[1, 0, 1], [2, 2, 1, 2], [3, 2, 1, 3], [4, 1, 1, 1], [5, 0, 1]]) },
-  { id: 'ex-c', cat: 'tecnica', nome: 'Arpejo de Dó maior', resumo: 'Dó maior da 5ª à 1ª corda.', bpm: 60, alvo: 100, notas: sobeDesce([[1, 3, 1, 3], [2, 2, 1, 2], [3, 0, 1], [4, 1, 1, 1], [5, 0, 1]]) },
-  { id: 'ex-g', cat: 'tecnica', nome: 'Arpejo de Sol maior', resumo: 'Sol maior com as seis cordas.', bpm: 60, alvo: 100, notas: sobeDesce([[0, 3, 1, 2], [1, 2, 1, 1], [2, 0, 1], [3, 0, 1], [4, 0, 1], [5, 3, 1, 3]]) },
-  { id: 'ex-do-maior', cat: 'escalas', nome: 'Escala de Dó maior', resumo: 'Dó a Dó na primeira posição, subindo e descendo.', bpm: 60, alvo: 110, notas: sobeDesce([[1, 3, 1, 3], [2, 0, 1], [2, 2, 1, 2], [2, 3, 1, 3], [3, 0, 1], [3, 2, 1, 2], [4, 0, 1], [4, 1, 1, 1]]) },
-  { id: 'ex-riff-estrada', cat: 'riffs', nome: 'Riff "Estrada"', resumo: 'Colcheias na 6ª corda, com a corda solta de pedal.', rotulo: 'nota', bpm: 80, alvo: 130, notas: [[0, 0, .5], [0, 0, .5], [0, 3, .5], [0, 5, .5], [0, 0, .5], [0, 0, .5], [0, 7, .5], [0, 5, .5], [0, 0, .5], [0, 0, .5], [0, 3, .5], [0, 5, .5], [0, 3, 1], [0, 0, 1]] },
-  { id: 'ex-riff-galope', cat: 'riffs', nome: 'Riff "Galope"', resumo: 'O galope do metal na 5ª corda: uma colcheia e duas semicolcheias.', rotulo: 'nota', bpm: 80, alvo: 140, notas: [[1, 0, .5], [1, 0, .25], [1, 0, .25], [1, 3, .5], [1, 0, .5], [1, 5, .5], [1, 3, .5], [1, 0, 1], [1, 0, .5], [1, 0, .25], [1, 0, .25], [1, 3, .5], [1, 5, .5], [1, 7, .5], [1, 5, .5], [1, 3, 1]] },
-  { id: 'ex-blues', cat: 'riffs', nome: 'Frase de blues em Lá', resumo: 'Desce a escala de blues com a blue note.', rotulo: 'nota', bpm: 70, alvo: 110, notas: [[3, 7, .5], [3, 5, .5], [2, 7, .5], [2, 6, .5], [2, 5, .5], [1, 7, .5], [1, 5, 1], [2, 5, .5], [2, 7, .5], [3, 5, .5], [3, 7, .5], [4, 5, 1], [3, 7, 1]] },
-].map(e => ({ ...e, tipo: 'fixo', notas: comDedos(e.notas) }));
-// ids da versão 0.3.0 que viraram outro treino (para o histórico continuar valendo)
-const TREINO_ANTIGO = { 'ex-1234': 'crom:1234', 'ex-alternada': 'crom:1234', 'ex-penta': 'esc:penta-menor:9:0' };
-
-/* cromático: as 24 ordens dos dedos 1, 2, 3 e 4 */
-const PERMS = (() => { const r = [], p = (resto, s) => { if (!resto.length) r.push(s); resto.forEach((x, i) => p(resto.filter((_, j) => j !== i), s + x)); }; p(['1', '2', '3', '4'], ''); return r; })();
-const PERCURSOS = [['desce', '6ª → 1ª', 'da 6ª para a 1ª corda'], ['sobe', '1ª → 6ª', 'da 1ª para a 6ª corda'], ['ida', 'Ida e volta', 'ida e volta nas seis cordas']];
-// figura: [duração, nome, explicação, andamento inicial, meta]
-const FIGURAS_TREINO = [[1, 'Semínimas', 'uma nota por batida', 60, 120], [.5, 'Colcheias', 'duas notas por batida', 60, 100], [1 / 3, 'Tercinas', 'três notas por batida', 50, 90], [.25, 'Semicolcheias', 'quatro notas por batida', 50, 80]];
-const figDe = f => FIGURAS_TREINO.find(x => Math.abs(x[0] - f) < .01) || FIGURAS_TREINO[0];
-const ESCALAS_TREINO = ['penta-menor', 'penta-maior', 'blues'];
-const permTexto = p => p.split('').join('-');
-const cfgCromPadrao = () => ({ perm: '1234', casa: 1, percurso: 'desce', fig: 1 });
-const cfgEscPadrao = () => ({ escala: 'penta-menor', raiz: 9, desenho: 0, percurso: 'ida', fig: 1 });
-
-function treinoCromatico(c) {
-  c = { ...cfgCromPadrao(), ...c };
-  const ordem = c.percurso === 'sobe' ? [5, 4, 3, 2, 1, 0] : c.percurso === 'ida' ? [0, 1, 2, 3, 4, 5, 4, 3, 2, 1] : [0, 1, 2, 3, 4, 5];
-  const per = PERCURSOS.find(p => p[0] === c.percurso) || PERCURSOS[0];
-  return { id: 'crom:' + c.perm, tipo: 'crom', cat: 'cromatico', cfg: c, nome: `Cromático ${permTexto(c.perm)}`,
-    resumo: `casa ${c.casa} a ${c.casa + 3} · ${per[2]}`, bpm: figDe(c.fig)[3], alvo: figDe(c.fig)[4],
-    notas: ordem.flatMap(s => c.perm.split('').map(d => [s, c.casa - 1 + +d, c.fig, +d])) };
-}
-function treinoEscala(c) {
-  c = { ...cfgEscPadrao(), ...c };
-  const E = ESCALAS.find(e => e[0] === c.escala) || ESCALAS[2];
-  const [i, f] = desenhosPenta(c.escala === 'penta-maior' ? pc(c.raiz + 9) : c.raiz)[c.desenho];
-  const set = new Set(notasEscala(c.raiz, c.escala)), sobe = [];
-  for (let s = 0; s < 6; s++) for (let k = i; k <= f; k++) if (set.has(pc(SOLTAS[s] + k))) sobe.push([s, k, c.fig, k === 0 ? 0 : Math.min(4, k - Math.max(1, i) + 1)]);
-  return { id: `esc:${c.escala}:${c.raiz}:${c.desenho}`, tipo: 'esc', cat: 'escalas', cfg: c, raiz: c.raiz,
-    nome: `${E[1]} de ${NOTAS[c.raiz]}`, resumo: `desenho ${c.desenho + 1}, casas ${i} a ${f} · ${c.percurso === 'ida' ? 'sobe e desce' : 'só sobe'}`,
-    bpm: figDe(c.fig)[3], alvo: figDe(c.fig)[4], notas: c.percurso === 'ida' ? sobeDesce(sobe) : sobe };
-}
-// qualquer treino pelo id (crom:1324, esc:blues:4:2 ou o id de um exercício pronto)
-function montarTreino(id, cfg) {
-  id = TREINO_ANTIGO[id] || id;
-  if (id.startsWith('crom:')) return treinoCromatico({ ...cfg, perm: (cfg && cfg.perm) || id.slice(5) });
-  if (id.startsWith('esc:')) { const [, escala, raiz, desenho] = id.split(':'); return treinoEscala({ escala, raiz: +raiz, desenho: +desenho, ...cfg }); }
-  return TREINOS_FIXOS.find(e => e.id === id) || null;
-}
-const nomeTreino = id => { const e = montarTreino(id); return e ? e.nome + (e.tipo === 'esc' ? ` · desenho ${e.cfg.desenho + 1}` : '') : id; };
-
 /* braço do treino: só as casas do exercício; cada nota com o dedo (ou o nome), a da vez acesa e a próxima marcada */
 function bracoTreino(ex) {
   const ks = ex.notas.map(n => n[1]), pres = ks.filter(k => k > 0);
@@ -83,23 +20,23 @@ function bracoTreino(ex) {
   ex.notas.forEach(([c, k, , d], i) => { const ch = c + ',' + k; if (!vistos.has(ch)) vistos.set(ch, { c, k, d, idx: [] }); vistos.get(ch).idx.push(i); });
   vistos.forEach(({ c, k, d, idx }) => {
     const cx = k === 0 ? X0 - 15 : x(k) - L / 2, n = pc(SOLTAS[c] + k), raiz = ex.raiz != null && n === ex.raiz;
-    const rot = ex.rotulo === 'nota' ? CIFRA[n] : (k === 0 ? '0' : d);
+    const rot = ex.rotulo === 'nota' ? CIFRA[n] : ex.rotulo === 'grau' && ex.raiz != null ? GRAUS[pc(n - ex.raiz)] : (k === 0 ? '0' : d);
     s += `<g class="nt${raiz ? ' raiz' : ''}" data-i="${idx.join(' ')}" data-nota="${c},${k}"><circle cx="${cx}" cy="${y(c)}" r="11.5"/><text x="${cx}" y="${y(c) + 4.5}" text-anchor="middle">${rot}</text></g>`;
   });
   return s + '</svg>';
 }
 
 /* tablatura: uma coluna por batida; com notas curtas, as colunas alargam para os números não se encostarem */
-function pxDe(ex) { return Math.max(56, Math.ceil(26 / Math.min(...ex.notas.map(n => n[2])))); }
+function pxDe(ex) { return Math.max(56, Math.ceil((ex.notas.some(n => n[4]) ? 36 : 30) / Math.min(...ex.notas.map(n => n[2])))); }
 function tabSVG(ex) {
   const PX = pxDe(ex), total = Math.ceil(ex.notas.reduce((s, n) => s + n[2], 0) - 1e-6), L = 40 + total * PX + 30, y = c => 18 + (5 - c) * 18;
   let s = `<svg class="tab" viewBox="0 0 ${L} 128" width="${L}" height="128" role="img" aria-label="Tablatura de ${esc(ex.nome)}">`;
   ['E', 'A', 'D', 'G', 'B', 'e'].forEach((r, c) => { s += `<text x="10" y="${y(c) + 4}" class="tab-r">${r}</text><line x1="24" y1="${y(c)}" x2="${L - 10}" y2="${y(c)}" class="tab-l"/>`; });
   for (let b = 0; b <= total; b++) s += `<line x1="${40 + b * PX}" y1="${y(5) - 6}" x2="${40 + b * PX}" y2="${y(0) + 6}" class="tab-b${b % 4 ? '' : ' forte'}"/>`;
   let t = 0;
-  ex.notas.forEach(([c, k, d], i) => {
-    const x = 40 + t * PX + 5;
-    s += `<g class="tab-n" data-i="${i}"><rect x="${x - 2}" y="${y(c) - 9}" width="${String(k).length * 8 + 6}" height="18" rx="4"/><text x="${x + 1}" y="${y(c) + 5}">${k}</text></g>`;
+  ex.notas.forEach(([c, k, d, , tc], i) => {
+    const x = 40 + t * PX + 5, rot = k + (tc || '');
+    s += `<g class="tab-n" data-i="${i}"><rect x="${x - 2}" y="${y(c) - 9}" width="${rot.length * 8 + 6}" height="18" rx="4"/><text x="${x + 1}" y="${y(c) + 5}">${rot}</text></g>`;
     t += d;
   });
   return s + `<line class="tab-cursor" x1="0" y1="4" x2="0" y2="124"/></svg>`;
@@ -116,10 +53,15 @@ function somCorda(a, midi) {
   for (let i = 0; i < n; i++) { const prox = (k + 1) % per, v = (linha[k] + linha[prox]) * .4985; d[i] = linha[k]; linha[k] = v; k = prox; }
   somCache.set(midi, buf); return buf;
 }
-function tocarCorda(midi, quando, dur = 1.6, vol = .5) {
+// técnica: b = bend de um tom, s = slide chegando de um tom abaixo, v = vibrato, h/p = ligado (sem o ataque da palheta)
+function tocarCorda(midi, quando, dur = 1.6, vol = .5, tec) {
   const a = audio(); if (!a) return;
   const s = a.createBufferSource(), g = a.createGain(), f = a.createBiquadFilter();
   s.buffer = somCorda(a, midi); f.type = 'lowpass'; f.frequency.value = 3200;
+  if (tec === 'b') { s.playbackRate.setValueAtTime(1, quando + dur * .12); s.playbackRate.linearRampToValueAtTime(Math.pow(2, 2 / 12), quando + dur * .5); }
+  if (tec === 's') { s.playbackRate.setValueAtTime(Math.pow(2, -2 / 12), quando); s.playbackRate.linearRampToValueAtTime(1, quando + Math.min(.12, dur * .4)); }
+  if (tec === 'v') { const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 5.5; lg.gain.value = .014; lfo.connect(lg); lg.connect(s.playbackRate); lfo.start(quando + dur * .2); lfo.stop(quando + dur + .5); }
+  if (tec === 'h' || tec === 'p') vol *= .7;
   g.gain.setValueAtTime(vol, quando); g.gain.setTargetAtTime(0.0001, quando + dur, .08);
   s.connect(f); f.connect(g); g.connect(treino.saida || a.destination); s.start(quando); s.stop(quando + dur + .5);
 }
@@ -136,7 +78,7 @@ function treinoTocar(o) {
   const rodadas = [];
   const agendar = (r, ini) => {
     const seg = 60 / r.bpm; let t = 0;
-    r.ex.notas.forEach(([c, k, d]) => { if (o.guia) tocarCorda(midiDe(c, k), ini + t * seg, Math.max(.2, d * seg * .95), .45); t += d; });
+    r.ex.notas.forEach(([c, k, d, , tc]) => { if (o.guia) tocarCorda(midiDe(c, k), ini + t * seg, Math.max(.2, d * seg * .95), .45, tc); t += d; });
     const batidas = Math.max(1, Math.ceil(t - 1e-6));
     if (o.metronomo !== false) for (let b = 0; b < batidas; b++) clique(b % 4 === 0, ini + b * seg);
     const rr = { ...r, ini, seg, batidas, fim: ini + batidas * seg, n: rodadas.length + 1, pos: [] };
@@ -147,7 +89,7 @@ function treinoTocar(o) {
   for (let b = 0; b < 4; b++) clique(b === 0, t0 + b * seg0);
   agendar(primeira, t0 + 4 * seg0);
   const comeco = Date.now(); let mostrada = null;
-  const resumo = parado => { const agora = a.currentTime, feitas = rodadas.filter(r => r.fim <= agora + .05); return { voltas: feitas.length, bpm: Math.max(0, ...feitas.map(r => r.bpm)), ultima: feitas[feitas.length - 1] || null, segs: (Date.now() - comeco) / 1000, parado }; };
+  const resumo = parado => { const agora = a.currentTime, feitas = rodadas.filter(r => r.fim <= agora + .05); return { voltas: feitas.length, bpm: Math.max(0, ...feitas.map(r => r.bpm)), ultima: feitas[feitas.length - 1] || null, segs: (Date.now() - comeco) / 1000, tocado: Math.max(0, agora - rodadas[0].ini), parado }; };
   const encerrar = parado => {
     if (!treino.tocando) return; const r = resumo(parado);
     treino.tocando = false; cancelAnimationFrame(treino.raf);
@@ -157,13 +99,13 @@ function treinoTocar(o) {
   const passo = () => {
     if (!treino.tocando) return;
     const agora = a.currentTime, ult = rodadas[rodadas.length - 1];
-    if (!ult.pedida && agora > ult.fim - .35) { ult.pedida = true; const p = o.proxima(ult); if (p) agendar(p, ult.fim); }
+    if (!ult.pedida && agora > ult.fim - .35) { ult.pedida = true; const p = o.proxima(ult, ult.fim - rodadas[0].ini); if (p) agendar(p, ult.fim); }
     const cur = rodadas.find(r => agora < r.fim);
     if (!cur) return encerrar(false);
     if (cur !== mostrada) { mostrada = cur; o.aoRodada && o.aoRodada(cur); }
     const beat = (agora - cur.ini) / cur.seg;
     let i = -1; if (beat >= 0) cur.pos.forEach((p, k) => { if (beat >= p) i = k; });
-    o.aoQuadro && o.aoQuadro(cur, beat, agora < cur.ini ? Math.ceil((cur.ini - agora) / cur.seg) : 0, i);
+    o.aoQuadro && o.aoQuadro(cur, beat, agora < cur.ini ? Math.ceil((cur.ini - agora) / cur.seg) : 0, i, Math.max(0, agora - rodadas[0].ini));
     treino.raf = requestAnimationFrame(passo);
   };
   treino.parar = () => encerrar(true);

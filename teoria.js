@@ -25,13 +25,21 @@ const ESCALAS = [
   ['lidio', 'Lídio', [0, 2, 4, 6, 7, 9, 11], 'Maior com a 4ª aumentada: trilhas de filme.'],
   ['mixolidio', 'Mixolídio', [0, 2, 4, 5, 7, 9, 10], 'Maior com a 7ª menor: rock clássico e blues.'],
   ['locrio', 'Lócrio', [0, 1, 3, 5, 6, 8, 10], 'O mais instável dos modos.'],
+  ['menor-melodica', 'Menor melódica', [0, 2, 3, 5, 7, 9, 11], 'Menor com a 6ª e a 7ª maiores: jazz e fusion.'],
+  ['frigio-dominante', 'Frígio dominante', [0, 1, 4, 5, 7, 8, 10], 'Quinto modo da menor harmônica: som espanhol e metal.'],
+  ['hungara-menor', 'Húngara menor', [0, 2, 3, 6, 7, 8, 11], 'Menor harmônica com a 4ª aumentada: exótica.'],
+  ['alterada', 'Alterada', [0, 1, 3, 4, 6, 8, 10], 'Todas as tensões do acorde dominante: jazz.'],
+  ['bebop-dominante', 'Bebop dominante', [0, 2, 4, 5, 7, 9, 10, 11], 'Mixolídio com a 7ª maior de passagem.'],
+  ['diminuta', 'Diminuta (tom e semitom)', [0, 2, 3, 5, 6, 8, 9, 11], 'Simétrica, de oito notas: tensão e suspense.'],
+  ['tons-inteiros', 'Tons inteiros', [0, 2, 4, 6, 8, 10], 'Só tons inteiros: som de sonho.'],
   ['cromatica', 'Cromática', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 'As doze notas.'],
 ];
 const TIPOS_ACORDE = [
   ['', 'Maior', [0, 4, 7]], ['m', 'Menor', [0, 3, 7]], ['5', 'Power chord', [0, 7]], ['7', 'Com sétima', [0, 4, 7, 10]],
   ['7M', 'Com sétima maior', [0, 4, 7, 11]], ['m7', 'Menor com sétima', [0, 3, 7, 10]], ['sus2', 'Suspenso com 2ª', [0, 2, 7]],
   ['sus4', 'Suspenso com 4ª', [0, 5, 7]], ['°', 'Diminuto', [0, 3, 6]], ['m7(b5)', 'Meio diminuto', [0, 3, 6, 10]],
-  ['+', 'Aumentado', [0, 4, 8]], ['6', 'Com sexta', [0, 4, 7, 9]], ['9', 'Com nona', [0, 4, 7, 10, 14]],
+  ['+', 'Aumentado', [0, 4, 8]], ['°7', 'Diminuto com sétima', [0, 3, 6, 9]], ['m(7M)', 'Menor com sétima maior', [0, 3, 7, 11]],
+  ['6', 'Com sexta', [0, 4, 7, 9]], ['9', 'Com nona', [0, 4, 7, 10, 14]],
 ];
 const pc = n => ((n % 12) + 12) % 12;
 const notasEscala = (raiz, id) => (ESCALAS.find(e => e[0] === id) || ESCALAS[0])[2].map(i => pc(raiz + i));

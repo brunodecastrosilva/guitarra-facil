@@ -2,6 +2,20 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.5.0 · 2026-11-01
+
+- App mais enxuto: cada função na sua tela. A barra de baixo fica Início, Treinos, Afinador, Teoria e Mais (Metrônomo, Bateria, Mapa do braço, Acordes, Músicas, Progresso e Ajustes).
+- Início é um menu de botões grandes e ilustrados, com a sequência de dias numa linha e o último treino para continuar.
+- Catálogo de 118 treinos em seis categorias (escalas, sequências, arpejos, licks, riffs e técnica) e três níveis (iniciante, intermediário e avançado), nos 12 tons e em todas as posições do braço: mais de 5 mil variações. Escalas novas: menor melódica, frígio dominante, húngara menor, alterada, bebop dominante, diminuta e tons inteiros. Acordes novos: diminuto com sétima e menor com sétima maior.
+- Treinos escolhidos um toque por vez: categoria, nível e duração (curto 2 min, moderado 5, longo 10, muito longo 20), com o caminho no topo para voltar. Botão "Sortear um treino".
+- A duração é o tempo da sessão, com relógio na tela: o curto fica num tom e numa posição; o moderado passa pelas posições; o longo, por quatro tons; o muito longo, pelos 12 tons em todo o braço.
+- Janela do treino compacta: braço, tablatura, andamento e um botão grande de tocar. Tom, posição, escala, ordem dos dedos, figura, duração, subida do andamento e o que o braço mostra (dedos, notas ou graus) ficam em Ajustes, numa vista separada.
+- Licks com bend, ligados, slide e vibrato, no som e na tablatura.
+- Afinador em tela própria, com ponteiro, a corda mais perto acesa e as afinações meio tom abaixo, Drop D e um tom abaixo.
+- Metrônomo com compasso (2/4, 3/4, 4/4, 6/8) e "Toque no ritmo"; bateria com o desenho de cada estilo; acordes que tocam ao toque.
+- Teoria vira um menu de cinco assuntos, um de cada vez; Músicas e Progresso em abas.
+- Conquistas novas: de tudo um pouco, fôlego, os 12 tons, nível avançado e dez licks. O histórico das versões anteriores continua valendo.
+
 ## 0.4.0 · 2026-11-01
 
 - O app agora é feito de treinos: saem a trilha de aulas, o teste de nível e o professor. A barra de baixo fica Hoje, Treinos, Teoria, Ferramentas e Mais (Músicas, Progresso e Ajustes).
