@@ -121,11 +121,11 @@ function tabSVG(ex) {
 }
 
 // um evento: cada nota do acorde com um pequeno atraso (a palheta descendo)
-function tocarEvento(e, A, quando, seg, vol) {
+function tocarEvento(e, A, quando, seg, vol, saida) {
   const T = tecs(e), dur = Math.max(.12, e.d * seg * .95);
   e.n.forEach(([c, k], j) => {
     const m = T.includes('harm') ? A[c] + (HARM[k] || 12) : A[c] + k;
-    tocarCorda(m, quando + j * .012, dur, (e.n.length > 1 ? .32 : .45) * vol * (j ? .9 : 1), T);
+    tocarCorda(m, quando + j * .012, dur, (e.n.length > 1 ? .32 : .45) * vol * (j ? .9 : 1), T, saida ? { saida } : {});
   });
 }
 
@@ -133,21 +133,35 @@ function tocarEvento(e, A, quando, seg, vol) {
    do fim da atual e agendada colada nela, então o tempo não quebra. Cada volta fecha em pulsos inteiros do compasso.
    Parar = desligar a saída por onde passa tudo o que foi agendado. */
 const treino = { tocando: false, raf: 0, saida: null };
+// volumes de cada parte, de 0 a 100 (Ajustes do treino › Volumes); o baixo e as cordas de fundo começam baixos
+const MIX_PADRAO = { guitarra: 100, segunda: 80, baixo: 60, fundo: 40, bateria: 85 };
 function treinoTocar(o) {
   const a = audio(); if (!a || treino.tocando) return false;
   const primeira = o.proxima(null); if (!primeira) return false;
   treino.tocando = true; treino.saida = a.createGain(); treino.saida.connect(somMestre(a));
+  // volumes separados (Documento Mestre, seção 13): cada parte tem o seu ganho, ligado na saída do treino
+  const mix = { ...MIX_PADRAO, ...(o.mix || {}) }, bus = Object.fromEntries(Object.keys(MIX_PADRAO).map(k => { const g = a.createGain(); g.gain.value = mix[k] / 100; g.connect(treino.saida); return [k, g]; }));
+  treino.bus = bus;
   const rodadas = [];
   const agendar = (r, ini) => {
     const seg = 60 / r.bpm, [cn, cp] = r.ex.compasso || [4, 1]; let t = 0;
     r.ex.evs.forEach(e => {
-      if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1);
-      if (o.harmonia && e.n.length === 1 && !tecs(e).some(x => x === 'x' || x === 'harm')) { const [c, k] = e.n[0]; tocarCorda(harmonizar(r.ex.afin[c] + k, r.ex, o.harmonia), ini + t * seg + .004, Math.max(.12, e.d * seg * .95), .3, tecs(e)); }
+      if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1, bus.guitarra);
+      if (e.n.length && mix.baixo > 0 && r.ex.modelo && r.ex.modelo.ehRiff && !r.ex.modelo.melodia && !tecs(e).includes('x') && !tecs(e).includes('harm')) tocarBaixo(Math.min(...e.n.map(([c, k]) => r.ex.afin[c] + k)) - 12, ini + t * seg, Math.max(.12, e.d * seg * (tecs(e).includes('pm') ? .5 : .95)), .8, bus.baixo);
+      if (o.harmonia && e.n.length === 1 && !tecs(e).some(x => x === 'x' || x === 'harm')) { const [c, k] = e.n[0]; tocarCorda(harmonizar(r.ex.afin[c] + k, r.ex, o.harmonia), ini + t * seg + .004, Math.max(.12, e.d * seg * .95), .3, tecs(e), { saida: bus.segunda }); }
       t += e.d;
     });
     const pulsos = Math.max(1, Math.ceil(t / cp - 1e-6)), batidas = pulsos * cp;
-    if (o.bateria) tocarBateriaNoTreino(a, o.bateria, ini, seg, batidas, [cn, cp]);
-    else if (o.metronomo !== false) for (let p = 0; p < pulsos; p++) clique(p % cn === 0, ini + p * cp * seg);
+    if (o.bateria) tocarBateriaNoTreino(a, o.bateria, ini, seg, batidas, [cn, cp], bus.bateria);
+    else if (o.metronomo !== false) for (let p = 0; p < pulsos; p++) clique(p % cn === 0, ini + p * cp * seg, bus.bateria);
+    // escalas e solos: o baixo marca a tônica no começo de cada compasso e as cordas seguram o acorde da tônica
+    if (r.ex.raiz != null && !(r.ex.modelo && r.ex.modelo.ehRiff && !r.ex.modelo.melodia)) {
+      const bl = cn * cp, menor = r.ex.escala && (ESCALAS.find(x => x[0] === r.ex.escala) || [, , [0, 3, 7]])[2].includes(3), raiz = 36 + pc(r.ex.raiz - 36);
+      for (let b = 0; b < batidas - 1e-6; b += bl) {
+        if (mix.baixo > 0) tocarBaixo(raiz, ini + b * seg, Math.min(bl, batidas - b) * seg * .95, .75, bus.baixo);
+        if (mix.fundo > 0) tocarFundo([raiz + 12, raiz + 12 + (menor ? 3 : 4), raiz + 19], ini + b * seg, Math.min(bl, batidas - b) * seg, .9, bus.fundo);
+      }
+    }
     const rr = { ...r, ini, seg, batidas, fim: ini + batidas * seg, n: rodadas.length + 1, pos: [] };
     let q = 0; r.ex.evs.forEach(e => { rr.pos.push(q); q += e.d; });
     rodadas.push(rr); return rr;
@@ -183,8 +197,8 @@ function treinoTocar(o) {
 }
 
 /* bateria no treino: em 4/4, o estilo escolhido; nos outros compassos, bumbo em cada pulso, caixa no meio do compasso */
-function tocarBateriaNoTreino(a, estilo, ini, seg, batidas, [cn, cp]) {
-  const dest = treino.saida || somMestre(a);
+function tocarBateriaNoTreino(a, estilo, ini, seg, batidas, [cn, cp], destino) {
+  const dest = destino || treino.saida || somMestre(a);
   if (cn * cp === 4 && cp === 1) {
     const [, , ppb, P] = ESTILOS_BATERIA.find(e => e[0] === estilo) || ESTILOS_BATERIA[0], tot = ppb * 4;
     for (let i = 0; i < Math.round(batidas * ppb); i++) { const p = i % tot, q = ini + i * seg / ppb; if (P.b.includes(p)) peca(a, 'b', q, dest); if (P.c.includes(p)) peca(a, 'c', q, dest); if (P.h.includes(p)) peca(a, 'h', q, dest); }

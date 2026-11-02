@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&family=Big+Shoulders+Display:wght@700..900&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.15.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.16.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -449,7 +449,10 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 .braco-tr .nt.ed.usada circle{fill:var(--kf-surface-2);stroke:var(--kf-line-2)}
 .braco-tr .nt.ed.sel circle{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}.braco-tr .nt.ed.sel text{fill:#fff}
 .braco-tr .nt.ed{cursor:pointer}.braco-tr .nt.ed:focus-visible{outline:none}
-.ed-tab .tab-n{cursor:pointer}.ed-dica{margin:0}
+.ed-tab .tab-n{cursor:pointer}
+/* biblioteca */
+.kf-seg.bib-f{display:flex;flex-wrap:wrap;max-width:none}.kf-seg.bib-f button{flex:1 1 auto;min-width:max-content;padding:4px 12px}
+.tr-vol{display:grid;gap:8px}.tr-vol input[type=range]{width:100%;min-height:44px;accent-color:var(--gf-vermelho)}.ed-dica{margin:0}
 .tr-teoria{margin:4px 0 0;text-align:center;font-size:13px;color:var(--kf-muted)}.tr-teoria:empty{display:none}
 /* sessão */
 .ses-dur{flex-wrap:wrap;margin:6px 0}
@@ -524,29 +527,30 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.15.0"></script>
-<script src="base.js?v=0.15.0"></script>
-<script src="teoria.js?v=0.15.0"></script>
-<script src="catalogo.js?v=0.15.0"></script>
-<script src="metal.js?v=0.15.0"></script>
-<script src="caminho.js?v=0.15.0"></script>
-<script src="exercicios.js?v=0.15.0"></script>
-<script src="som.js?v=0.15.0"></script>
-<script src="pratica.js?v=0.15.0"></script>
-<script src="musicas.js?v=0.15.0"></script>
-<script src="dados.js?v=0.15.0"></script>
-<script src="plano.js?v=0.15.0"></script>
-<script src="sessao.js?v=0.15.0"></script>
-<script src="evolucao.js?v=0.15.0"></script>
-<script src="tela-inicio.js?v=0.15.0"></script>
-<script src="tela-treinos.js?v=0.15.0"></script>
-<script src="ferramentas.js?v=0.15.0"></script>
-<script src="tela-musicas.js?v=0.15.0"></script>
-<script src="tela-progresso.js?v=0.15.0"></script>
-<script src="tela-teoria.js?v=0.15.0"></script>
-<script src="laboratorio.js?v=0.15.0"></script>
-<script src="estudio.js?v=0.15.0"></script>
-<script src="janela-treino.js?v=0.15.0"></script>
-<script src="app.js?v=0.15.0"></script>
+<script src="comum/kit-facil.js?v=0.16.0"></script>
+<script src="base.js?v=0.16.0"></script>
+<script src="teoria.js?v=0.16.0"></script>
+<script src="catalogo.js?v=0.16.0"></script>
+<script src="metal.js?v=0.16.0"></script>
+<script src="caminho.js?v=0.16.0"></script>
+<script src="exercicios.js?v=0.16.0"></script>
+<script src="som.js?v=0.16.0"></script>
+<script src="pratica.js?v=0.16.0"></script>
+<script src="musicas.js?v=0.16.0"></script>
+<script src="dados.js?v=0.16.0"></script>
+<script src="plano.js?v=0.16.0"></script>
+<script src="sessao.js?v=0.16.0"></script>
+<script src="evolucao.js?v=0.16.0"></script>
+<script src="tela-inicio.js?v=0.16.0"></script>
+<script src="tela-treinos.js?v=0.16.0"></script>
+<script src="ferramentas.js?v=0.16.0"></script>
+<script src="tela-musicas.js?v=0.16.0"></script>
+<script src="tela-progresso.js?v=0.16.0"></script>
+<script src="tela-teoria.js?v=0.16.0"></script>
+<script src="laboratorio.js?v=0.16.0"></script>
+<script src="estudio.js?v=0.16.0"></script>
+<script src="biblioteca.js?v=0.16.0"></script>
+<script src="janela-treino.js?v=0.16.0"></script>
+<script src="app.js?v=0.16.0"></script>
 </body>
 </html>

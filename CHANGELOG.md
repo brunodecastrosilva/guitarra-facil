@@ -2,6 +2,13 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.16.0 · 2026-11-02
+
+- Baixo e cordas de fundo gravados (FluidR3): nos riffs, o baixo dobra a nota mais grave uma oitava abaixo; nas escalas, nos solos e nas melodias, o baixo marca a tônica e as cordas seguram o acorde da tônica a cada compasso.
+- Volumes separados em Ajustes do treino: exemplo, segunda guitarra, baixo, cordas de fundo e bateria (ou metrônomo), de 0 a 100. Zero desliga.
+- Biblioteca (em Mais): trechos de obras em domínio público transcritos para a guitarra (Na gruta do rei da montanha, Para Elisa, Ode à alegria, Minueto em Sol, Tocata e fuga em Ré menor e Greensleeves) e riffs originais do app no jeito do heavy, do thrash, do doom, do hard rock e do metalcore. Filtros por origem e dificuldade e uma recomendação pela competência menos treinada. Nenhuma música protegida: o trecho que você tirou de ouvido vai para o Estúdio.
+- Os sons novos (1,3 MB) ficam guardados no aparelho para uso sem internet.
+
 ## 0.15.0 · 2026-11-02
 
 - Estúdio (em Mais e nos atalhos do Início): crie riffs e ideias tocando no braço ou escolhendo corda e casa. Escolha a duração de cada nota, ponha pausas, junte notas em acorde e marque técnicas (palm mute, ligados, bend, slide, vibrato e nota morta). A tablatura mostra a ideia com o ritmo; toque numa nota dela para escolher, mudar ou apagar (com Desfazer).

@@ -57,9 +57,9 @@ test('catálogo de rock e metal: estilos, técnicas, níveis exclusivos e tamanh
     const erros = [], comp = {}, tecPorNivel = { 1: 0, 2: 0, 3: 0 }, contaNivel = { 1: 0, 2: 0, 3: 0 };
     MODELOS.forEach(m => { const v = volta(m, cfgPadrao(m)), N = v.afin.length;
       v.evs.forEach(e => { if (!(e.d > 0)) erros.push(m.id + ' dur'); e.n.forEach(([s, k]) => { if (!(s >= 0 && s < N && k >= 0 && k <= 24)) erros.push(m.id); }); });
-      if (m.cat !== 'escalas' && m.cat !== 'caminho') { const [cn, cp] = v.compasso, b = v.evs.reduce((s, e) => s + e.d, 0) / (cn * cp); (comp[m.tamanho] = comp[m.tamanho] || new Set()).add(Math.round(b)); if (Math.abs(b - Math.round(b)) > 1e-6) erros.push(m.id + ' compasso');
+      if (m.cat !== 'escalas' && m.origem === 'gerado') { const [cn, cp] = v.compasso, b = v.evs.reduce((s, e) => s + e.d, 0) / (cn * cp); (comp[m.tamanho] = comp[m.tamanho] || new Set()).add(Math.round(b)); if (Math.abs(b - Math.round(b)) > 1e-6) erros.push(m.id + ' compasso');
         tecPorNivel[m.nivel] += new Set(v.evs.flatMap(e => tecs(e)).concat(v.evs.some(e => e.d < .24) ? ['rapido'] : [])).size; contaNivel[m.nivel]++; } });
-    const ids = n => new Set(MODELOS.filter(m => m.nivel === n && m.cat !== 'escalas' && m.cat !== 'caminho').map(m => JSON.stringify(volta(m, cfgPadrao(m)).evs.map(e => [e.d, e.n]))));
+    const ids = n => new Set(MODELOS.filter(m => m.nivel === n && m.cat !== 'escalas' && m.origem === 'gerado').map(m => JSON.stringify(volta(m, cfgPadrao(m)).evs.map(e => [e.d, e.n]))));
     const um = ids(1), tres = ids(3); let comuns = 0; tres.forEach(x => { if (um.has(x)) comuns++; });
     return { porCat, estilos: ESTILOS.length, tecnicas: TECNICAS_TREINO.length, erros: [...new Set(erros)].slice(0, 5), comp: Object.fromEntries(Object.entries(comp).map(([k, v]) => [k, [...v].sort((a, b) => a - b).join(',')])), comuns,
       riqueza: [1, 2, 3].map(n => tecPorNivel[n] / contaNivel[n]),
@@ -361,6 +361,34 @@ test('fase 5: Estúdio cria, edita, ouve, treina e faz variação de uma ideia; 
   await p.click('[data-lab-modo="livre"]'); await p.click('[data-lab="0,0"]'); await p.click('[data-lab="1,2"]');
   await p.click('[data-lab-estudio]');
   assert.ok(await esperar(() => p.evaluate(() => DB.ideias.length === 3 && DB.ideias[2].evs[0].n.length === 2)), 'as notas do braço viram o primeiro acorde');
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('fase 6: biblioteca só com domínio público e originais; baixo, cordas de fundo e volumes separados', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  const r = await p.evaluate(() => MODELOS.filter(m => m.cat === 'biblioteca').map(m => { const v = volta(m, cfgPadrao(m)), b = v.evs.reduce((s, e) => s + e.d, 0) / (v.compasso[0] * v.compasso[1]); return { id: m.id, sub: m.sub, ano: m.ano, autor: m.autor, fecha: Math.abs(b - Math.round(b)) < 1e-6, cabe: v.evs.every(e => e.n.every(([c, k]) => c >= 0 && c < 6 && k >= 0 && k <= 24)), comp: infoExercicio(m).competencias.length }; }));
+  assert.ok(r.length >= 12);
+  assert.deepEqual(r.filter(x => !x.fecha || !x.cabe || !x.comp).map(x => x.id), [], 'todo trecho fecha o compasso, cabe no braço e tem competência');
+  assert.deepEqual(r.filter(x => x.sub === 'dominio' && !(x.ano < 1929)).map(x => x.id), [], 'domínio público: só obras anteriores a 1929');
+  assert.ok(r.filter(x => x.sub === 'original').every(x => x.autor === 'Original do app'));
+  await irPelaNav(p, 'Biblioteca');
+  assert.match(await p.textContent('main'), /Obras em domínio público[\s\S]*Riffs originais do app/);
+  await p.click('[data-bib-origem="original"]');
+  assert.doesNotMatch(await p.textContent('main'), /Obras em domínio público/);
+  // volumes e acompanhamento
+  await p.evaluate(() => abrirTreino('bib:grieg-montanha', { bpm: 200 }));
+  const d = dlg(p); await d.waitFor();
+  await d.locator('#tr-aj').click();
+  await d.locator('.tr-vol summary').click();
+  await d.locator('#vol-baixo').fill('0');
+  assert.equal(await p.evaluate(() => DB.cfg.mix.baixo), 0, 'o volume do baixo fica guardado');
+  await d.locator('[data-tr-pronto]').click();
+  await d.locator('#tr-ir').click();
+  assert.ok(await esperar(() => p.evaluate(() => treino.tocando && treino.bus && treino.bus.baixo.gain.value === 0 && treino.bus.fundo.gain.value > 0)), 'cada parte tem o seu volume');
+  await d.locator('#tr-ir').click();
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });

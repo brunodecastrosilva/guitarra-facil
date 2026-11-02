@@ -5,6 +5,9 @@ Os sons desta pasta vêm do banco Fluid (R3), sob a licença MIT reproduzida aba
 
 - sons/guitarra: guitarra limpa (programa 28, "Electric Guitar (clean)") do FluidR3_GM, na conversão para web do
   projeto MIDI.js Soundfonts (github.com/gleitz/midi-js-soundfonts). Uma nota por arquivo, numerada pela nota MIDI.
+- sons/baixo: baixo de dedo (programa 34, "Electric Bass (finger)") do FluidR3_GM, na mesma conversão para web,
+  uma nota por arquivo (MIDI 21 a 52).
+- sons/fundo: cordas (programa 49, "String Ensemble 1") do FluidR3_GM, na mesma conversão, MIDI 45 a 71.
 - sons/bateria: peças do kit padrão e o clique de metrônomo do FluidR3Mono_GM (conversão mono de Michael Cowgill,
   distribuída com o MuseScore 3), tocadas uma a uma e gravadas em MP3.
 

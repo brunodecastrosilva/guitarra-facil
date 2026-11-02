@@ -4,6 +4,7 @@
    Duas vistas, uma de cada vez: o palco (braço, tablatura, parte da linha, andamento e o botão grande de tocar) e os
    ajustes (afinação, tom, posição, escala, figura, o que fazer a cada N voltas, subida do andamento, som, rótulos).
    No treino do dia, os quatro treinos vêm em fila: cada um por N voltas, com aviso uma volta antes da troca. */
+const VOLUMES = [['guitarra', 'Exemplo (guitarra)'], ['segunda', 'Segunda guitarra'], ['baixo', 'Baixo'], ['fundo', 'Cordas de fundo'], ['bateria', 'Bateria e metrônomo']];
 const SUBIDAS = [[0, 'Manter o andamento'], [1, '+1 bpm a cada volta'], [2, '+2 bpm a cada volta'], [5, '+5 bpm a cada volta']];
 const BPM_MIN = 30, BPM_MAX = 260;
 function abrirTreino(id, op = {}) {
@@ -32,6 +33,7 @@ function abrirTreino(id, op = {}) {
     ${ex.evs.some(e => e.n.length === 1) ? seg('harm', [['', 'Nenhuma'], ['tercas', 'Terças'], ['quintas', 'Quintas'], ['oitava', 'Oitava']], DB.cfg.trHarmonia || '', 'Segunda guitarra (harmonia)') : ''}
     ${seg('pct', [[50, '50%'], [70, '70%'], [85, '85%'], [100, '100%']], '', 'Ir para uma parte da meta de andamento')}
     ${seg('rot', [['dedo', 'Dedos'], ['nota', 'Notas'], ...(ex.raiz != null ? [['grau', 'Graus']] : [])], cfg.rotulo || m.rotulo || 'nota', 'No braço, mostrar')}
+    <details class="cartao tr-vol" data-kf-secao><summary>Volumes</summary>${VOLUMES.map(([k, n]) => { const v = { ...MIX_PADRAO, ...(DB.cfg.mix || {}) }[k]; return `<div class="campo"><label class="kf-rotulo" for="vol-${k}">${n}: <output id="vol-${k}-v">${v}%</output></label><input type="range" id="vol-${k}" data-vol="${k}" min="0" max="100" step="5" value="${v}"></div>`; }).join('')}<p class="apoio">O baixo dobra os riffs e marca a tônica das escalas e dos solos; as cordas de fundo seguram o acorde da tônica. Zero desliga.</p></details>
     <div class="tr-op"><label class="kf-check"><input type="checkbox" id="tr-verBraco" ${DB.cfg.trVerBraco !== false ? 'checked' : ''}><span>Mostrar o braço</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-verTab" ${DB.cfg.trVerTab !== false ? 'checked' : ''}><span>Mostrar a tablatura</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-guia" ${DB.cfg.trGuia !== false ? 'checked' : ''}><span>Tocar o exemplo junto comigo</span></label>
@@ -160,6 +162,7 @@ function abrirTreino(id, op = {}) {
           commit(); aplicarVista();
         });
         vista('verBraco', 'verTab', 'a tablatura'); vista('verTab', 'verBraco', 'o braço');
+        $$('[data-vol]', vA).forEach(r => r.addEventListener('input', () => { DB.cfg.mix = { ...MIX_PADRAO, ...(DB.cfg.mix || {}), [r.dataset.vol]: +r.value }; $(`#vol-${r.dataset.vol}-v`, vA).textContent = r.value + '%'; clearTimeout(r.t); r.t = setTimeout(commit, 400); }));
         $('[data-tr-pronto]', vA).onclick = fecharAjustes;
       };
       const fecharAjustes = () => { vA.hidden = true; vP.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'false'); KitFacil.movimento.entrar(vP, { de: 'tela' }); $('#tr-ir', d).focus(); };
@@ -250,7 +253,7 @@ function abrirTreino(id, op = {}) {
         { let el = vP.parentElement; while (el && el.scrollHeight <= el.clientHeight + 1) el = el.parentElement; if (el && el.scrollTop > 0) el.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } // o braço volta para a vista
         const ac = acomp();
         const ok = treinoTocar({ guia: exemplo || DB.cfg.trGuia !== false, metronomo: ac === 'metronomo', bateria: ac === 'bateria' ? (DB.cfg.trBateria || 'metal') : null, harmonia: DB.cfg.trHarmonia || null,
-          proxima, aoRodada, aoQuadro,
+          mix: DB.cfg.mix, proxima, aoRodada, aoQuadro,
           aoFim: async info => {
             botoes(false); limpar(); meta();
             await micDesligar();

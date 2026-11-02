@@ -67,6 +67,7 @@ function infoExercicio(m) {
   if (m.cat === 'caminho') (CAMINHO_COMP[m.sub] || []).forEach(c => C.add(c));
   if (m.cat === 'riffs') C.add('ritmo');
   if (m.cat === 'solos') C.add('escalas');
+  if (m.cat === 'biblioteca' || m.cat === 'estudio') C.add(m.melodia ? 'escalas' : 'ritmo');
   if (m.cat === 'escalas') C.add(m.grupo === 'Arpejo' ? 'arpejos' : 'escalas');
   if (T.has('pm') || T.has('pausas') || T.has('quialteras') || T.has('impar')) C.add('ritmo');
   if (T.has('acordes')) C.add('acordes');

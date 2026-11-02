@@ -2,10 +2,10 @@
 // Arquivos do app: busca a versão nova primeiro e usa a guardada se estiver sem internet.
 // Fontes têm versão fixa: usa a guardada.
 // O cache leva a versão do app (package.json); cada app só apaga as próprias cópias antigas.
-const CACHE = 'guitarra-facil-0.15.0';
-const APP = ['./', './index.html', './comum/kit-facil.js', './comum/kit-facil.css', './base.js', './teoria.js', './catalogo.js', './metal.js', './caminho.js', './exercicios.js', './som.js', './pratica.js', './musicas.js', './dados.js', './plano.js', './sessao.js', './evolucao.js', './tela-inicio.js', './tela-treinos.js', './ferramentas.js', './tela-musicas.js', './tela-progresso.js', './tela-teoria.js', './laboratorio.js', './estudio.js', './janela-treino.js', './app.js', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/favicon-32.png'];
+const CACHE = 'guitarra-facil-0.16.0';
+const APP = ['./', './index.html', './comum/kit-facil.js', './comum/kit-facil.css', './base.js', './teoria.js', './catalogo.js', './metal.js', './caminho.js', './exercicios.js', './som.js', './pratica.js', './musicas.js', './dados.js', './plano.js', './sessao.js', './evolucao.js', './tela-inicio.js', './tela-treinos.js', './ferramentas.js', './tela-musicas.js', './tela-progresso.js', './tela-teoria.js', './laboratorio.js', './estudio.js', './biblioteca.js', './janela-treino.js', './app.js', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/favicon-32.png'];
 // sons: guitarra limpa (uma nota por arquivo) e bateria; não mudam entre versões, então vêm primeiro da cópia guardada
-const SONS = [...Array.from({ length: 64 }, (_, i) => `./sons/guitarra/${28 + i}.mp3`), ...['bumbo', 'caixa', 'chimbal', 'chimbal-aberto', 'prato', 'conducao', 'tom-agudo', 'tom-grave', 'metronomo', 'metronomo-forte'].map(p => `./sons/bateria/${p}.mp3`)];
+const SONS = [...Array.from({ length: 64 }, (_, i) => `./sons/guitarra/${28 + i}.mp3`), ...Array.from({ length: 32 }, (_, i) => `./sons/baixo/${21 + i}.mp3`), ...Array.from({ length: 27 }, (_, i) => `./sons/fundo/${45 + i}.mp3`), ...['bumbo', 'caixa', 'chimbal', 'chimbal-aberto', 'prato', 'conducao', 'tom-agudo', 'tom-grave', 'metronomo', 'metronomo-forte'].map(p => `./sons/bateria/${p}.mp3`)];
 const LIBS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {

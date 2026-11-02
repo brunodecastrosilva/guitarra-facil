@@ -35,9 +35,9 @@ function tocarNota(hz, dur = 2.2) {
   tocarCorda(Math.round(12 * Math.log2(hz / 440) + 69), a.currentTime + .01, Math.min(dur, 1.8));
 }
 const metro = { ligado: false, t: null, prox: 0, batida: 0, inicio: 0 };
-function clique(acento, quando) {
+function clique(acento, quando, dest) {
   const a = audio(); if (!a) return;
-  somPeca(a, acento ? 'metronomo-forte' : 'metronomo', quando, (typeof treino !== 'undefined' && treino.saida) || somMestre(a));
+  somPeca(a, acento ? 'metronomo-forte' : 'metronomo', quando, dest || (typeof treino !== 'undefined' && treino.saida) || somMestre(a));
 }
 function metroLigar() {
   const a = audio(); metro.ligado = true; metro.batida = 0; metro.inicio = Date.now();

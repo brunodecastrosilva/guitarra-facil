@@ -4,7 +4,8 @@
    alto sem estourar quando guitarra, segunda guitarra e bateria tocam juntas. Enquanto as gravações não chegam (ou se
    o navegador não as abrir), o app toca uma corda gerada no aparelho, no mesmo timbre limpo. */
 'use strict';
-const SOM = { notas: new Map(), pecas: new Map(), ctx: null, mestre: null, preparado: null };
+const SOM = { notas: new Map(), pecas: new Map(), baixo: new Map(), fundo: new Map(), ctx: null, mestre: null, preparado: null };
+const BAIXO_DE = 21, BAIXO_ATE = 52, FUNDO_DE = 45, FUNDO_ATE = 71; // baixo: Lá 0 a Mi 3; cordas de fundo: Lá 2 a Si 4
 const SOM_DE = 28, SOM_ATE = 91; // Mi 1 a Sol 6: da sétima corda (Lá 1 em Drop A) aos harmônicos e à segunda guitarra
 const SOM_PECAS = ['bumbo', 'caixa', 'chimbal', 'chimbal-aberto', 'prato', 'conducao', 'tom-agudo', 'tom-grave', 'metronomo', 'metronomo-forte'];
 // quanto cada peça pesa na mistura (a guitarra vem na frente)
@@ -34,7 +35,10 @@ function somPreparar(a) {
   if (SOM.preparado || !a || typeof fetch !== 'function') return SOM.preparado;
   const notas = []; for (let m = SOM_DE; m <= SOM_ATE; m++) notas.push(somAbrir(a, `sons/guitarra/${m}.mp3`).then(x => SOM.notas.set(m, x)).catch(() => {}));
   const pecas = SOM_PECAS.map(p => somAbrir(a, `sons/bateria/${p}.mp3`).then(x => SOM.pecas.set(p, x)).catch(() => {}));
-  return (SOM.preparado = Promise.all([...notas, ...pecas]));
+  const extras = [];
+  for (let m = BAIXO_DE; m <= BAIXO_ATE; m++) extras.push(somAbrir(a, `sons/baixo/${m}.mp3`).then(x => SOM.baixo.set(m, x)).catch(() => {}));
+  for (let m = FUNDO_DE; m <= FUNDO_ATE; m++) extras.push(somAbrir(a, `sons/fundo/${m}.mp3`).then(x => SOM.fundo.set(m, x)).catch(() => {}));
+  return (SOM.preparado = Promise.all([...notas, ...pecas, ...extras]));
 }
 
 // muda a altura com uma curva suave (começo e fim devagar, como o dedo empurrando a corda)
@@ -123,4 +127,21 @@ function somPeca(a, nome, q, dest, forca = 1) {
   f.type = caixa ? 'bandpass' : 'highpass'; f.frequency.value = caixa ? 1800 : 7000;
   const dur = caixa ? .18 : nome === 'chimbal' ? .05 : .6; g.gain.setValueAtTime((caixa ? .7 : .25) * forca, q); g.gain.exponentialRampToValueAtTime(.001, q + dur);
   s.connect(f); f.connect(g); g.connect(dest); s.start(q); s.stop(q + dur + .02);
+}
+
+/* baixo (dobra a nota mais grave do riff uma oitava abaixo, ou marca a tônica) e cordas de fundo (o acorde da tônica,
+   macio, compasso a compasso). Sem a gravação, ficam em silêncio: são acompanhamento, não a lição. */
+function tocarBaixo(midi, quando, dur, vol, dest) {
+  const a = audio(); if (!a) return; let m = Math.round(midi); while (m > BAIXO_ATE) m -= 12; while (m < BAIXO_DE) m += 12;
+  const am = SOM.baixo.get(m); if (!am) return;
+  const s = a.createBufferSource(), g = a.createGain(); s.buffer = am.buf;
+  g.gain.setValueAtTime(0, quando); g.gain.linearRampToValueAtTime(vol * am.ganho * .9, quando + .006); g.gain.setTargetAtTime(0, quando + Math.max(.1, dur * .92), .06);
+  s.connect(g); g.connect(dest || somMestre(a)); s.start(quando, am.ini); s.stop(quando + dur + .5);
+}
+function tocarFundo(midis, quando, dur, vol, dest) {
+  const a = audio(); if (!a) return; const d = Math.min(dur, 3);
+  midis.forEach(m0 => { let m = Math.round(m0); while (m > FUNDO_ATE) m -= 12; while (m < FUNDO_DE) m += 12; const am = SOM.fundo.get(m); if (!am) return;
+    const s = a.createBufferSource(), g = a.createGain(); s.buffer = am.buf;
+    g.gain.setValueAtTime(0, quando); g.gain.linearRampToValueAtTime(vol * am.ganho * .35, quando + .25); g.gain.setTargetAtTime(0, quando + d * .85, .25);
+    s.connect(g); g.connect(dest || somMestre(a)); s.start(quando, am.ini); s.stop(quando + d + 1.2); });
 }
