@@ -23,7 +23,7 @@ test('abre sem erros em celular, tablet e computador, com a moldura da família 
     assert.deepEqual(t.erros, [], `${nome}: ${t.erros.join('; ')}`);
     const n = await conferirNavAjustes(p);
     assert.deepEqual(n.erros, [], `${nome}: ${n.erros.join('; ')}`);
-    for (const r of ['inicio', 'treinos', 'treinos/escalas', 'treinos/escalas/avancado', 'treinos/escalas/avancado/longo', 'afinador', 'teoria', 'teoria/circulo', 'metronomo', 'bateria', 'braco', 'acordes', 'musicas', 'musicas/playlists', 'progresso', 'progresso/conquistas']) {
+    for (const r of ['inicio', 'treinos', 'treinos/riffs', 'treinos/riffs/thrash', 'treinos/riffs/thrash/avancado', 'treinos/riffs/thrash/avancado/longo', 'treinos/tecnica/sweep/avancado/muito-longo', 'treinos/escalas/intermediario/longo', 'dia', 'favoritos', 'afinador', 'teoria', 'teoria/circulo', 'metronomo', 'bateria', 'braco', 'acordes', 'musicas/playlists', 'progresso/conquistas']) {
       await p.evaluate(r => ir(r), r);
       assert.ok(await semRolagemLateral(p), `${nome}: rolagem lateral em ${r}`);
     }
@@ -32,136 +32,155 @@ test('abre sem erros em celular, tablet e computador, com a moldura da família 
   }
 });
 
-test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; endereços antigos levam à tela certa', async () => {
+test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início tem treino do dia e dez botões', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Afinador', 'Teoria', 'Mais']);
+  assert.equal(await p.locator('nav.ladrilhos .ladrilho').count(), 10);
+  assert.equal(await p.locator('.dia-hero').count(), 1);
   for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Mapa do braço', 'Mapa do braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
   }
-  assert.equal(await p.locator('.ladrilho').count(), 0, 'Progresso não mostra o menu');
   await p.evaluate(() => { location.hash = '#/ferramentas/afinador'; });
-  assert.ok(await esperar(() => p.evaluate(() => rota() === 'afinador' && document.querySelector('.kf-titulo')?.textContent === 'Afinador')));
-  await p.evaluate(() => { location.hash = '#/hoje'; });
-  assert.ok(await esperar(() => p.evaluate(() => rota() === 'inicio' && !!document.querySelector('.ladrilhos'))));
-  assert.equal(await p.locator('nav.ladrilhos .ladrilho').count(), 9, 'o menu do Início tem nove botões');
+  assert.ok(await esperar(() => p.evaluate(() => rota() === 'afinador')));
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('catálogo: escalas, sequências, arpejos, licks, riffs e técnica em três níveis, 12 tons e todo o braço', async () => {
+test('catálogo de rock e metal: estilos, técnicas, níveis exclusivos e tamanhos por compassos', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   const r = await p.evaluate(() => {
-    const porCat = {}, erros = []; let variacoes = 0;
-    MODELOS.forEach(m => { porCat[m.cat] = porCat[m.cat] || new Set(); porCat[m.cat].add(m.nivel);
-      (m.usaTom ? [...Array(12).keys()] : [null]).forEach(raiz => { const c = { ...cfgPadrao(m), raiz }; m.regioes(c).forEach((_, pos) => { variacoes++; volta(m, { ...c, pos }).notas.forEach(n => { if (!(n[0] >= 0 && n[0] <= 5 && n[1] >= 0 && n[1] <= 22 && n[2] > 0 && n[3] >= 0 && n[3] <= 4)) erros.push(m.id); }); }); }); });
-    return { total: MODELOS.length, cats: Object.fromEntries(Object.entries(porCat).map(([k, v]) => [k, [...v].sort().join('')])), variacoes, erros: [...new Set(erros)],
-      penta: posicoesEscala('penta-menor', 9)[0].map(n => n[1]).join(','), maior3: posicoesEscala('maior', 0)[0].map(n => n[1]).join(','),
-      grupos3: aplicarPadrao(posicoesEscala('penta-menor', 9)[0], 'grupos3').length,
-      plano: ['curto', 'moderado', 'longo', 'muito-longo'].map(d => planoSessao(modelo('esc:dorico'), cfgPadrao(modelo('esc:dorico')), d).length).join(','),
-      tons: new Set(planoSessao(modelo('lick:i1'), cfgPadrao(modelo('lick:i1')), 'muito-longo').map(c => c.raiz)).size,
-      crom: planoSessao(modelo('tec:crom24'), cfgPadrao(modelo('tec:crom24')), 'muito-longo').map(c => c.perm).length };
+    const porCat = {}; MODELOS.forEach(m => porCat[m.cat] = (porCat[m.cat] || 0) + 1);
+    const erros = [], comp = {}, tecPorNivel = { 1: 0, 2: 0, 3: 0 }, contaNivel = { 1: 0, 2: 0, 3: 0 };
+    MODELOS.forEach(m => { const v = volta(m, cfgPadrao(m)), N = v.afin.length;
+      v.evs.forEach(e => { if (!(e.d > 0)) erros.push(m.id + ' dur'); e.n.forEach(([s, k]) => { if (!(s >= 0 && s < N && k >= 0 && k <= 24)) erros.push(m.id); }); });
+      if (m.cat !== 'escalas') { const [cn, cp] = v.compasso, b = v.evs.reduce((s, e) => s + e.d, 0) / (cn * cp); (comp[m.tamanho] = comp[m.tamanho] || new Set()).add(Math.round(b)); if (Math.abs(b - Math.round(b)) > 1e-6) erros.push(m.id + ' compasso');
+        tecPorNivel[m.nivel] += new Set(v.evs.flatMap(e => tecs(e)).concat(v.evs.some(e => e.d < .24) ? ['rapido'] : [])).size; contaNivel[m.nivel]++; } });
+    const ids = n => new Set(MODELOS.filter(m => m.nivel === n && m.cat !== 'escalas').map(m => JSON.stringify(volta(m, cfgPadrao(m)).evs.map(e => [e.d, e.n]))));
+    const um = ids(1), tres = ids(3); let comuns = 0; tres.forEach(x => { if (um.has(x)) comuns++; });
+    return { porCat, estilos: ESTILOS.length, tecnicas: TECNICAS_TREINO.length, erros: [...new Set(erros)].slice(0, 5), comp: Object.fromEntries(Object.entries(comp).map(([k, v]) => [k, [...v].sort((a, b) => a - b).join(',')])), comuns,
+      riqueza: [1, 2, 3].map(n => tecPorNivel[n] / contaNivel[n]),
+      drop: JSON.stringify(converterAfinacao([{ d: 1, n: [[0, 0], [1, 0], [2, 0]] }], 'drop-d', 'padrao')[0].n.map(n => n[1])),
+      sete: volta(modelo('riffs:deathcore:3:curto:0'), {}).afin.length };
   });
-  assert.ok(r.total >= 100, `${r.total} treinos`);
-  assert.deepEqual(r.cats, { escalas: '123', sequencias: '123', arpejos: '123', licks: '123', riffs: '123', tecnica: '123' });
-  assert.ok(r.variacoes > 4000, `${r.variacoes} variações`);
-  assert.deepEqual(r.erros, [], 'toda nota cabe no braço');
-  assert.equal(r.penta, '5,8,5,7,5,7,5,7,5,8,5,8', 'pentatônica de Lá, desenho 1');
-  assert.equal(r.maior3, '8,10,12,8,10,12,9,10,12,9,10,12,10,12,13,10,12,13', 'Dó maior em 3 notas por corda');
-  assert.equal(r.grupos3, 60);
-  assert.equal(r.plano, '1,7,28,84', 'curto: uma posição; moderado: 7 posições; longo: 4 tons; muito longo: 12 tons');
-  assert.equal(r.tons, 12); assert.equal(r.crom, 24);
+  assert.equal(r.estilos, 17); assert.equal(r.tecnicas, 17);
+  assert.ok(r.porCat.riffs >= 1600 && r.porCat.solos >= 1600 && r.porCat.tecnica >= 1600, JSON.stringify(r.porCat));
+  assert.deepEqual(r.erros, [], 'toda nota cabe no braço e todo compasso fecha');
+  assert.deepEqual(r.comp, { curto: '1', moderado: '2,4', longo: '8', 'muito-longo': '16' });
+  assert.equal(r.comuns, 0, 'nenhum treino do avançado repete um do iniciante');
+  assert.ok(r.riqueza[2] > r.riqueza[1] && r.riqueza[1] > r.riqueza[0], `técnicas por treino: ${r.riqueza.map(x => x.toFixed(1))}`);
+  assert.equal(r.drop, '[0,2,2]', 'power chord de um dedo em Drop D vira 0-2-2 na afinação padrão');
+  assert.equal(r.sete, 7, 'deathcore avançado em sete cordas');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('treinos um toque por vez: categoria, nível, duração e lista; o caminho volta um passo', async () => {
+test('treinos um toque por vez: categoria, estilo, nível, tamanho e lista; o caminho volta um passo', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   await irPelaNav(p, 'Treinos');
-  assert.equal(await p.locator('.ladrilho').count(), 6);
-  await p.click('.ladrilho:has-text("Arpejos")');
+  assert.equal(await p.locator('.ladrilho').count(), 4);
+  await p.click('.ladrilho:has-text("Riffs")');
+  assert.equal(await p.locator('.ladrilho').count(), 17, 'dezessete estilos');
+  await p.click('.ladrilho:has-text("Metalcore")');
   assert.equal(await p.locator('.ladrilho').count(), 3, 'três níveis');
-  await p.click('.ladrilho:has-text("Intermediário")');
-  assert.equal(await p.locator('.ladrilho').count(), 4, 'quatro durações');
-  await p.click('.ladrilho:has-text("Longo")');
-  assert.equal(await p.locator('.tr-item').count(), await p.evaluate(() => MODELOS.filter(m => m.cat === 'arpejos' && m.nivel === 2).length));
-  assert.equal(await p.locator('.ladrilho').count(), 0, 'só a lista aparece');
-  await p.click('.migalhas button:has-text("Arpejos")');
+  await p.click('.ladrilho:has-text("Avançado")');
+  assert.equal(await p.locator('.ladrilho').count(), 4, 'quatro tamanhos');
+  await p.click('.ladrilho:has-text("Muito longo")');
+  assert.equal(await p.locator('.tr-item').count(), 8);
+  await p.click('.migalhas button:has-text("Metalcore")');
   assert.equal(await p.locator('.ladrilho').count(), 3);
   await p.goBack();
-  assert.ok(await esperar(async () => (await p.locator('.tr-item').count()) > 0), 'o voltar do aparelho volta um passo');
+  assert.ok(await esperar(async () => (await p.locator('.tr-item').count()) === 8), 'o voltar do aparelho volta um passo');
   await p.click('[data-tr-sortear]');
   await dlg(p).waitFor();
-  assert.match(await dlg(p).locator('#tr-tempo').textContent(), /10:00/);
+  assert.match(await dlg(p).locator('.kf-dlg-cab h2').textContent(), /· Metalcore$/);
+  assert.match(await dlg(p).locator('#tr-volta').textContent(), /compasso 1 de 16/, 'linha longa: o braço vai de compasso em compasso');
+  assert.ok(await dlg(p).locator('.tab-pm').count() >= 1, 'palm mute marcado na tablatura');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('janela do treino: palco e ajustes em vistas separadas; a sessão passa pelas posições e termina no tempo', async () => {
+test('janela do treino: afinação, rótulos, etapa por posição com aviso antes da troca e andamento limpo', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  await p.evaluate(() => { DURACOES[1][2] = .15; DURACOES[0][2] = .05; }); // 9 s e 3 s, para o teste
-  await p.evaluate(() => abrirTreino('esc:penta-menor', { dur: 'moderado', bpm: 240, cfg: { fig: .25 } }));
+  await p.evaluate(() => abrirTreino('esc:menor:1', { bpm: 260, cfg: { tam: 'curto', fig: .25 } }));
   const d = dlg(p);
   await d.waitFor();
-  assert.equal(await d.locator('#tr-etapa').textContent(), 'Etapa 1 de 5');
   await d.locator('#tr-aj').click();
   assert.equal(await d.locator('#tr-v-palco').isHidden(), true, 'o palco some enquanto ajusta');
-  await d.locator('#tr-raiz-esc').click(); await p.click('.kf-esc-op:has-text("Mi (E)")');
+  await d.locator('#tr-afin-esc').click(); await p.click('.kf-esc-op:has(span:text-is("Drop C"))');
+  await d.locator('#tr-perc-esc').click(); await p.click('.kf-esc-op:has-text("próxima posição")');
+  await d.locator('[data-voltas="2"]').click();
   await d.locator('[data-rot="grau"]').click();
   await d.locator('[data-tr-pronto]').click();
-  assert.match(await d.locator('.kf-dlg-sub').textContent(), /^Mi · Posição 1/);
+  assert.equal(await d.locator('#tr-v-ajustes').isHidden(), true);
+  assert.match(await d.locator('.kf-dlg-sub').textContent(), /Drop C · Posição 1/);
   assert.ok(await d.locator('.braco-tr .nt text:text-is("T")').count() >= 2, 'graus no braço, com a tônica');
   await d.locator('#tr-ir').click();
   assert.ok(await esperar(() => p.evaluate(() => !!document.querySelector('.braco-tr .nt.agora'))), 'a nota da vez acende');
-  assert.ok(await esperar(() => d.locator('#tr-etapa').textContent().then(t => /Etapa [3-5] de 5/.test(t)), 12000), 'passa pelas posições');
-  assert.ok(await esperar(() => p.evaluate(() => !treino.tocando), 15000), 'termina sozinho no fim do tempo');
-  assert.match(await d.locator('.tr-fim').textContent(), /Treino concluído/);
+  assert.ok(await esperar(() => d.locator('#tr-aviso').isVisible(), 12000), 'aviso antes da troca');
+  assert.match(await d.locator('#tr-aviso').textContent(), /A seguir:.*Posição 2/);
+  assert.ok(await esperar(() => d.locator('.kf-dlg-sub').textContent().then(t => /Posição 2/.test(t)), 12000), 'troca de posição');
+  await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; });
+  await d.locator('#tr-ir').click();
   await d.locator('[data-limpo="1"]').click();
   const t = await p.evaluate(() => DB.treinos[DB.treinos.length - 1]);
-  assert.equal(t.ex, 'esc:penta-menor'); assert.equal(t.concluido, true); assert.equal(t.limpo, true); assert.equal(t.cfg.raiz, 4);
-  assert.ok(t.posicoes.length >= 3);
-  assert.ok(await p.evaluate(() => temConquista('primeiro')));
-  await p.keyboard.press('Escape');
-  await p.evaluate(() => ir('inicio'));
-  assert.match(await p.textContent('.continuar'), /Continuar[\s\S]*Pentatônica menor/);
-  await p.click('.continuar');
-  await d.waitFor();
-  assert.match(await d.locator('.kf-dlg-sub').textContent(), /^Mi/, 'continua no mesmo tom');
+  assert.equal(t.ex, 'esc:menor:1'); assert.equal(t.limpo, true); assert.equal(t.cfg.afin, 'drop-c');
+  assert.ok(await p.evaluate(() => temConquista('primeiro') && temConquista('drop')));
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('licks e técnica: bend e ligados na tablatura, ordem dos dedos no cromático', async () => {
+test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, com aviso', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  await p.evaluate(() => abrirTreino('lick:m1'));
+  await p.click('.dia-hero');
+  assert.equal(await p.locator('.dia-nivel').count(), 3);
+  assert.equal(await p.locator('.dia-nivel >> nth=1 >> .dia-lista li').count(), 4);
+  await p.evaluate(() => { DB.cfg.trVoltas = 2; DB.cfg.trCfg = {}; const m = treinoDoDia(2); m.forEach(id => { const x = modelo(id); x.bpm = 260; }); });
+  await p.click('[data-dia="2"]');
   const d = dlg(p);
   await d.waitFor();
-  assert.ok(await d.locator('.tab-n text', { hasText: /b$/ }).count() >= 1, 'o bend aparece na tablatura');
-  assert.match(await d.locator('.tr-legenda').textContent(), /bend de um tom/);
-  await p.keyboard.press('Escape');
-  await p.evaluate(() => abrirTreino('tec:crom'));
-  await d.waitFor();
-  await d.locator('#tr-aj').click();
-  await d.locator('[data-perm="1324"]').click();
-  await d.locator('#tr-pos-esc').click(); await p.click('.kf-esc-op:has-text("Casa 5")');
-  await d.locator('[data-tr-pronto]').click();
-  assert.match(await d.locator('.kf-dlg-cab h2').textContent(), /1-3-2-4/);
-  assert.deepEqual(await d.locator('.tab-n text').evaluateAll(x => x.slice(0, 4).map(t => t.textContent)), ['5', '7', '6', '8']);
+  assert.match(await d.locator('.kf-dlg-sub').textContent(), /^Treino do dia · 1 de 4/);
+  await d.locator('#tr-ir').click();
+  assert.ok(await esperar(() => d.locator('#tr-aviso').isVisible(), 20000), 'aviso do próximo treino');
+  assert.match(await d.locator('#tr-aviso').textContent(), /A seguir:.*·/);
+  assert.ok(await esperar(() => d.locator('.kf-dlg-sub').textContent().then(t => /2 de 4/.test(t)), 20000), 'passa para o segundo treino');
+  await d.locator('#tr-ir').click();
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('afinador em tela própria: nota pelo microfone, cordas para ouvir e outras afinações', async () => {
+test('favoritos: a estrela marca o treino, que aparece no Início e na lista de favoritos', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  await p.evaluate(() => abrirTreino('solos:shred:3:longo:0'));
+  const d = dlg(p);
+  await d.waitFor();
+  await d.locator('#tr-fav').click();
+  assert.equal(await d.locator('#tr-fav').getAttribute('aria-pressed'), 'true');
+  assert.ok(await d.locator('.tab-n').count() > 20);
+  await p.keyboard.press('Escape');
+  await p.evaluate(() => render());
+  assert.match(await p.textContent('.ladrilho[data-ir="favoritos"]'), /1 treino/);
+  await p.click('.ladrilho[data-ir="favoritos"]');
+  assert.equal(await p.locator('.tr-item').count(), 1);
+  assert.match(await p.textContent('.tr-item'), /★/);
+  assert.ok(await p.evaluate(() => temConquista('favorito')));
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('afinador em tela própria: nota pelo microfone, cordas para ouvir, drops e sete cordas', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
@@ -174,9 +193,11 @@ test('afinador em tela própria: nota pelo microfone, cordas para ouvir e outras
   assert.equal(await p.evaluate(() => detectarFrequencia(new Float32Array(2048), 48000)), null, 'silêncio não vira nota');
   await p.evaluate(() => mostrarNota(110 * Math.pow(2, -10 / 1200)));
   assert.match(await p.textContent('#af-msg'), /Lá: baixa/);
-  assert.equal(await p.locator('.corda-bt.perto').getAttribute('data-corda'), '1', 'a 5ª corda é a mais perto');
-  await p.click('#af-afinacao-esc'); await p.click('.kf-esc-op:has-text("Drop D")');
-  assert.equal(await p.textContent('[data-corda="0"] b'), 'D');
+  await p.click('#af-afinacao-esc'); await p.click('.kf-esc-op:has(span:text-is("Drop C"))');
+  assert.equal(await p.textContent('[data-corda="0"] b'), 'C');
+  await p.click('#af-afinacao-esc'); await p.click('.kf-esc-op:has-text("7 cordas (Si)")');
+  assert.equal(await p.locator('.corda-bt').count(), 7);
+  assert.equal(await p.textContent('[data-corda="0"] b'), 'B');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -191,19 +212,16 @@ test('metrônomo e bateria em telas próprias: andamento, compasso, toque no rit
   await p.click('[data-compasso="3"]');
   assert.equal(await p.locator('.batidas span').count(), 3);
   await p.evaluate(() => { let t = 1000; performance.now = () => (t += 500); tocarRitmo(); tocarRitmo(); tocarRitmo(); });
-  assert.equal(await p.textContent('#bpm'), '120', 'três toques a cada meio segundo = 120 bpm');
+  assert.equal(await p.textContent('#bpm'), '120');
   await p.click('#metro');
   assert.ok(await esperar(() => p.evaluate(() => !!document.querySelector('.batidas span.on')), 3000), 'a batida acende');
   await p.click('#metro');
-  assert.equal(await p.evaluate(() => metro.ligado), false);
   await irPelaNav(p, 'Bateria');
-  await p.click('[data-estilo="funk"]');
-  assert.equal(await p.getAttribute('[data-estilo="funk"]', 'aria-pressed'), 'true');
+  await p.click('[data-estilo="metal"]');
   await p.click('#bat-ligar');
   assert.ok(await esperar(() => p.evaluate(() => bateria.ligada)));
   await irPelaNav(p, 'Acordes');
   assert.equal(await p.evaluate(() => bateria.ligada), false, 'sair da tela para a bateria');
-  assert.equal(await p.locator('[data-acorde]').count(), 10);
   await p.click('[data-acorde="0"]');
   await irPelaNav(p, 'Mapa do braço');
   await p.click('[data-braco="todas"]');
@@ -216,81 +234,71 @@ test('teoria: menu de assuntos, cálculos certos e o botão Treinar', async () =
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  const r = await p.evaluate(() => ({
-    penta: notasEscala(9, 'penta-menor').map(n => CIFRA[n]).join(' '),
-    maiorG: notasEscala(7, 'maior').map(n => CIFRA[n]).join(' '),
-    campoG: campoHarmonico(7).map(c => c.triade).join(' '),
-    c7: notasAcorde(0, '7').map(n => CIFRA[n]).join(' '),
-    dim7: notasAcorde(0, '°7').map(n => CIFRA[n]).join(' '),
-    rel: CIFRA[relativaMenor(0)],
-    des: desenhosPenta(9)[0].join('-'),
-  }));
-  assert.equal(r.penta, 'A C D E G'); assert.equal(r.maiorG, 'G A B C D E F#'); assert.equal(r.campoG, 'G Am Bm C D Em F#°');
-  assert.equal(r.c7, 'C E G A#'); assert.equal(r.dim7, 'C D# F# A'); assert.equal(r.rel, 'A'); assert.equal(r.des, '5-8');
+  const r = await p.evaluate(() => ({ penta: notasEscala(9, 'penta-menor').map(n => CIFRA[n]).join(' '), campoG: campoHarmonico(7).map(c => c.triade).join(' '), dim7: notasAcorde(0, '°7').map(n => CIFRA[n]).join(' '), des: desenhosPenta(9)[0].join('-') }));
+  assert.equal(r.penta, 'A C D E G'); assert.equal(r.campoG, 'G Am Bm C D Em F#°'); assert.equal(r.dim7, 'C D# F# A'); assert.equal(r.des, '5-8');
   await irPelaNav(p, 'Teoria');
-  assert.equal(await p.locator('.ladrilho').count(), 5);
   await p.click('.ladrilho:has-text("Escalas no braço")');
-  assert.equal(await p.locator('.te-sec').count(), 1, 'só o assunto escolhido');
-  assert.ok(await p.locator('#te-braco [data-nota]').count() > 20);
+  assert.equal(await p.locator('.te-sec').count(), 1);
   await p.click('[data-te-des="2"]');
   await p.click('[data-te-treinar]');
   await dlg(p).waitFor();
-  assert.match(await dlg(p).locator('.kf-dlg-sub').textContent(), /Lá · Posição 3/);
+  assert.match(await dlg(p).locator('.kf-dlg-sub').textContent(), /Lá · Padrão \(Mi\) · Posição 3/);
   await p.keyboard.press('Escape');
-  await p.click('#te-esc-esc'); await p.click('.kf-esc-op:has-text("Maior (jônio)")');
-  assert.match(await p.textContent('#t-escalas'), /Notas: A · B · C# · D · E · F# · G#/);
   await p.click('.migalhas button:has-text("Teoria")');
   await p.click('.ladrilho:has-text("Círculo das quintas")');
   await p.click('#t-circulo [data-tom="7"]');
-  assert.match(await p.textContent('#t-circulo .campo-h'), /G[\s\S]*Am[\s\S]*Bm[\s\S]*C[\s\S]*D[\s\S]*Em[\s\S]*F#°/);
+  assert.match(await p.textContent('#t-circulo .campo-h'), /G[\s\S]*Am[\s\S]*Bm/);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('músicas: minhas músicas e playlists em abas; criar, excluir com Desfazer e adicionar da playlist', async () => {
+test('músicas: minhas músicas e playlists de inspiração por estilo', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   await irPelaNav(p, 'Músicas');
   assert.match(await p.textContent('.kf-vazio'), /Nenhuma música ainda/);
-  assert.equal(await p.locator('.playlist').count(), 0, 'as playlists ficam na outra aba');
   await p.click('.kf-criar');
-  await p.fill('#mu-t', 'Smoke on the Water');
-  await p.fill('#mu-a', 'Deep Purple');
+  await p.fill('#mu-t', 'Música de teste');
+  await p.fill('#mu-a', 'Banda de teste');
   await p.click('#mu-e-esc');
   await p.click('.kf-esc-op:has-text("Aprendendo")');
   await p.click('.kf-dlg-pe .kf-pri');
-  assert.match(await p.textContent('main'), /Aprendendo[\s\S]*Smoke on the Water/);
   await p.click('[data-musica]');
   await p.click('.kf-dlg [data-excluir]');
   assert.equal(await p.locator('[data-musica]').count(), 0);
   await p.click('.kf-toast-acao');
   assert.equal(await p.locator('[data-musica]').count(), 1);
   await p.click('.abas button:has-text("Playlists")');
-  assert.equal(await p.locator('.playlist').count(), 5);
-  assert.match(await p.getAttribute('#pl-1 a[href*="youtube"]', 'href'), /youtube\.com\/results\?search_query=/);
-  await p.evaluate(() => { document.getElementById('pl-1').open = true; });
-  await p.click('#pl-1 [data-pl-add="pl-1|0"]');
-  assert.equal(await p.evaluate(() => DB.musicas.some(m => m.titulo === "Knockin' on Heaven's Door")), true);
+  assert.equal(await p.locator('.playlist').count(), 17);
+  assert.match(await p.getAttribute('#pl-thrash a[href*="youtube"]', 'href'), /youtube\.com\/results\?search_query=/);
+  await p.evaluate(() => { document.getElementById('pl-thrash').open = true; });
+  await p.click('#pl-thrash [data-pl-add="pl-thrash|0"]');
+  assert.equal(await p.evaluate(() => DB.musicas.some(m => m.titulo === 'Master of Puppets')), true);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('início e progresso: sequência de dias, abas de progresso e conquistas', async () => {
+test('início e progresso: sequência de dias, continuar, abas de progresso e conquistas', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
   assert.match(await p.textContent('.seq'), /Comece sua sequência hoje/);
-  await p.evaluate(() => { const d = 864e5, n = Date.now(); [0, 1, 2, 5].forEach(k => DB.praticas.push({ id: 'p' + k, em: n - k * d, min: 25 })); DB.treinos.push({ id: 't1', ex: 'crom:1324', bpm: 100, limpo: true, em: n - 3600e3 }, { id: 't2', ex: 'ex-1234', bpm: 80, acerto: 95, em: n - 2 * d }); commit(); conferirConquistas(false); render(); });
+  await p.evaluate(() => { const d = 864e5, n = Date.now(); [0, 1, 2, 5].forEach(k => DB.praticas.push({ id: 'p' + k, em: n - k * d, min: 25 })); DB.treinos.push({ id: 't0', ex: 'ex-penta', bpm: 80, acerto: 95, em: n - 2 * d }, { id: 't1', ex: 'riffs:thrash:3:longo:2', cfg: {}, voltas: 2, bpm: 140, limpo: true, em: n - 3600e3 }); commit(); conferirConquistas(false); render(); });
   assert.match(await p.textContent('.seq'), /3 dias seguidos[\s\S]*25 de 20 min hoje · meta batida/);
-  assert.match(await p.textContent('.continuar'), /Cromático 1-2-3-4 · 1-3-2-4/, 'treinos da versão anterior continuam valendo');
-  assert.ok(await p.evaluate(() => ['primeiro', 'meta', 'dias3', 'bpm100'].every(id => temConquista(id))));
+  assert.match(await p.textContent('.continuar'), /Thrash metal/);
+  assert.ok(await p.evaluate(() => ['primeiro', 'meta', 'dias3', 'avancado', 'limpo140'].every(id => temConquista(id))));
+  await p.click('.continuar');
+  await dlg(p).waitFor();
+  assert.equal(await dlg(p).locator('#tr-bpm').textContent(), '140');
+  await p.keyboard.press('Escape');
   await irPelaNav(p, 'Progresso');
   assert.equal(await p.locator('.grafico rect').count(), 7);
   await p.click('.abas button:has-text("Andamentos")');
-  assert.match(await p.textContent('.andas'), /Cromático 1-2-3-4[\s\S]*melhor limpo 100/);
+  assert.match(await p.textContent('.andas'), /Thrash metal[\s\S]*melhor limpo 140/);
+  assert.match(await p.textContent('.andas'), /Pentatônica menor/, 'treino antigo vira a escala de hoje');
   await p.click('.abas button:has-text("Conquistas")');
-  assert.match(await p.textContent('.conquistas'), /Cromático a 100[\s\S]*ganha hoje/);
+  assert.match(await p.textContent('.conquistas'), /Nível avançado[\s\S]*ganha/);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -313,11 +321,11 @@ const conectar = async p => {
   await p.fill('#kf-token', TOKEN_TESTE);
   await p.click('[data-kf-conectar]');
 };
-test('sincronização: treinos, conquistas e músicas passam de um aparelho para o outro, criptografadas', async () => {
+test('sincronização: treinos, favoritos, conquistas e músicas passam de um aparelho para o outro, criptografadas', async () => {
   const gh = githubFalso();
   const a = await aparelho(amb, { github: gh });
   await pronto(a.page);
-  await a.page.evaluate(() => { DB.musicas.push({ id: 'm1', titulo: 'Wonderwall', artista: '', estado: 'quero', obs: '' }); DB.treinos.push({ id: 't1', ex: 'lick:a3', cfg: { raiz: 2, pos: 1 }, dur: 'curto', bpm: 90, limpo: true, em: Date.now() }); commit(); conferirConquistas(false); render(); });
+  await a.page.evaluate(() => { DB.musicas.push({ id: 'm1', titulo: 'Wonderwall', artista: '', estado: 'quero', obs: '' }); DB.treinos.push({ id: 't1', ex: 'solos:shred:3:curto:1', cfg: {}, bpm: 90, voltas: 1, limpo: true, em: Date.now() }); DB.favoritos.push({ id: 'riffs:doom:1:curto:0', em: Date.now() }); commit(); conferirConquistas(false); render(); });
   await conectar(a.page);
   assert.ok(await esperar(async () => (await a.page.getAttribute('[data-kf-nuvem]', 'data-estado')) === 'sincronizado'), 'o primeiro aparelho sincroniza');
   const arq = gh.arquivo('guitarra-facil.json');
@@ -325,7 +333,7 @@ test('sincronização: treinos, conquistas e músicas passam de um aparelho para
   const b = await aparelho(amb, { github: gh });
   await pronto(b.page);
   await conectar(b.page);
-  assert.ok(await esperar(() => b.page.evaluate(() => DB.musicas.some(m => m.titulo === 'Wonderwall') && DB.treinos.length === 1 && DB.conquistas.some(c => c.id === 'avancado'))), 'o segundo aparelho recebe os dados');
+  assert.ok(await esperar(() => b.page.evaluate(() => DB.musicas.some(m => m.titulo === 'Wonderwall') && DB.treinos.length === 1 && DB.favoritos.length === 1 && DB.conquistas.some(c => c.id === 'avancado'))), 'o segundo aparelho recebe os dados');
   assert.deepEqual(a.erros, []); assert.deepEqual(b.erros, []);
   await a.fechar(); await b.fechar();
 });

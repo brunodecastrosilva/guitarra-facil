@@ -2,6 +2,21 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.6.0 · 2026-11-02
+
+- App de rock e metal: 4.934 treinos. São 1.632 riffs e 1.632 solos em 17 estilos (hard rock, punk, heavy clássico, thrash, speed e power, groove, death, death melódico, black, doom e stoner, metalcore, deathcore, nu metal, djent, progressivo, grunge, shred) e 1.632 treinos de técnica em 17 técnicas (palhetada alternada, para baixo, palm mute, galope, tremolo, legato, tapping, varredura, pulo de corda, econômica, híbrida, bends, harmônicos e efeitos, power chords, independência dos dedos, ritmo e polirritmia, troca de posição), mais as escalas, sequências e arpejos.
+- Cada nível tem os seus treinos, e nenhum se repete entre o iniciante e o avançado. A dificuldade vem da complexidade e não do andamento: o avançado mistura técnicas, quiálteras, fusas, compassos ímpares (5/4, 7/8, 5/8, 7/4, 9/8) e grupos que atravessam o compasso.
+- O tamanho agora é o tamanho da linha, não o tempo: curto (1 compasso), moderado (2 a 4), longo (8, com partes A e B ou breakdown) e muito longo (16, com riff A, riff B, breakdown ou ponte e solo). Saiu o relógio.
+- Afinações: padrão, meio tom e um tom abaixo, Drop D, Drop C#, Drop C, Drop B, 7 cordas e 7 cordas Drop A. Cada estilo e nível vem na sua afinação, e o treino pode ir para outra mantendo o desenho do riff. O afinador também tem as 9 afinações.
+- Acordes, power chords, oitavas e pausas nos treinos. Som distorcido ou limpo, com palm mute, pinch harmonic, harmônico natural, nota morta, bend, volta do bend, slide, vibrato, trinado, tapping e alavanca, no som e na tablatura (PM, *, <12>, x, b, r, s, ~, T).
+- Nas linhas longas, o braço mostra um compasso de cada vez e troca junto com a música; a parte da vez (Riff A, Breakdown, Solo) aparece no palco.
+- Treino do dia: quatro treinos do nível escolhido em fila (técnica, riff, solo e uma linha longa), cada um por 2, 4 ou 8 voltas, trocando sozinho.
+- Aviso da próxima etapa uma volta antes da troca, no treino do dia e ao andar por tons ou posições.
+- Favoritos: estrela na janela do treino, botão no Início e lista própria.
+- Playlists de inspiração: 17, uma por estilo, com o que ouvir em cada música.
+- Visual mais escuro e frio, com o vermelho do pedal nas trilhas, nos selos, nos botões de tocar e nas partes.
+- Conquistas novas: treino do dia, estilos, técnicas, linha inteira, afinação baixa, sete cordas, rápido e limpo, favorito.
+
 ## 0.5.0 · 2026-11-01
 
 - App mais enxuto: cada função na sua tela. A barra de baixo fica Início, Treinos, Afinador, Teoria e Mais (Metrônomo, Bateria, Mapa do braço, Acordes, Músicas, Progresso e Ajustes).

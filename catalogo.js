@@ -1,35 +1,43 @@
-/* Guitarra Fácil · catálogo de treinos.
-   Cada treino é um modelo que se transpõe para os 12 tons e para as posições do braço: escalas, sequências, arpejos,
-   licks, riffs e técnica, em três níveis. A duração (curto, moderado, longo, muito longo) é o tempo da sessão: quanto
-   mais longa, mais posições e tons o treino percorre. Licks e riffs são originais do app. */
+/* Guitarra Fácil · catálogo de treinos: níveis, tamanhos, categorias, as posições do braço e as escalas, sequências e
+   arpejos. Os riffs, solos e treinos de técnica por estilo vêm de metal.js. Cada nível tem treinos só dele: a
+   dificuldade está na complexidade (técnicas, ritmo, mistura), não no andamento. O tamanho é o tamanho da linha. */
 'use strict';
 const NIVEIS = [
-  [1, 'iniciante', 'Iniciante', 'Posições do começo do braço, notas mais longas e andamento calmo.'],
-  [2, 'intermediario', 'Intermediário', 'Todo o braço, colcheias e tercinas, modos e acordes com sétima.'],
-  [3, 'avancado', 'Avançado', 'Semicolcheias, sequências longas, varredura e escalas menos comuns.'],
+  [1, 'iniciante', 'Iniciante', 'Uma técnica por vez, colcheias e semínimas, power chords e palm mute.'],
+  [2, 'intermediario', 'Intermediário', 'Semicolcheias, galopes, síncopes, ligados, pinch e três notas por corda.'],
+  [3, 'avancado', 'Avançado', 'Várias técnicas juntas, varredura, tapping, quiálteras, compassos ímpares e polirritmia.'],
 ];
-const DURACOES = [
-  ['curto', 'Curto', 2, 'Um tom, uma posição.'],
-  ['moderado', 'Moderado', 5, 'Todas as posições, num tom.'],
-  ['longo', 'Longo', 10, 'Todo o braço, em quatro tons.'],
-  ['muito-longo', 'Muito longo', 20, 'Todo o braço, nos 12 tons.'],
+// tamanho: [id, nome, compassos, explicação] — o tamanho da linha, não o tempo de prática (decisão do Bruno, 02/11/2026)
+const TAMANHOS = [
+  ['curto', 'Curto', 1, '1 compasso: uma ideia.'],
+  ['moderado', 'Moderado', 4, '2 a 4 compassos: a frase e uma variação.'],
+  ['longo', 'Longo', 8, '8 compassos: partes A e B.'],
+  ['muito-longo', 'Muito longo', 16, '16 compassos ou mais: riff, variação, virada e solo.'],
 ];
 const CATEGORIAS = [
-  ['escalas', 'Escalas', 'Subir e descer cada escala, posição por posição.'],
-  ['sequencias', 'Sequências', 'A escala em grupos, terças, quartas e sextas.'],
-  ['arpejos', 'Arpejos', 'Os acordes nota por nota, em todo o braço.'],
-  ['licks', 'Licks', 'Frases curtas e longas para solar.'],
-  ['riffs', 'Riffs', 'Linhas no grave, do rock ao metal.'],
-  ['tecnica', 'Técnica', 'Dedos, palhetada e ligados.'],
+  ['riffs', 'Riffs', 'Palm mute, power chords, galopes, breakdowns.'],
+  ['solos', 'Solos e licks', 'Frases para solar, das simples às insanas.'],
+  ['tecnica', 'Técnica', 'Cada técnica levada ao extremo.'],
+  ['escalas', 'Escalas e arpejos', 'Escalas, sequências e arpejos no braço todo.'],
 ];
-// figura: [duração, nome, explicação]
-const FIGURAS_TREINO = [[1, 'Semínimas', 'uma nota por batida'], [.5, 'Colcheias', 'duas notas por batida'], [1 / 3, 'Tercinas', 'três notas por batida'], [.25, 'Semicolcheias', 'quatro notas por batida']];
-const ANDAMENTO = { 1: [60, 90], 2: [70, 120], 3: [80, 140] }; // nível: andamento inicial e meta
-const TECNICAS = { b: 'bend de um tom', h: 'ligado para cima', p: 'ligado para baixo', s: 'slide', v: 'vibrato' };
+const FIGURAS_TREINO = [[1, 'Semínimas', 'uma nota por batida'], [.5, 'Colcheias', 'duas notas por batida'], [1 / 3, 'Tercinas', 'três notas por batida'], [.25, 'Semicolcheias', 'quatro notas por batida'], [1 / 6, 'Sextinas', 'seis notas por batida']];
+const ANDAMENTO = { 1: [70, 110], 2: [70, 120], 3: [70, 130] }; // a dificuldade não sobe pelo andamento
 const cicloQuartas = r => Array.from({ length: 12 }, (_, i) => pc(r + 5 * i));
 const nomeEscala = id => (ESCALAS.find(e => e[0] === id) || ESCALAS[0])[1];
 const nomeTipo = t => (TIPOS_ACORDE.find(x => x[0] === t) || TIPOS_ACORDE[0])[1];
 const ESCALAS_SEQ = ESCALAS.filter(e => e[0] !== 'cromatica').map(e => e[0]);
+const ev = (d, n, t = '') => ({ d, n, t });
+const evDeTuplas = tu => tu.map(([s, k, d, f, t]) => ev(d, [[s, k, f]], t || ''));
+// dedos: a mão anda com as notas (quando uma nota sai do alcance de quatro casas, a mão vai junto)
+function dedosEventos(evs) {
+  let base = null;
+  return evs.map(e => {
+    if (e.n.length !== 1 || e.n[0][2] != null) return e;
+    const [s, k] = e.n[0]; if (k === 0) return { ...e, n: [[s, k, 0]] };
+    if (base == null || k < base) base = k; else if (k > base + 3) base = k - 3;
+    return { ...e, n: [[s, k, Math.min(4, k - base + 1)]] };
+  });
+}
 
 /* ================= o braço: posições e digitação ================= */
 // dedos por corda: casa mais baixa da posição = dedo 1; se a corda pedir abertura maior, a própria corda decide
@@ -110,188 +118,65 @@ function aplicarPadrao(pos, id) {
   return [...sobe, ...desce];
 }
 
-/* ================= licks (originais do app) =================
-   [id, nível, nome, escala, notas]: nota = [semitons acima da tônica grave, duração em batidas, técnica] */
-const LICKS = [
-  ['i1', 1, 'Primeira frase', 'penta-menor', [[15, 1], [17, 1], [19, 1], [17, 1], [15, 1], [12, 2]]],
-  ['i2', 1, 'Descida da pentatônica', 'penta-menor', [[24, 1], [22, 1], [19, 1], [17, 1], [15, 1], [12, 2]]],
-  ['i3', 1, 'Resposta no grave', 'penta-menor', [[3, 1], [5, 1], [7, 1], [5, 1], [3, 1], [0, 2]]],
-  ['i4', 1, 'Blues de três notas', 'blues', [[12, 1], [15, 1], [17, .5], [18, .5], [17, 1], [15, 1], [12, 2]]],
-  ['i5', 1, 'Pentatônica alegre', 'penta-maior', [[12, 1], [14, 1], [16, 1], [19, 1], [16, 1], [14, 1], [12, 2]]],
-  ['i6', 1, 'Subida da escala maior', 'maior', [[12, .5], [14, .5], [16, .5], [17, .5], [19, 1], [17, .5], [16, .5], [14, 1], [12, 1]]],
-  ['i7', 1, 'Vai e volta', 'penta-menor', [[12, 1], [15, 1], [12, 1], [17, 1], [12, 1], [19, 1], [17, 1], [15, 1]]],
-  ['i8', 1, 'Frase do rock', 'penta-menor', [[17, 1], [19, .5], [17, .5], [15, 1], [12, 1], [10, 1], [12, 2]]],
-  ['i9', 1, 'Nota longa com vibrato', 'penta-menor', [[19, 1], [17, 1], [15, 1], [17, 3, 'v']]],
-  ['i10', 1, 'Melodia em terças', 'maior', [[12, 1], [16, 1], [14, 1], [17, 1], [16, 1], [19, 1], [24, 2]]],
-  ['i11', 1, 'Blues no grave', 'blues', [[0, 1], [3, 1], [5, 1], [6, 1], [7, 1], [10, 1], [12, 2]]],
-  ['i12', 1, 'Menor tranquila', 'menor', [[12, 1], [14, 1], [15, 1], [17, 1], [19, 1], [15, 1], [14, 1], [12, 1]]],
-  ['m1', 2, 'Bend na pentatônica', 'penta-menor', [[22, 1, 'b'], [22, .5], [19, .5], [17, 1], [19, .5], [17, .5], [15, 1], [12, 1]]],
-  ['m2', 2, 'Ligados na pentatônica', 'penta-menor', [[12, .5], [15, .5, 'h'], [17, .5], [15, .5, 'p'], [12, .5], [10, .5], [12, 2, 'v']]],
-  ['m3', 2, 'Dórico de funk', 'dorico', [[12, .5], [14, .5], [15, .5], [17, .5], [19, .5], [21, .5], [19, .5], [17, .5], [15, 1], [12, 1]]],
-  ['m4', 2, 'Mixolídio do rock', 'mixolidio', [[12, .5], [16, .5], [19, .5], [22, .5], [24, 1], [22, .5], [19, .5], [16, 1], [14, .5], [12, .5]]],
-  ['m5', 2, 'Subida harmônica', 'menor-harmonica', [[12, .5], [14, .5], [15, .5], [17, .5], [19, .5], [20, .5], [23, .5], [24, .5], [23, 1], [19, 1]]],
-  ['m6', 2, 'Tercinas descendo', 'penta-menor', [[24, 1 / 3], [22, 1 / 3], [19, 1 / 3], [22, 1 / 3], [19, 1 / 3], [17, 1 / 3], [19, 1 / 3], [17, 1 / 3], [15, 1 / 3], [17, 1 / 3], [15, 1 / 3], [12, 1 / 3], [12, 2]]],
-  ['m7', 2, 'Blue note com slide', 'blues', [[15, .5], [17, .5], [18, .5], [17, .5], [15, .5], [12, .5], [10, .5], [12, .5, 's'], [15, 1, 'b'], [12, 1]]],
-  ['m8', 2, 'Pentatônica country', 'penta-maior', [[12, .5], [14, .5, 'h'], [16, .5], [19, .5], [21, .5], [19, .5], [16, .5], [14, .5], [12, 2]]],
-  ['m9', 2, 'Lídio luminoso', 'lidio', [[12, .5], [16, .5], [18, .5], [19, .5], [23, 1], [19, .5], [18, .5], [16, 1], [12, 1]]],
-  ['m10', 2, 'Arpejo e escala', 'maior', [[12, .5], [16, .5], [19, .5], [24, .5], [23, .5], [21, .5], [19, .5], [17, .5], [16, 2]]],
-  ['m11', 2, 'Frígio pesado', 'frigio', [[0, .5], [1, .5], [0, .5], [3, .5], [0, .5], [1, .5], [5, .5], [3, .5], [1, 1], [0, 1]]],
-  ['m12', 2, 'Slide entre desenhos', 'penta-menor', [[12, .5], [15, .5], [17, .5, 's'], [19, .5], [22, .5], [24, .5], [22, 1, 'b'], [19, 1]]],
-  ['a1', 3, 'Descida em semicolcheias', 'penta-menor', [[24, .25], [22, .25], [19, .25], [22, .25], [19, .25], [17, .25], [19, .25], [17, .25], [15, .25], [17, .25], [15, .25], [12, .25], [15, .25], [12, .25], [10, .25], [12, .25], [12, 2, 'v']]],
-  ['a2', 3, 'Legato dórico', 'dorico', [[12, .25], [14, .25, 'h'], [15, .25, 'h'], [14, .25, 'p'], [12, .25, 'p'], [14, .25, 'h'], [15, .25, 'h'], [17, .25], [19, .25], [21, .25, 'h'], [22, .25, 'h'], [21, .25, 'p'], [19, .25, 'p'], [17, .25], [15, .5], [12, 1]]],
-  ['a3', 3, 'Pedal neoclássico', 'menor-harmonica', [[24, .25], [23, .25], [24, .25], [20, .25], [24, .25], [19, .25], [24, .25], [17, .25], [23, .25], [24, .25], [23, .25], [19, .25], [23, .25], [17, .25], [23, .25], [15, .25], [12, 1]]],
-  ['a4', 3, 'Arpejo menor com sétima', 'menor', [[12, .25], [15, .25], [19, .25], [22, .25], [24, .25], [27, .25], [31, .25], [34, .25], [36, 1], [34, .25], [31, .25], [27, .25], [24, .25], [22, 1]]],
-  ['a5', 3, 'Tensão alterada', 'alterada', [[24, .25], [22, .25], [20, .25], [18, .25], [16, .25], [15, .25], [13, .25], [12, .25], [10, 1]]],
-  ['a6', 3, 'Diminuta simétrica', 'diminuta', [[12, .25], [14, .25], [15, .25], [17, .25], [15, .25], [17, .25], [18, .25], [20, .25], [18, .25], [20, .25], [21, .25], [23, .25], [24, 1]]],
-  ['a7', 3, 'Tons inteiros em tercinas', 'tons-inteiros', [[12, 1 / 3], [14, 1 / 3], [16, 1 / 3], [18, 1 / 3], [20, 1 / 3], [22, 1 / 3], [24, 1 / 3], [22, 1 / 3], [20, 1 / 3], [18, 1 / 3], [16, 1 / 3], [14, 1 / 3], [12, 2]]],
-  ['a8', 3, 'Três bends', 'penta-menor', [[24, .5, 'b'], [24, .5], [22, .5], [19, .5], [22, .5, 'b'], [22, .5], [19, .5], [17, .5], [19, .5, 'b'], [19, .5], [17, .5], [15, .5], [12, 2, 'v']]],
-  ['a9', 3, 'Linha bebop', 'bebop-dominante', [[24, .25], [23, .25], [22, .25], [21, .25], [19, .25], [17, .25], [16, .25], [14, .25], [12, .25], [16, .25], [19, .25], [22, .25], [21, 1]]],
-  ['a10', 3, 'Frígio dominante', 'frigio-dominante', [[12, .25], [13, .25], [16, .25], [17, .25], [19, .25], [20, .25], [22, .25], [24, .25], [25, .25], [24, .25], [22, .25], [20, .25], [19, .25], [17, .25], [16, .25], [13, .25], [12, 1]]],
-  ['a11', 3, 'Quartas na pentatônica', 'penta-menor', [[12, .25], [17, .25], [15, .25], [19, .25], [17, .25], [22, .25], [19, .25], [24, .25], [22, .25], [27, .25], [24, .25], [29, .25], [27, .5], [24, 1]]],
-  ['a12', 3, 'Menor melódica', 'menor-melodica', [[12, .25], [14, .25], [15, .25], [17, .25], [19, .25], [21, .25], [23, .25], [24, .25], [26, .25], [24, .25], [23, .25], [21, .25], [19, .5], [15, .5], [12, 1]]],
-];
-/* riffs (originais do app): semitons acima da tônica no grave */
-const RIFFS = [
-  ['estrada', 1, 'Estrada', [[0, .5], [0, .5], [3, .5], [5, .5], [0, .5], [0, .5], [7, .5], [5, .5], [0, .5], [0, .5], [3, .5], [5, .5], [3, 1], [0, 1]]],
-  ['duas', 1, 'Duas notas', [[0, .5], [0, .5], [3, .5], [0, .5], [5, .5], [3, .5], [0, 1]]],
-  ['boogie', 1, 'Linha de boogie', [[0, .5], [4, .5], [7, .5], [9, .5], [10, .5], [9, .5], [7, .5], [4, .5]]],
-  ['menor-desce', 1, 'Menor descendo', [[12, .5], [10, .5], [7, .5], [5, .5], [3, .5], [0, .5], [3, 1]]],
-  ['marcha', 1, 'Marcha no grave', [[0, 1], [0, 1], [7, 1], [5, 1], [3, 1], [3, 1], [5, 1], [0, 1]]],
-  ['pergunta', 1, 'Pergunta e resposta', [[0, .5], [3, .5], [5, 1], [0, .5], [3, .5], [6, .5], [5, .5], [0, 2]]],
-  ['galope', 2, 'Galope', [[0, .5], [0, .25], [0, .25], [3, .5], [0, .5], [5, .5], [3, .5], [0, 1], [0, .5], [0, .25], [0, .25], [3, .5], [5, .5], [7, .5], [5, .5], [3, 1]]],
-  ['funk-corda', 2, 'Funk de uma corda', [[0, .25], [0, .25], [12, .25], [0, .25], [10, .25], [0, .25], [7, .25], [10, .25], [0, .25], [0, .25], [12, .25], [0, .25], [10, .5], [7, .5]]],
-  ['penta-grave', 2, 'Pentatônica no grave', [[0, .5], [3, .5], [5, .5], [3, .5], [6, .5], [5, .5], [3, .5], [0, .5]]],
-  ['hard', 2, 'Hard rock com corda solta', [[0, .25], [0, .25], [7, .5], [0, .25], [0, .25], [8, .5], [0, .25], [0, .25], [7, .5], [5, .5], [3, .5]]],
-  ['dorico-groove', 2, 'Groove dórico', [[0, .5], [0, .25], [2, .25], [3, .5], [5, .5], [7, .5], [9, .5], [7, .5], [5, .5]]],
-  ['frigio-metal', 2, 'Frígio do metal', [[0, .25], [0, .25], [1, .5], [0, .25], [0, .25], [3, .5], [0, .25], [0, .25], [1, .5], [5, .5]]],
-  ['metal-semi', 3, 'Metal em semicolcheias', [[0, .25], [0, .25], [0, .25], [3, .25], [0, .25], [0, .25], [0, .25], [5, .25], [0, .25], [0, .25], [0, .25], [6, .25], [5, .25], [3, .25], [1, .25], [0, .25]]],
-  ['galope-tercinas', 3, 'Galope em tercinas', [[0, 1 / 3], [0, 1 / 3], [0, 1 / 3], [3, 1 / 3], [0, 1 / 3], [0, 1 / 3], [5, 1 / 3], [0, 1 / 3], [0, 1 / 3], [6, 1 / 3], [5, 1 / 3], [3, 1 / 3]]],
-  ['harmonico', 3, 'Pedal harmônico', [[0, .25], [11, .25], [0, .25], [8, .25], [0, .25], [7, .25], [0, .25], [5, .25], [3, .5], [2, .5], [0, 1]]],
-  ['funk-sincopa', 3, 'Funk sincopado', [[0, .25], [12, .25], [10, .25], [12, .25], [0, .5], [7, .25], [10, .25], [12, .25], [0, .25], [3, .25], [5, .25], [6, .25], [7, .5]]],
-  ['thrash', 3, 'Thrash alternado', [[0, .25], [0, .25], [0, .25], [0, .25], [5, .25], [0, .25], [6, .25], [0, .25], [7, .25], [0, .25], [6, .25], [0, .25], [5, .25], [0, .25], [3, .25], [0, .25]]],
-  ['shuffle', 3, 'Shuffle pesado', [[0, 2 / 3], [0, 1 / 3], [3, 2 / 3], [0, 1 / 3], [5, 2 / 3], [0, 1 / 3], [6, 2 / 3], [5, 1 / 3], [3, 2 / 3], [0, 1 / 3], [0, 1]]],
-];
-const tamanhoFrase = notas => { const b = notas.reduce((s, n) => s + n[1], 0); return b <= 4 ? 'frase curta' : b <= 8 ? 'frase média' : 'frase longa'; };
 
-/* ================= os modelos de treino =================
-   modelo: { id, cat, nivel, nome, resumo, fig, usaTom, regioes(cfg) → [rótulos], gerar(cfg) → { notas, raiz } }
-   cfg: { raiz, pos, fig, escala, perm } */
+/* ================= escalas, sequências e arpejos =================
+   O tamanho muda o treino: curto = uma oitava; moderado = a posição; longo = duas posições ligadas;
+   muito longo = quatro posições, atravessando o braço. */
 const MODELOS = [];
-const add = m => { const [b, a] = ANDAMENTO[m.nivel]; MODELOS.push({ usaTom: true, bpm: b, alvo: a, ...m }); };
-
-// escalas: [id da escala, nível, sistema, figura, nome do treino (opcional)]
-[['penta-menor', 1, 'nps', 1], ['penta-maior', 1, 'nps', 1], ['blues', 1, 'caixa', 1], ['maior', 1, 'caixa', 1], ['menor', 1, 'caixa', 1],
-  ['maior', 2, 'nps', .5, 'Maior em 3 notas por corda'], ['menor', 2, 'nps', .5, 'Menor em 3 notas por corda'], ['dorico', 2, 'nps', .5], ['mixolidio', 2, 'nps', .5], ['lidio', 2, 'nps', .5], ['frigio', 2, 'nps', .5], ['menor-harmonica', 2, 'nps', .5],
-  ['locrio', 3, 'nps', .25], ['menor-melodica', 3, 'nps', .25], ['frigio-dominante', 3, 'nps', .25], ['alterada', 3, 'nps', .25], ['hungara-menor', 3, 'nps', .25], ['diminuta', 3, 'caixa', .25], ['tons-inteiros', 3, 'caixa', 1 / 3], ['bebop-dominante', 3, 'caixa', .25],
-].forEach(([e, nivel, sis, fig, nome]) => add({ id: `esc:${e}${sis === 'nps' && nivel === 2 && (e === 'maior' || e === 'menor') ? '-3' : ''}`, cat: 'escalas', nivel, fig, escala: e,
-  nome: nome || nomeEscala(e), resumo: sis === 'nps' ? (ESCALAS.find(x => x[0] === e)[2].length === 5 ? 'Os cinco desenhos, sobe e desce.' : 'Três notas por corda, sobe e desce.') : 'Posição por posição, sobe e desce.',
+const add = m => { const [b, a] = ANDAMENTO[m.nivel]; MODELOS.push({ usaTom: true, manterAltura: true, bpm: b, alvo: a, rotulo: 'nota', ...m }); };
+const umaOitava = p => { const A = afinacaoDe('padrao')[2], ini = A[p[0][0]] + p[0][1]; const r = []; for (const n of p) { r.push(n); if (A[n[0]] + n[1] >= ini + 12) break; } return r; };
+function percorrer(P, pos, tam, f) {
+  const L = P.length, q = i => P[(pos + i) % L];
+  if (tam === 'curto') return f(umaOitava(q(0)), 'sobe');
+  if (tam === 'moderado') return [...f(q(0), 'sobe'), ...f(q(0), 'desce')];
+  const n = tam === 'longo' ? 2 : 4; let r = [];
+  for (let i = 0; i < n; i++) r = r.concat(f(q(i), i % 2 ? 'desce' : 'sobe'));
+  return r;
+}
+const sentido = (p, d) => d === 'desce' ? p.slice().reverse() : p;
+const ESCALAS_MOD = [['penta-menor', 1, 'nps', .5], ['blues', 1, 'caixa', .5], ['menor', 1, 'caixa', .5], ['frigio', 1, 'caixa', .5],
+  ['menor', 2, 'nps', .25, 'Menor em 3 notas por corda'], ['menor-harmonica', 2, 'nps', .25], ['frigio', 2, 'nps', .25, 'Frígio em 3 notas por corda'], ['dorico', 2, 'nps', .25], ['mixolidio', 2, 'nps', .25],
+  ['frigio-dominante', 3, 'nps', 1 / 6], ['locrio', 3, 'nps', 1 / 6], ['hungara-menor', 3, 'nps', 1 / 6], ['diminuta', 3, 'caixa', 1 / 6], ['menor-melodica', 3, 'nps', 1 / 6], ['alterada', 3, 'nps', 1 / 6], ['tons-inteiros', 3, 'caixa', 1 / 6]];
+ESCALAS_MOD.forEach(([e, nivel, sis, fig, nome]) => add({ id: `esc:${e}:${nivel}`, cat: 'escalas', grupo: 'Escala', nivel, fig, escala: e, nome: nome || nomeEscala(e),
+  resumo: sis === 'nps' ? 'Notas por corda iguais, posição por posição.' : 'Posição por posição, na mão.',
   regioes: c => posicoesEscala(e, c.raiz, sis).map((p, i) => rotuloPos(i, p)),
-  gerar: c => ({ notas: montarNotas(sobeDesce(posicoesEscala(e, c.raiz, sis)[c.pos]), c.fig), raiz: c.raiz }) }));
-
-// sequências: [padrão, escala, sistema, nível, figura]
-[['grupos3', 'penta-menor', 'nps', 1, .5], ['grupos3', 'maior', 'caixa', 1, .5], ['tercas', 'maior', 'caixa', 1, .5], ['pedal', 'penta-menor', 'nps', 1, .5],
-  ['grupos4', 'maior', 'nps', 2, .5], ['grupos3', 'menor', 'nps', 2, 1 / 3], ['tercas', 'dorico', 'nps', 2, .5], ['quartas', 'penta-menor', 'nps', 2, .5], ['quatroDesce', 'mixolidio', 'nps', 2, .5], ['tercas', 'menor-harmonica', 'nps', 2, .5],
-  ['sextas', 'maior', 'nps', 3, .5], ['grupos6', 'penta-menor', 'nps', 3, .25], ['grupos5', 'menor-harmonica', 'nps', 3, .25], ['quartas', 'maior', 'nps', 3, .25], ['pedal', 'menor-harmonica', 'nps', 3, .25], ['tercas', 'diminuta', 'caixa', 3, .25],
-].forEach(([pd, e, sis, nivel, fig]) => add({ id: `seq:${pd}:${e}`, cat: 'sequencias', nivel, fig, escala: e, trocaEscala: true,
-  nome: PADROES[pd][0], resumo: `${nomeEscala(e)}, sobe e desce.`,
-  regioes: c => posicoesEscala(c.escala || e, c.raiz, sis).map((p, i) => rotuloPos(i, p)),
-  gerar: c => { const P = posicoesEscala(c.escala || e, c.raiz, sis); return { notas: montarNotas(aplicarPadrao(P[c.pos % P.length], pd), c.fig), raiz: c.raiz }; } }));
-
-// arpejos: tipo de acorde, nível, figura e forma (subir e descer, ou varredura: uma nota por corda)
-[['5', 1, 1, 'Power chord (1, 5 e 8)'], ['', 1, 1, 'Tríade maior'], ['m', 1, 1, 'Tríade menor'],
-  ['7M', 2, .5, 'Sétima maior (7M)'], ['7', 2, .5, 'Dominante (7)'], ['m7', 2, .5, 'Menor com sétima (m7)'], ['°', 2, .5, 'Tríade diminuta'], ['+', 2, .5, 'Tríade aumentada'],
-  ['m7(b5)', 3, .25, 'Meio diminuto (m7(b5))'], ['°7', 3, .25, 'Diminuto com sétima (°7)'], ['m(7M)', 3, .25, 'Menor com sétima maior'],
-].forEach(([t, nivel, fig, nome]) => add({ id: `arp:${t || 'M'}`, cat: 'arpejos', nivel, fig, nome, resumo: 'Sobe e desce o arpejo, posição por posição.',
-  regioes: c => posicoesAcorde(t, c.raiz).map((p, i) => rotuloPos(i, p)),
-  gerar: c => ({ notas: montarNotas(sobeDesce(posicoesAcorde(t, c.raiz)[c.pos]), c.fig), raiz: c.raiz }) }));
-// varredura: uma nota por corda, subindo e descendo
-[['', 'Varredura maior'], ['m', 'Varredura menor']].forEach(([t, nome]) => add({ id: `arp:varredura-${t || 'M'}`, cat: 'arpejos', nivel: 3, fig: 1 / 3, nome, resumo: 'Uma nota por corda, num só movimento da palheta.',
-  regioes: c => posicoesAcorde(t, c.raiz).map((p, i) => rotuloPos(i, p)),
-  gerar: c => { const P = posicoesAcorde(t, c.raiz)[c.pos], um = []; let ult = -1; for (let s = 0; s < 6; s++) { const n = P.find(x => x[0] === s && MIDI_SOLTAS[s] + x[1] > ult); if (n) { um.push(n); ult = MIDI_SOLTAS[s] + n[1]; } } return { notas: montarNotas(sobeDesce(um), c.fig), raiz: c.raiz }; } }));
-// campo harmônico: o arpejo de cada grau da escala maior, um depois do outro
-[['tríades', 2, .5, false], ['tétrades', 3, .25, true]].forEach(([qual, nivel, fig, tet]) => add({ id: `arp:campo-${tet ? 4 : 3}`, cat: 'arpejos', nivel, fig, nome: `Campo harmônico em ${qual}`, resumo: 'Os sete acordes da escala maior, um depois do outro.',
-  regioes: c => regioesFrase(c.raiz, true).map(([s, k]) => `Tônica na ${6 - s}ª corda · casa ${k}`),
-  gerar: c => {
-    const [s0, k0] = regioesFrase(c.raiz, true)[c.pos % 2], esc = [0, 2, 4, 5, 7, 9, 11], notas = [];
-    const tri = [[0, 4, 7], [0, 3, 7], [0, 3, 7], [0, 4, 7], [0, 4, 7], [0, 3, 7], [0, 3, 6]], sete = [11, 10, 10, 11, 10, 10, 10];
-    esc.forEach((g, i) => {
-      let raizM = MIDI_SOLTAS[s0] + k0 + g, f = k0 + g; if (f > 14) { raizM -= 12; f -= 12; }
-      const iv = [...tri[i], tet ? sete[i] : 12], pos = digitar(iv.map(x => raizM + x), f), d = dedilhar(pos);
-      pos.forEach((p, j) => notas.push([p[0], p[1], fig, d[j]]));
-    });
-    return { notas, raiz: c.raiz };
-  } }));
-
-// licks: a frase vai para a região escolhida, na oitava que cabe na mão
-const alturasFrase = (notas, s0, k0, alvo) => {
-  const base = MIDI_SOLTAS[s0] + k0, ms = notas.map(n => base + n[0]), med = ms.slice().sort((a, b) => a - b)[ms.length >> 1];
-  let oit = 0, melhor = 1e9;
-  for (let o = -2; o <= 2; o++) { const lo = Math.min(...ms) + 12 * o, hi = Math.max(...ms) + 12 * o; if (lo < 40 || hi > 86) continue; const v = Math.abs(med + 12 * o - alvo); if (v < melhor) { melhor = v; oit = o; } }
-  return ms.map(m => m + 12 * oit);
-};
-LICKS.forEach(([id, nivel, nome, e, frase]) => add({ id: `lick:${id}`, cat: 'licks', nivel, nome, rotulo: 'nota', escala: e, resumo: `${nomeEscala(e)} · ${tamanhoFrase(frase)}.`,
-  temTec: frase.some(n => n[2]),
-  regioes: c => regioesFrase(c.raiz).map(([s, k]) => `Tônica na ${6 - s}ª corda · casa ${k}`),
-  gerar: c => { const R = regioesFrase(c.raiz), [s0, k0] = R[c.pos % R.length], ms = alturasFrase(frase, s0, k0, 57 + k0 + 2), pos = digitar(ms, k0), d = dedilhar(pos); return { notas: pos.map((p, i) => [p[0], p[1], frase[i][1], d[i], frase[i][2]]), raiz: c.raiz }; } }));
-RIFFS.forEach(([id, nivel, nome, frase]) => add({ id: `riff:${id}`, cat: 'riffs', nivel, nome, rotulo: 'nota', resumo: `No grave · ${tamanhoFrase(frase)}.`,
-  regioes: c => regioesFrase(c.raiz, true).map(([s, k]) => `Tônica na ${6 - s}ª corda · casa ${k}`),
-  gerar: c => { const R = regioesFrase(c.raiz, true), [s0, k0] = R[c.pos % R.length], base = MIDI_SOLTAS[s0] + k0, pos = digitar(frase.map(n => base + n[0]), k0, true), d = dedilhar(pos); return { notas: pos.map((p, i) => [p[0], p[1], frase[i][1], d[i], frase[i][2]]), raiz: c.raiz }; } }));
-
-/* técnica: não depende do tom; a "posição" é a casa onde o dedo 1 começa */
-const PERMS = (() => { const r = [], p = (resto, s) => { if (!resto.length) r.push(s); resto.forEach((x, i) => p(resto.filter((_, j) => j !== i), s + x)); }; p(['1', '2', '3', '4'], ''); return r; })();
-const permTexto = p => p.split('').join('-');
-const casas = () => Array.from({ length: 12 }, (_, i) => `Casa ${i + 1}`);
-const tec = (id, nivel, nome, resumo, fig, gerar, extra = {}) => add({ id: `tec:${id}`, cat: 'tecnica', nivel, nome, resumo, fig, usaTom: false, rotulo: 'dedo', regioes: casas, gerar, ...extra });
-const pelasCordas = (ordem, porCorda) => ordem.flatMap(porCorda);
-const C6 = [0, 1, 2, 3, 4, 5], C6V = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];
-tec('soltas', 1, 'Cordas soltas', 'Palhetada alternada, quatro notas por corda.', 1, c => ({ notas: pelasCordas(C6V, s => [0, 1, 2, 3].map(() => [s, 0, c.fig, 0])) }), { regioes: () => ['Cordas soltas'] });
-tec('troca', 1, 'Troca de cordas', 'Corda solta e a vizinha, alternando.', .5, c => ({ notas: [0, 1, 2, 3, 4].flatMap(s => [s, s + 1, s, s + 1].map(x => [x, 0, c.fig, 0])) }), { regioes: () => ['Cordas soltas'] });
-tec('crom', 1, 'Cromático 1-2-3-4', 'Um dedo por casa, da 6ª à 1ª corda.', 1, c => ({ notas: pelasCordas(C6, s => (c.perm || '1234').split('').map(d => [s, c.pos + +d, c.fig, +d])) }), { temPerm: true });
-tec('escada', 1, 'Escada pelo braço', '1-2-3-4 subindo uma casa a cada corda.', .5, c => ({ notas: [...C6, ...[4, 3, 2, 1]].flatMap((s, i) => { const k = c.pos + 1 + (i < 6 ? i : 10 - i); return [1, 2, 3, 4].map(d => [s, k + d - 1, c.fig, d]); }) }), { regioes: () => casas().slice(0, 8) });
-tec('crom24', 2, 'As 24 combinações', 'Cromático numa ordem de dedos diferente a cada etapa.', .5, c => ({ notas: pelasCordas(C6V, s => (c.perm || '1234').split('').map(d => [s, c.pos + +d, c.fig, +d])) }), { temPerm: true, variaPerm: true });
-tec('aranha', 2, 'Aranha', 'Dois dedos em cada corda, alternando com a vizinha.', .5, c => ({ notas: [0, 1, 2, 3, 4].flatMap(s => [[s, 1], [s + 1, 2], [s, 3], [s + 1, 4]].map(([x, d]) => [x, c.pos + d, c.fig, d])) }));
-tec('ligados', 2, 'Ligados 1-2, 1-3 e 1-4', 'Martele e puxe sem palhetar a segunda nota.', .5, c => ({ notas: C6.flatMap(s => [2, 3, 4].flatMap(d => [[s, c.pos + 1, c.fig, 1], [s, c.pos + d, c.fig, d, 'h'], [s, c.pos + 1, c.fig, 1, 'p']])) }));
-tec('pulo', 2, 'Pulando cordas', '1-2-3-4 numa corda e 4-3-2-1 duas cordas acima.', .5, c => ({ notas: [0, 1, 2, 3].flatMap(s => [...[1, 2, 3, 4].map(d => [s, c.pos + d, c.fig, d]), ...[4, 3, 2, 1].map(d => [s + 2, c.pos + d, c.fig, d])]) }));
-tec('crom-rapido', 3, 'Cromático rápido', 'Ida e volta nas seis cordas em semicolcheias.', .25, c => ({ notas: pelasCordas(C6V, s => (c.perm || '1234').split('').map(d => [s, c.pos + +d, c.fig, +d])) }), { temPerm: true });
-tec('aranha-cruzada', 3, 'Aranha cruzada', 'Dedos 1 e 3 numa corda, 2 e 4 na vizinha.', .25, c => ({ notas: [0, 1, 2, 3, 4].flatMap(s => [[s, 1], [s + 1, 3], [s, 2], [s + 1, 4]].map(([x, d]) => [x, c.pos + d, c.fig, d])) }));
-tec('trinados', 3, 'Trinados', 'Ligados rápidos 1-2 e 3-4 em cada corda.', .25, c => ({ notas: C6.flatMap(s => [[1, 2], [3, 4]].flatMap(([a, b]) => [[s, c.pos + a, c.fig, a], [s, c.pos + b, c.fig, b, 'h'], [s, c.pos + a, c.fig, a, 'p'], [s, c.pos + b, c.fig, b, 'h']])) }));
-tec('tercinas', 3, 'Palhetada em tercinas', '1-2-3 e 4-3-2 em cada corda, contando três.', 1 / 3, c => ({ notas: C6.flatMap(s => [[1, 2, 3], [4, 3, 2]].flat().map(d => [s, c.pos + d, c.fig, d])) }));
-add({ id: 'tec:tremolo', cat: 'tecnica', nivel: 3, fig: .25, rotulo: 'nota', nome: 'Trêmolo na pentatônica', resumo: 'Quatro palhetadas rápidas em cada nota da escala.',
-  regioes: c => posicoesEscala('penta-menor', c.raiz).map((p, i) => rotuloPos(i, p)),
-  gerar: c => { const P = sobeDesce(posicoesEscala('penta-menor', c.raiz)[c.pos]), d = dedilhar(P); return { notas: P.flatMap((p, i) => [0, 1, 2, 3].map(() => [p[0], p[1], c.fig, d[i]])), raiz: c.raiz }; } });
+  gerar: c => ({ evs: evDeTuplas(montarNotas(percorrer(posicoesEscala(e, c.raiz, sis), c.pos, c.tam, (p, d) => sentido(p, d)), c.fig)) }) }));
+[['grupos3', 'penta-menor', 'nps', 1, .5], ['tercas', 'menor', 'caixa', 1, .5], ['pedal', 'penta-menor', 'nps', 1, .5],
+  ['grupos4', 'menor', 'nps', 2, .25], ['grupos3', 'menor-harmonica', 'nps', 2, 1 / 3], ['quartas', 'penta-menor', 'nps', 2, .25], ['quatroDesce', 'frigio', 'nps', 2, .25],
+  ['grupos6', 'menor-harmonica', 'nps', 3, 1 / 6], ['grupos5', 'frigio-dominante', 'nps', 3, .25], ['sextas', 'menor', 'nps', 3, .25], ['pedal', 'menor-harmonica', 'nps', 3, 1 / 6], ['tercas', 'diminuta', 'caixa', 3, 1 / 6]]
+  .forEach(([pd, e, sis, nivel, fig]) => add({ id: `seq:${pd}:${e}:${nivel}`, cat: 'escalas', grupo: 'Sequência', nivel, fig, escala: e, trocaEscala: true, nome: `${PADROES[pd][0]} · ${nomeEscala(e)}`, resumo: 'A escala em sequência.',
+    regioes: c => posicoesEscala(c.escala || e, c.raiz, sis).map((p, i) => rotuloPos(i, p)),
+    gerar: c => { const f = PADROES[pd][1]; return { evs: evDeTuplas(montarNotas(percorrer(posicoesEscala(c.escala || e, c.raiz, sis), c.pos, c.tam, (p, d) => f(p.length).map(i => sentido(p, d)[i])), c.fig)) }; } }));
+[['5', 1, .5, 'Arpejo de power chord'], ['m', 1, .5, 'Arpejo menor'], ['', 1, .5, 'Arpejo maior'],
+  ['m7', 2, .25, 'Arpejo m7'], ['°', 2, 1 / 3, 'Arpejo diminuto'], ['7', 2, .25, 'Arpejo dominante'], ['+', 2, 1 / 3, 'Arpejo aumentado'],
+  ['°7', 3, 1 / 6, 'Arpejo °7'], ['m7(b5)', 3, 1 / 6, 'Arpejo meio diminuto'], ['m(7M)', 3, 1 / 6, 'Arpejo menor com 7M']]
+  .forEach(([t, nivel, fig, nome]) => add({ id: `arp:${t || 'M'}:${nivel}`, cat: 'escalas', grupo: 'Arpejo', nivel, fig, nome, resumo: 'O acorde nota por nota, nas formas do braço.',
+    regioes: c => posicoesAcorde(t, c.raiz).map((p, i) => rotuloPos(i, p)),
+    gerar: c => ({ evs: evDeTuplas(montarNotas(percorrer(posicoesAcorde(t, c.raiz), c.pos, c.tam, (p, d) => sentido(p, d)), c.fig)) }) }));
 
 const modelo = id => MODELOS.find(m => m.id === id);
-// ids e ajustes da versão 0.4.0 (o histórico continua valendo)
-function normalizarTreino(t) {
-  const id = t.ex || '', c = t.cfg || {};
-  if (id.startsWith('crom:')) return { id: 'tec:crom', cfg: { perm: c.perm || id.slice(5), pos: Math.max(0, (c.casa || 1) - 1) } };
-  if (id.startsWith('esc:') && id.split(':').length === 4) { const [, e, r, d] = id.split(':'); return { id: modelo('esc:' + e) ? 'esc:' + e : 'esc:penta-menor', cfg: { raiz: +r, pos: +d } }; }
-  const velho = { 'ex-1234': ['tec:crom', {}], 'ex-alternada': ['tec:crom', {}], 'ex-penta': ['esc:penta-menor', { raiz: 9 }], 'ex-soltas': ['tec:soltas', {}], 'ex-em': ['arp:m', { raiz: 4 }], 'ex-am': ['arp:m', { raiz: 9 }], 'ex-c': ['arp:M', { raiz: 0 }], 'ex-g': ['arp:M', { raiz: 7 }], 'ex-do-maior': ['esc:maior', { raiz: 0 }], 'ex-riff-estrada': ['riff:estrada', { raiz: 4 }], 'ex-riff-galope': ['riff:galope', { raiz: 9 }], 'ex-blues': ['lick:m7', { raiz: 9 }] }[id];
-  if (velho) return { id: velho[0], cfg: velho[1] };
-  return { id, cfg: c };
-}
-
-/* ================= uma volta e o plano da sessão ================= */
-const cfgPadrao = m => {
-  const raiz = m.cat === 'riffs' ? 4 : !m.usaTom ? null : 9;
-  // licks: começa com a tônica na 6ª corda (o desenho 1 da pentatônica)
-  const pos = m.cat === 'licks' ? Math.max(0, regioesFrase(raiz).findIndex(r => r[0] === 0 && r[1] === pc(raiz - 4))) : 0;
-  return { raiz, pos, fig: m.fig, escala: m.escala, perm: '1234' };
-};
+const cfgPadrao = m => ({ raiz: m.raizPadrao != null ? m.raizPadrao : 9, pos: 0, fig: m.fig, escala: m.escala, tam: m.tamanho || 'moderado', afin: null });
+/* uma volta do treino: as notas na afinação escolhida, com os dedos, o compasso e o nome */
 function volta(m, c) {
-  const R = m.regioes(c), cc = { ...c, pos: Math.min(c.pos || 0, R.length - 1) }, g = m.gerar(cc);
-  const tom = m.usaTom ? NOTAS[cc.raiz] : null, esc = m.trocaEscala && cc.escala ? nomeEscala(cc.escala) : null;
-  const perm = m.temPerm ? permTexto(cc.perm || '1234') : null;
-  return { id: m.id, modelo: m, cfg: cc, nome: m.nome + (perm ? ` · ${perm}` : ''), sub: [esc, tom, R[cc.pos]].filter(Boolean).join(' · '), notas: g.notas, raiz: g.raiz != null ? g.raiz : null, rotulo: c.rotulo || m.rotulo || 'nota', bpm: m.bpm, alvo: m.alvo };
+  const c0 = { ...cfgPadrao(m), ...c }, R = m.regioes(c0), cc = { ...c0, pos: Math.min(c0.pos || 0, Math.max(0, R.length - 1)) };
+  if (m.tamanho) cc.tam = m.tamanho;
+  const g = m.gerar(cc), base = g.afin || m.afin || 'padrao', A0 = afinacaoDe(base)[2];
+  const afId = cc.afin && afinacoesPara(base).some(a => a[0] === cc.afin) ? cc.afin : base, A = afinacaoDe(afId)[2];
+  const desloc = m.manterAltura || A.length !== A0.length ? 0 : A[0] - A0[0];
+  const evs = dedosEventos(m.manterAltura ? converterAltura(g.evs, base, afId) : converterAfinacao(g.evs, base, afId));
+  const raiz = g.raiz != null ? pc(g.raiz + desloc) : (m.usaTom ? cc.raiz : pc(A[0]));
+  const esc = m.trocaEscala && cc.escala ? nomeEscala(cc.escala) : null, tom = m.usaTom ? NOTAS[raiz] : `${NOTAS[raiz]}`;
+  return { id: m.id, modelo: m, cfg: cc, nome: m.nome, sub: [esc, `${tom} · ${afinacaoDe(afId)[1]}`, R.length > 1 ? R[cc.pos] : null].filter(Boolean).join(' · '),
+    evs, afin: A, afinId: afId, compasso: g.compasso || [4, 1], raiz, rotulo: c.rotulo || m.rotulo || 'nota', partes: g.partes || null, bpm: g.bpm || m.bpm, alvo: m.alvo };
 }
-// as etapas da sessão: tons (ciclo das quartas a partir do escolhido) × posições (a partir da escolhida)
-function planoSessao(m, c, dur) {
-  const P = m.regioes(c).length, ord = [...Array(P).keys()].map(i => (i + (c.pos || 0)) % P);
-  if (m.variaPerm) { const k = PERMS.indexOf(c.perm || '1234'), n = { curto: 1, moderado: 6, longo: 12, 'muito-longo': 24 }[dur]; return Array.from({ length: n }, (_, i) => ({ ...c, perm: PERMS[(k + i) % 24] })); }
-  if (!m.usaTom) { const n = { curto: 1, moderado: Math.min(5, P), longo: P, 'muito-longo': P * 2 }[dur]; return Array.from({ length: n }, (_, i) => ({ ...c, pos: P > 1 ? (i < P ? ord[i] : ord[2 * P - 1 - i]) : 0 })); }
-  const nT = P <= 2 ? { curto: 1, moderado: 3, longo: 6, 'muito-longo': 12 }[dur] : { curto: 1, moderado: 1, longo: 4, 'muito-longo': 12 }[dur];
-  const posicoes = dur === 'curto' ? [c.pos || 0] : ord, tons = cicloQuartas(c.raiz).slice(0, nT), out = [];
-  tons.forEach(r => posicoes.forEach(p => out.push({ ...c, raiz: r, pos: p })));
-  return out;
+// leva as notas para outra afinação sem mudar a altura (escalas e solos: o tom fica o escolhido)
+function converterAltura(evs, de, para) {
+  if (de === para) return evs;
+  const A = afinacaoDe(de)[2], B = afinacaoDe(para)[2], d = B.length - A.length;
+  return evs.map(e => ({ ...e, n: e.n.map(([s, k, f]) => {
+    const m = A[s] + k, s2 = Math.min(B.length - 1, s + Math.max(0, d)), k2 = m - B[s2];
+    if (k2 >= 0 && k2 <= 24) return [s2, k2, f];
+    let melhor = null, dist = 1e9; B.forEach((o, c) => { const kk = m - o; if (kk >= 0 && kk <= 24 && Math.abs(c - s2) < dist) { dist = Math.abs(c - s2); melhor = [c, kk, f]; } });
+    return melhor || [s2, Math.max(0, k2), f];
+  }) }));
 }
-const contarCatalogo = () => MODELOS.length;

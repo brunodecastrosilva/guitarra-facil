@@ -113,3 +113,37 @@ function figuraSVG(tempos) {
   const band2 = tempos <= .25 ? '<path d="M26 15c2 8 12 10 10 22" fill="none" stroke="currentColor" stroke-width="2.4"/>' : '';
   return `<svg viewBox="0 0 44 52" aria-hidden="true" class="figura">${cabeca}${haste}${band}${band2}</svg>`;
 }
+
+/* ================= afinações ================= */
+// [id, nome, cordas soltas da mais grave para a mais aguda (MIDI), família]: '6' padrão, '6d' drop, '7' e '7d' sete cordas
+const AFINACOES = [
+  ['padrao', 'Padrão (Mi)', [40, 45, 50, 55, 59, 64], '6'],
+  ['meio', 'Meio tom abaixo (Mi♭)', [39, 44, 49, 54, 58, 63], '6'],
+  ['tom', 'Um tom abaixo (Ré)', [38, 43, 48, 53, 57, 62], '6'],
+  ['drop-d', 'Drop D', [38, 45, 50, 55, 59, 64], '6d'],
+  ['drop-cs', 'Drop C#', [37, 44, 49, 54, 58, 63], '6d'],
+  ['drop-c', 'Drop C', [36, 43, 48, 53, 57, 62], '6d'],
+  ['drop-b', 'Drop B', [35, 42, 47, 52, 56, 61], '6d'],
+  ['sete', '7 cordas (Si)', [35, 40, 45, 50, 55, 59, 64], '7'],
+  ['sete-drop-a', '7 cordas Drop A', [33, 40, 45, 50, 55, 59, 64], '7d'],
+];
+const afinacaoDe = id => AFINACOES.find(a => a[0] === id) || AFINACOES[0];
+const nomeCorda = m => CIFRA[pc(m)];
+// as afinações em que um treino pode ser tocado: as de 6 cordas servem para treinos de 6; as de 7, para 6 e 7
+const afinacoesPara = id => { const n = afinacaoDe(id)[2].length; return AFINACOES.filter(a => a[2].length >= n); };
+/* leva as notas de uma afinação para outra mantendo a forma da corda mais grave (o riff fica no mesmo desenho e muda
+   de tom junto com a afinação, como se faz na guitarra). As outras cordas acompanham pela altura: um power chord de um
+   dedo em Drop D vira 0-2-2 na afinação padrão. Em 7 cordas, um treino de 6 cordas vai para as 6 de cima. */
+function converterAfinacao(evs, de, para) {
+  if (de === para) return evs;
+  const A = afinacaoDe(de)[2], B = afinacaoDe(para)[2], d = B.length - A.length; // 0 ou 1
+  const ref = d ? B[1] - A[0] : B[0] - A[0];
+  return evs.map(e => ({ ...e, n: e.n.map(([s, k, f]) => {
+    const alvo = A[s] + k + ref, s2 = s + d; let k2 = alvo - B[s2];
+    if (k2 > 24 && k2 - 12 >= 0) k2 -= 12; // passou do fim do braço: uma oitava abaixo
+    if (k2 >= 0 && k2 <= 24) return [s2, k2, f];
+    let melhor = [s2, Math.max(0, k2)], dist = 1e9; // não coube na mesma corda: a corda mais perto onde a nota cabe
+    B.forEach((m, c) => { const kk = alvo - m; if (kk >= 0 && kk <= 22 && Math.abs(c - s2) < dist) { dist = Math.abs(c - s2); melhor = [c, kk]; } });
+    return [melhor[0], melhor[1], f];
+  }) }));
+}

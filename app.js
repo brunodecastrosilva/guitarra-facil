@@ -3,7 +3,7 @@
    nível, duração e lista, um toque por vez), Afinador, Teoria, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e
    Progresso. Tudo fica neste aparelho; a sincronização opcional e a moldura vêm do Kit Fácil (comum/). */
 'use strict';
-const VERSAO = '0.5.0';
+const VERSAO = '0.6.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -59,12 +59,16 @@ const ILU = {
   licks: ilu('<path d="M6 30c6-14 10-14 14 0s8 14 12 0 8-18 14-4" class="il-r"/><path d="M46 26c3-8 6-10 10-12" class="il-l il-g"/><circle cx="56" cy="14" r="4" class="il-a"/>'),
   riffs: ilu('<path d="M6 36h52M6 30h52" class="il-l il-g"/><path d="M34 6 24 24h9l-5 16 14-22h-9l5-12z" class="il-a"/>'),
   tecnica: ilu(fret + [1, 2, 3, 4].map((n, i) => `<circle cx="${12.5 + i * 13}" cy="27" r="5" class="${i === 3 ? 'il-a' : 'il-n'}"/><text x="${12.5 + i * 13}" y="30.5" class="il-num">${n}</text>`).join('')),
+  solos: null, dia: null, favoritos: null,
   'te-escalas': ilu(fret + '<circle cx="12.5" cy="21" r="3.2" class="il-a"/><circle cx="25.5" cy="15" r="3.2" class="il-n"/><circle cx="25.5" cy="27" r="3.2" class="il-n"/><circle cx="38.5" cy="33" r="3.2" class="il-n"/><circle cx="38.5" cy="21" r="3.2" class="il-n"/><circle cx="51.5" cy="27" r="3.2" class="il-n"/>'),
   'te-acordes': ilu('<path d="M8 14h48M8 22h48M8 30h48M8 38h48" class="il-l"/><circle cx="32" cy="34" r="4.4" class="il-a"/><circle cx="32" cy="26" r="4.4" class="il-n"/><circle cx="32" cy="18" r="4.4" class="il-n"/>'),
   'te-circulo': ilu('<circle cx="32" cy="24" r="19" class="il-f il-l"/>' + Array.from({ length: 12 }, (_, i) => { const a = (i * 30 - 90) * Math.PI / 180; return `<circle cx="${(32 + 15 * Math.cos(a)).toFixed(1)}" cy="${(24 + 15 * Math.sin(a)).toFixed(1)}" r="${i ? 2 : 3.4}" class="${i ? 'il-n' : 'il-a'}"/>`; }).join('') + '<circle cx="32" cy="24" r="6" class="il-l"/>'),
   'te-intervalos': ilu('<path d="M8 40h48" class="il-l"/><circle cx="16" cy="34" r="5" class="il-n"/><circle cx="48" cy="18" r="5" class="il-a"/><path d="M19 29C26 14 36 10 43 15" class="il-l il-g"/>'),
   'te-ritmo': ilu('<ellipse cx="14" cy="36" rx="6" ry="4.4" class="il-n"/><path d="M19.5 35V10" class="il-l il-g"/><ellipse cx="34" cy="36" rx="6" ry="4.4" class="il-n"/><ellipse cx="50" cy="32" rx="6" ry="4.4" class="il-a"/><path d="M39.5 35V12h16v19" class="il-l il-g"/><path d="M39.5 12h16" class="il-l il-g"/>'),
 };
+ILU.solos = ILU.licks; ILU.escalas = ILU.escalas || ILU['te-escalas'];
+ILU.dia = ilu('<rect x="10" y="8" width="44" height="34" rx="4" class="il-f il-l"/><path d="M10 17h44M20 4v8M44 4v8" class="il-l il-g"/><path d="M32 22c1 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 2.5-6 1 1.6 1.6 2.4 2.8 2.5-.2-2.8-.4-4.3.7-6.5z" class="il-a"/>');
+ILU.favoritos = ilu('<path d="M32 6l7.6 15.4 17 2.5-12.3 12 2.9 16.9L32 44.8l-15.2 8 2.9-16.9-12.3-12 17-2.5z" class="il-a" transform="scale(.85) translate(5.6 0)"/>');
 const iluNivel = n => ilu([0, 1, 2].map(i => `<rect x="${14 + i * 14}" y="${30 - i * 9}" width="10" height="${12 + i * 9}" rx="2" class="${i < n ? (i === n - 1 ? 'il-a' : 'il-n') : 'il-f il-l'}"/>`).join(''));
 const iluDuracao = min => { const f = { 2: .1, 5: .25, 10: .5, 20: 1 }[min], a = f * 2 * Math.PI - Math.PI / 2, x = 32 + 17 * Math.cos(a), y = 25 + 17 * Math.sin(a); return ilu(`<circle cx="32" cy="25" r="17" class="il-f il-l"/>${f >= 1 ? '<circle cx="32" cy="25" r="17" class="il-a"/>' : `<path d="M32 25V8A17 17 0 ${f > .5 ? 1 : 0} 1 ${x.toFixed(1)} ${y.toFixed(1)}z" class="il-a"/>`}<circle cx="32" cy="25" r="2.5" class="il-n"/>`); };
 const ESTADOS_MUSICA = [['quero', 'Quero aprender'], ['aprendendo', 'Aprendendo'], ['toco', 'Já toco']];
@@ -73,8 +77,8 @@ const ESTADOS_MUSICA = [['quero', 'Quero aprender'], ['aprendendo', 'Aprendendo'
 /* ================= dados ================= */
 // coleções sincronizadas registro a registro (a mudança mais recente vence), como nos outros apps da família
 // feitas e andamentos vêm da versão com aulas (até a 0.3.0): continuam guardados e sincronizados, mas não aparecem
-const COLS = ['feitas', 'musicas', 'praticas', 'andamentos', 'treinos', 'conquistas'];
-const vazio = () => ({ v: 1, cfg: { meta: 20, bpm: 80, estilo: 'rock' }, feitas: [], musicas: [], praticas: [], andamentos: [], treinos: [], conquistas: [] });
+const COLS = ['feitas', 'musicas', 'praticas', 'andamentos', 'treinos', 'conquistas', 'favoritos'];
+const vazio = () => ({ v: 1, cfg: { meta: 20, bpm: 80, estilo: 'rock' }, feitas: [], musicas: [], praticas: [], andamentos: [], treinos: [], conquistas: [], favoritos: [] });
 let DB = (() => { const d = LS.get('db', null); return d && d.v === 1 ? { ...vazio(), ...d, cfg: { ...vazio().cfg, ...(d.cfg || {}) } } : vazio(); })();
 const PRIMEIRO_USO = !DB.cfg.nivel && !DB.praticas.length && !DB.treinos.length && !DB.musicas.length && !LS.get('visto', false);
 LS.set('visto', true);
@@ -112,7 +116,7 @@ function aplicar(R) {
   LS.set('db', DB); snapTodos(); SY.salvar();
   return antes !== KitFacil.canon(DB);
 }
-const pacote = () => ({ v: 1, cfg: DB.cfg, feitas: DB.feitas, musicas: DB.musicas, praticas: DB.praticas, andamentos: DB.andamentos, treinos: DB.treinos, conquistas: DB.conquistas, st: SY.estado.st, del: SY.estado.del });
+const pacote = () => ({ v: 1, cfg: DB.cfg, feitas: DB.feitas, musicas: DB.musicas, praticas: DB.praticas, andamentos: DB.andamentos, treinos: DB.treinos, conquistas: DB.conquistas, favoritos: DB.favoritos, st: SY.estado.st, del: SY.estado.del });
 
 /* ================= navegação ================= */
 // barra: Início, Treinos, Afinador, Teoria e Mais (Metrônomo, Bateria, Mapa do braço, Acordes, Músicas, Progresso e
@@ -127,7 +131,8 @@ const parte = i => caminho()[i] || '';
 const subRota = () => parte(1);
 // endereços das versões anteriores: hoje → início; ferramentas/x → a tela da ferramenta
 const ANTIGAS = { hoje: 'inicio', ferramentas: 'metronomo' };
-const rota = () => { const r = parte(0) || 'inicio'; return NAV.some(n => n[0] === r) || r === 'ajustes' ? r : 'inicio'; };
+const INTERNAS = ['dia', 'favoritos']; // telas que se abrem pelo Início
+const rota = () => { const r = parte(0) || 'inicio'; return NAV.some(n => n[0] === r) || r === 'ajustes' || INTERNAS.includes(r) ? r : 'inicio'; };
 function corrigirEndereco() {
   const [r, s] = caminho();
   if (r === 'ferramentas') history.replaceState(null, '', '#/' + (['metronomo', 'bateria', 'afinador', 'braco', 'acordes'].includes(s) ? s : 'metronomo'));
@@ -178,19 +183,39 @@ const permDoDia = () => PERMS[diaNum() % 24];
 const desenhoDoDia = () => diaNum() % 5;
 
 /* ================= treinos: histórico ================= */
-// cada registro: { ex: modelo, cfg, cat, nivel, dur, concluido, bpm, voltas, min, limpo, em, perms, posicoes, tons }
+// registro: { ex: modelo, cfg, voltas, bpm, min, limpo, em, dia (treino do dia) }; os ids das versões 0.3 a 0.5 viram os
+// treinos de escala de hoje quando dá, e os que não existem mais ficam guardados sem aparecer
+function normalizarTreino(t) {
+  const id = t.ex || '', c = t.cfg || {};
+  if (modelo(id)) return { id, cfg: c };
+  const p = id.split(':');
+  if (p[0] === 'esc' || p[0] === 'seq' || p[0] === 'arp') { const m = MODELOS.find(x => x.id.startsWith(p.slice(0, p[0] === 'seq' ? 3 : 2).join(':') + ':')); if (m) return { id: m.id, cfg: c }; }
+  if (id === 'ex-penta' || id === 'ex-1234') return { id: 'esc:penta-menor:1', cfg: { raiz: 9 } };
+  return { id: null, cfg: c };
+}
 const reg = t => { const n = normalizarTreino(t); return { ...t, id: n.id, cfg: { ...(t.cfg || {}), ...n.cfg } }; };
 const limpo = t => t.limpo === true || (t.acerto != null && t.acerto >= 90);
-const melhorLimpo = id => DB.treinos.map(reg).filter(t => t.id === id && limpo(t)).reduce((m, t) => Math.max(m, t.bpm), 0);
-const ultimoTreino = () => { const t = DB.treinos.slice().sort((a, b) => b.em - a.em)[0]; return t && modelo(reg(t).id) ? reg(t) : null; };
-const permsTocadas = () => new Set(DB.treinos.map(reg).filter(t => t.id.startsWith('tec:crom')).flatMap(t => t.perms || [t.cfg.perm || '1234']));
+const T = () => DB.treinos.map(reg).filter(t => t.id);
+const melhorLimpo = id => T().filter(t => t.id === id && limpo(t)).reduce((m, t) => Math.max(m, t.bpm), 0);
+const ultimoTreino = () => T().sort((a, b) => b.em - a.em)[0] || null;
 const quando = t => { const d = diaNum() - diaNum(t); return d <= 0 ? 'hoje' : d === 1 ? 'ontem' : `há ${d} dias`; };
 const fmtTempo = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const favorito = id => DB.favoritos.some(f => f.id === id);
+function alternarFavorito(id) { const k = DB.favoritos.findIndex(f => f.id === id); if (k >= 0) DB.favoritos.splice(k, 1); else DB.favoritos.push({ id, em: Date.now() }); commit(); conferirConquistas(); return k < 0; }
+// nome de um treino com o estilo ou a técnica: "Bigorna · Thrash metal"
+const tituloDe = m => m.cat === 'escalas' ? m.nome : `${m.nome} · ${m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub).nome : estiloDe(m.sub).nome}`;
+
+/* ================= treino do dia ================= */
+// quatro treinos do nível escolhido, sorteados pelo dia: aquecimento de técnica, riff, solo e uma linha muito longa
+function treinoDoDia(nivel) {
+  const r = sorteio(semente(`dia:${diaNum()}:${nivel}`)), um = (cat, sub, tam) => `${cat}:${sub}:${nivel}:${tam}:${r.i(N_POR_LISTA)}`;
+  return [um('tecnica', r.um(TECNICAS_TREINO).id, 'moderado'), um('riffs', r.um(ESTILOS).id, 'longo'), um('solos', r.um(ESTILOS).id, 'moderado'), um('riffs', r.um(ESTILOS).id, 'muito-longo')];
+}
 
 /* ================= conquistas ================= */
 // [id, nome, como ganhar, condição]: conferidas depois de cada prática; ficam guardadas com a data em que vieram
-const T = () => DB.treinos.map(reg);
-const melhorCromatico = () => T().filter(t => t.id.startsWith('tec:crom') && limpo(t)).reduce((m, t) => Math.max(m, t.bpm), 0);
+const estilosTreinados = () => new Set(T().map(t => modelo(t.id)).filter(m => m && m.cat !== 'tecnica' && m.cat !== 'escalas').map(m => m.sub));
+const tecnicasTreinadas = () => new Set(T().map(t => modelo(t.id)).filter(m => m && m.cat === 'tecnica').map(m => m.sub));
 const CONQUISTAS = [
   ['primeiro', 'Primeiro treino', 'Termine um treino.', () => DB.treinos.length > 0],
   ['meta', 'Meta do dia', 'Pratique os minutos da sua meta num dia.', () => [...diasPraticados()].some(n => minutosNoDia(n) >= DB.cfg.meta)],
@@ -199,19 +224,20 @@ const CONQUISTAS = [
   ['dias30', 'Um mês sem parar', 'Pratique 30 dias seguidos.', () => maiorSequencia() >= 30],
   ['hora', 'Uma hora na semana', 'Some 60 minutos em sete dias.', () => minutosSemana() >= 60],
   ['horas10', 'Dez horas de guitarra', 'Some 600 minutos de prática.', () => DB.praticas.reduce((s, p) => s + p.min, 0) >= 600],
-  ['categorias', 'De tudo um pouco', 'Treine as seis categorias.', () => new Set(T().map(t => (modelo(t.id) || {}).cat).filter(Boolean)).size >= 6],
-  ['longo', 'Fôlego', 'Termine um treino longo.', () => T().some(t => t.concluido && (t.dur === 'longo' || t.dur === 'muito-longo'))],
-  ['tons12', 'Os 12 tons', 'Termine um treino muito longo, que passa pelos 12 tons.', () => T().some(t => t.concluido && t.dur === 'muito-longo')],
+  ['dia', 'Treino do dia', 'Termine os quatro treinos de um treino do dia.', () => T().some(t => t.dia && t.diaFim)],
+  ['estilos5', 'Cinco estilos', 'Treine riffs ou solos de cinco estilos.', () => estilosTreinados().size >= 5],
+  ['estilos', 'Todos os estilos', `Treine os ${ESTILOS.length} estilos.`, () => estilosTreinados().size >= ESTILOS.length],
+  ['tecnicas10', 'Dez técnicas', 'Treine dez técnicas diferentes.', () => tecnicasTreinadas().size >= 10],
+  ['muito-longo', 'Linha inteira', 'Toque uma volta inteira de um treino muito longo.', () => T().some(t => (modelo(t.id) || {}).tamanho === 'muito-longo' && t.voltas >= 1)],
   ['avancado', 'Nível avançado', 'Faça um treino avançado.', () => T().some(t => (modelo(t.id) || {}).nivel === 3)],
-  ['licks10', 'Dez licks', 'Toque 10 licks diferentes.', () => new Set(T().filter(t => t.id.startsWith('lick:')).map(t => t.id)).size >= 10],
-  ['crom10', 'Dez combinações', 'Toque 10 das 24 combinações do cromático.', () => permsTocadas().size >= 10],
-  ['crom24', 'As 24 combinações', 'Toque todas as combinações do cromático.', () => permsTocadas().size >= 24],
-  ['bpm100', 'Cromático a 100', 'Toque o cromático limpo a 100 bpm.', () => melhorCromatico() >= 100],
-  ['bpm140', 'Cromático a 140', 'Toque o cromático limpo a 140 bpm.', () => melhorCromatico() >= 140],
-  ['desenhos', 'Os cinco desenhos', 'Passe pelas cinco posições da pentatônica.', () => new Set(T().filter(t => t.id === 'esc:penta-menor').flatMap(t => t.posicoes || [t.cfg.pos || 0])).size >= 5],
+  ['drop', 'Afinação baixa', 'Treine numa afinação drop.', () => T().some(t => String(t.cfg.afin || (modelo(t.id) || {}).afinPadrao || '').startsWith('drop'))],
+  ['sete', 'Sete cordas', 'Treine numa afinação de sete cordas.', () => T().some(t => String(t.cfg.afin || (modelo(t.id) || {}).afinPadrao || '').startsWith('sete'))],
+  ['limpo140', 'Rápido e limpo', 'Toque um treino limpo a 140 bpm ou mais.', () => T().some(t => limpo(t) && t.bpm >= 140)],
+  ['favorito', 'Favorito', 'Marque um treino com a estrela.', () => DB.favoritos.length > 0],
   ['musica', 'Primeira música', 'Marque uma música como Já toco.', () => DB.musicas.some(m => m.estado === 'toco')],
 ];
 const temConquista = id => DB.conquistas.find(c => c.id === id);
+const ganhas = () => CONQUISTAS.filter(c => temConquista(c[0])).length;
 function conferirConquistas(avisar = true) {
   const novas = CONQUISTAS.filter(c => !temConquista(c[0]) && c[3]());
   if (!novas.length) return;
@@ -223,11 +249,13 @@ function registrarPratica(min) { if (min > 0) { DB.praticas.push({ id: uid(), em
 
 /* ================= telas ================= */
 const VIEWS = {};
-// Início: a sequência numa linha, o último treino para continuar e o menu de botões grandes
+// Início: a sequência numa linha, continuar, o treino do dia e o menu de botões grandes
 const MENU = [
-  ['treinos', 'Treinar', 'treinar', `${MODELOS.length} treinos`], ['afinador', 'Afinar', 'afinador', 'Pelo microfone'], ['metronomo', 'Metrônomo', 'metronomo', 'Toque no tempo'],
-  ['bateria', 'Bateria', 'bateria', 'Uma banda junto'], ['teoria', 'Teoria', 'teoria', 'Escalas e acordes'], ['braco', 'Mapa do braço', 'braco', 'Todas as notas'],
-  ['acordes', 'Acordes', 'acordes', 'Os essenciais'], ['musicas', 'Músicas', 'musicas', 'Sua lista'], ['progresso', 'Progresso', 'progresso', 'Andamentos e conquistas'],
+  ['treinos', 'Treinar', 'treinar', () => `${MODELOS.length.toLocaleString('pt-BR')} treinos`], ['favoritos', 'Favoritos', 'favoritos', () => DB.favoritos.length ? `${DB.favoritos.length} ${DB.favoritos.length === 1 ? 'treino' : 'treinos'}` : 'Marque com a estrela'],
+  ['afinador', 'Afinar', 'afinador', () => 'Até 7 cordas'], ['metronomo', 'Metrônomo', 'metronomo', () => 'Toque no tempo'],
+  ['bateria', 'Bateria', 'bateria', () => 'Uma banda junto'], ['teoria', 'Teoria', 'teoria', () => 'Escalas e acordes'],
+  ['braco', 'Mapa do braço', 'braco', () => 'Todas as notas'], ['acordes', 'Acordes', 'acordes', () => 'Os essenciais'],
+  ['musicas', 'Músicas', 'musicas', () => 'Playlists de metal'], ['progresso', 'Progresso', 'progresso', () => 'Andamentos e conquistas'],
 ];
 VIEWS.inicio = () => {
   const meta = DB.cfg.meta, min = minutosHoje(), seg = diasSeguidos(), ul = ultimoTreino(), p = Math.min(100, Math.round(min / meta * 100));
@@ -237,41 +265,60 @@ VIEWS.inicio = () => {
       <span class="seq-tx"><b>${seg ? `${seg} ${seg === 1 ? 'dia seguido' : 'dias seguidos'}` : 'Comece sua sequência hoje'}</b><span class="apoio">${min} de ${meta} min hoje${min >= meta ? ' · meta batida' : ''}</span></span>
       <span class="seq-sem" aria-hidden="true">${semanaAtual().map(d => `<i class="${d.feito ? 'feito' : ''}${d.hoje ? ' hoje' : ''}" title="${d.nome}"></i>`).join('')}</span>
       <span class="barra-prog seq-barra" role="progressbar" aria-label="Meta de hoje" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><span style="width:${p}%"></span></span></section>
-    ${v ? `<button type="button" class="continuar" data-tr-ultimo><span class="ct-ilu">${miniDesenho(v)}</span><span class="ld-tx"><small>Continuar · ${quando(ul.em)}</small><b>${esc(v.nome)}</b><small>${esc(v.sub ? v.sub + ' · ' : '')}${ul.bpm} bpm · ${(DURACOES.find(d => d[0] === ul.dur) || DURACOES[0])[2]} min</small></span><span class="ct-play">${I.play}</span></button>` : ''}
-    <nav class="ladrilhos" aria-label="Menu">${MENU.map(([ir, nome, il, sub], i) => ladrilho({ ir, ilu: ILU[il], nome, sub, classe: i === 0 && !v ? 'destaque' : '' })).join('')}</nav>
+    <button type="button" class="dia-hero" data-ir="dia"><span class="ld-ilu">${ILU.dia}</span><span class="ld-tx"><small>Treino do dia</small><b>Técnica, riff, solo e uma linha longa</b><small>Quatro treinos seguidos, no seu nível</small></span><span class="ct-play">${I.play}</span></button>
+    ${v ? `<button type="button" class="continuar" data-tr-ultimo><span class="ct-ilu">${miniDesenho(v)}</span><span class="ld-tx"><small>Continuar · ${quando(ul.em)}</small><b>${esc(tituloDe(m))}</b><small>${esc(v.sub)} · ${ul.bpm} bpm</small></span>${I.seta}</button>` : ''}
+    <nav class="ladrilhos" aria-label="Menu">${MENU.map(([ir, nome, il, sub]) => ladrilho({ ir, ilu: ILU[il], nome, sub: sub() })).join('')}</nav>
   </div>`;
 };
 
-/* Treinos: categoria › nível › duração › lista, um toque por vez */
-const contar = (cat, nivel) => MODELOS.filter(m => m.cat === cat && (!nivel || m.nivel === nivel)).length;
+/* Treinos: categoria › estilo ou técnica › nível › tamanho › lista, um toque por vez */
 function miniDesenho(ex) {
-  const ks = ex.notas.map(n => n[1]), a = Math.min(...ks), b = Math.max(...ks), C = Math.max(4, b - a + 1);
-  const W = 92, H = 64, x = k => 8 + (k - a + .5) * ((W - 16) / C), y = c => 8 + (5 - c) * ((H - 16) / 5);
+  const P = ex.evs.flatMap(e => e.n), N = ex.afin ? ex.afin.length : 6; if (!P.length) return '<svg class="mini-braco" viewBox="0 0 92 64" aria-hidden="true"></svg>';
+  const ks = P.map(n => n[1]), a = Math.min(...ks), b = Math.max(...ks), C = Math.max(4, Math.min(12, b - a + 1));
+  const W = 92, H = 64, x = k => 8 + (Math.min(k, a + C - 1) - a + .5) * ((W - 16) / C), y = c => 8 + (N - 1 - c) * ((H - 16) / (N - 1));
   let s = `<svg class="mini-braco" viewBox="0 0 ${W} ${H}" aria-hidden="true">`;
-  for (let c = 0; c < 6; c++) s += `<line x1="6" y1="${y(c)}" x2="${W - 6}" y2="${y(c)}" class="mi-l"/>`;
+  for (let c = 0; c < N; c++) s += `<line x1="6" y1="${y(c)}" x2="${W - 6}" y2="${y(c)}" class="mi-l"/>`;
   for (let k = 0; k <= C; k++) s += `<line x1="${8 + k * ((W - 16) / C)}" y1="5" x2="${8 + k * ((W - 16) / C)}" y2="${H - 5}" class="mi-t"/>`;
-  new Set(ex.notas.map(n => n[0] + ',' + n[1])).forEach(ch => { const [c, k] = ch.split(',').map(Number); s += `<circle cx="${x(k)}" cy="${y(c)}" r="4" class="mi-n${ex.raiz != null && pc(SOLTAS[c] + k) === ex.raiz ? ' raiz' : ''}"/>`; });
+  new Set(P.map(n => n[0] + ',' + n[1])).forEach(ch => { const [c, k] = ch.split(',').map(Number); s += `<circle cx="${x(k)}" cy="${y(c)}" r="3.8" class="mi-n${ex.raiz != null && pc(ex.afin[c] + k) === ex.raiz ? ' raiz' : ''}"/>`; });
   return s + '</svg>';
 }
+const iluTamanho = n => ilu(Array.from({ length: Math.min(16, n) }, (_, i) => `<rect x="${4 + (i % 8) * 7.2}" y="${n > 8 ? (i < 8 ? 12 : 27) : 20}" width="5.6" height="11" rx="1.5" class="${i === Math.min(16, n) - 1 ? 'il-a' : 'il-n'}"/>`).join('') + '<path d="M4 44h56" class="il-l"/>');
+const desenhoDe = id => { const m = modelo(id); return m ? miniDesenho(volta(m, cfgPadrao(m))) : ''; };
+const listaDe = (cat, sub, nivel, tam) => MODELOS.filter(m => m.cat === cat && (!sub || m.sub === sub) && m.nivel === nivel && (cat === 'escalas' || m.tamanho === tam));
+const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(m.nome)}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
 VIEWS.treinos = () => {
-  const [, cat, nv, dur] = caminho(), C = CATEGORIAS.find(c => c[0] === cat), N = NIVEIS.find(n => n[1] === nv), D = DURACOES.find(d => d[0] === dur);
-  if (!C) return KitFacil.ui.cabecalho({ titulo: 'Treinos', sub: `${MODELOS.length} treinos, em 12 tons e em todo o braço. Escolha o que treinar.` })
-    + `<div class="ladrilhos">${CATEGORIAS.map(([id, nome, d]) => ladrilho({ ir: 'treinos/' + id, ilu: ILU[id], nome, sub: d, selo: String(contar(id)) })).join('')}</div>`;
-  const base = 'treinos/' + C[0];
-  if (!N) return migalhas([['treinos', 'Treinos'], [null, C[1]]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: 'Escolha o nível.' })
-    + `<div class="ladrilhos l1">${NIVEIS.map(([n, id, nome, d]) => ladrilho({ ir: `${base}/${id}`, ilu: iluNivel(n), nome, sub: d, selo: String(contar(C[0], n)), classe: 'largo' })).join('')}</div>`;
-  const bn = `${base}/${N[1]}`;
-  if (!D) return migalhas([['treinos', 'Treinos'], [base, C[1]], [null, N[2]]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: `${N[2]}. Escolha por quanto tempo.` })
-    + `<div class="ladrilhos">${DURACOES.map(([id, nome, min, d]) => ladrilho({ ir: `${bn}/${id}`, ilu: iluDuracao(min), nome, sub: d, selo: `${min} min` })).join('')}</div>`;
-  const L = MODELOS.filter(m => m.cat === C[0] && m.nivel === N[0]);
-  return migalhas([['treinos', 'Treinos'], [base, C[1]], [bn, N[2]], [null, `${D[2]} min`]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: `${N[2]} · ${D[1].toLowerCase()}, ${D[2]} min: ${D[3].toLowerCase()}` })
-    + `<div class="pilha"><button type="button" class="kf-btn kf-sec sortear" data-tr-sortear="${esc(L.map(m => m.id).join(' '))}" data-dur="${D[0]}">${I.sortear}Sortear um treino</button>
-      <ul class="tr-lista">${L.map(m => { const v = volta(m, { ...cfgPadrao(m), ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}" data-dur="${D[0]}">${miniDesenho(v)}<span class="ld-tx"><b>${esc(m.nome)}</b><small>${esc(m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; }).join('')}</ul></div>`;
+  const [, cat, a, b, c] = caminho(), C = CATEGORIAS.find(x => x[0] === cat);
+  if (!C) return KitFacil.ui.cabecalho({ titulo: 'Treinos', sub: `${MODELOS.length.toLocaleString('pt-BR')} treinos de rock e metal, em três níveis e quatro tamanhos.` })
+    + `<div class="ladrilhos">${CATEGORIAS.map(([id, nome, d]) => ladrilho({ ir: 'treinos/' + id, ilu: ILU[id], nome, sub: d, selo: MODELOS.filter(m => m.cat === id).length.toLocaleString('pt-BR') })).join('')}</div>`;
+  const base = 'treinos/' + C[0], temSub = C[0] !== 'escalas';
+  const SUBS = C[0] === 'tecnica' ? TECNICAS_TREINO.map(t => [t.id, t.nome, t.d]) : ESTILOS.map(e => [e.id, e.nome, `No estilo de ${e.inspira}.`]);
+  const S = temSub ? SUBS.find(x => x[0] === a) : null;
+  if (temSub && !S) return migalhas([['treinos', 'Treinos'], [null, C[1]]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: C[0] === 'tecnica' ? 'Escolha a técnica.' : 'Escolha o estilo. Os riffs e solos são originais do app, inspirados nas bandas de cada estilo.' })
+    + `<div class="ladrilhos">${SUBS.map(([id, nome, d]) => ladrilho({ ir: `${base}/${id}`, ilu: desenhoDe(`${C[0]}:${id}:2:curto:0`), nome, sub: d, classe: 'sub' })).join('')}</div>`;
+  const bs = temSub ? `${base}/${S[0]}` : base, nv = temSub ? b : a, N = NIVEIS.find(n => n[1] === nv), cam = [['treinos', 'Treinos'], [base, C[1]], ...(temSub ? [[bs, S[1]]] : [])], titulo = temSub ? S[1] : C[1];
+  if (!N) return migalhas([...cam.slice(0, -1), [null, cam[cam.length - 1][1]]]) + KitFacil.ui.cabecalho({ titulo, sub: 'Escolha o nível. Cada nível tem os seus treinos.' })
+    + `<div class="ladrilhos l1">${NIVEIS.map(([n, id, nome, d]) => ladrilho({ ir: `${bs}/${id}`, ilu: iluNivel(n), nome, sub: d, selo: String(MODELOS.filter(m => m.cat === C[0] && (!temSub || m.sub === S[0]) && m.nivel === n).length), classe: 'largo' })).join('')}</div>`;
+  const bn = `${bs}/${N[1]}`, tm = temSub ? c : b, TM = TAMANHOS.find(t => t[0] === tm);
+  if (!TM) return migalhas([...cam, [null, N[2]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]}. Escolha o tamanho da linha.` })
+    + `<div class="ladrilhos">${TAMANHOS.map(([id, nome, n, d]) => ladrilho({ ir: `${bn}/${id}`, ilu: iluTamanho(n), nome, sub: d, selo: `${n}${n >= 16 ? '+' : ''} comp.` })).join('')}</div>`;
+  const L = listaDe(C[0], temSub ? S[0] : null, N[0], TM[0]);
+  return migalhas([...cam, [bn, N[2]], [null, TM[1]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]} · ${TM[1].toLowerCase()}: ${TM[3].toLowerCase()}` })
+    + `<div class="pilha"><button type="button" class="kf-btn kf-sec sortear" data-tr-sortear="${esc(L.map(m => m.id).join(' '))}" data-tam="${TM[0]}">${I.sortear}Sortear um treino</button>
+      <ul class="tr-lista">${L.map(m => itemTreino(m, C[0] === 'escalas' ? TM[0] : null)).join('')}</ul></div>`;
+};
+// treino do dia: escolher o nível e começar; a lista mostra o que vem
+VIEWS.dia = () => migalhas([['inicio', 'Início'], [null, 'Treino do dia']]) + KitFacil.ui.cabecalho({ titulo: 'Treino do dia', sub: 'Quatro treinos seguidos: técnica, riff, solo e uma linha muito longa. Cada um por algumas voltas; o app avisa antes de trocar.' })
+  + `<div class="pilha">${NIVEIS.map(([n, id, nome]) => `<section class="cartao dia-nivel"><div class="dia-cab"><span class="ld-ilu">${iluNivel(n)}</span><h2>${nome}</h2></div>
+    <ol class="dia-lista">${treinoDoDia(n).map(id => { const m = modelo(id); return m ? `<li><b>${esc(m.cat === 'tecnica' ? 'Técnica' : m.cat === 'riffs' ? (m.tamanho === 'muito-longo' ? 'Linha longa' : 'Riff') : 'Solo')}</b> · ${esc(tituloDe(m))}</li>` : ''; }).join('')}</ol>
+    <button type="button" class="kf-btn kf-pri dia-ir" data-dia="${n}">${I.play}Começar o treino ${nome.toLowerCase()}</button></section>`).join('')}</div>`;
+VIEWS.favoritos = () => {
+  const L = DB.favoritos.map(f => modelo(f.id)).filter(Boolean);
+  return migalhas([['inicio', 'Início'], [null, 'Favoritos']]) + KitFacil.ui.cabecalho({ titulo: 'Favoritos', sub: 'Os treinos que você marcou com a estrela.' })
+    + (L.length ? `<ul class="tr-lista">${L.map(m => itemTreino(m, m.cat === 'escalas' ? 'moderado' : null)).join('')}</ul>` : KitFacil.ui.vazio({ titulo: 'Nenhum favorito ainda', texto: 'Abra um treino e toque na estrela, no canto do braço. Ele aparece aqui.', acao: '<button type="button" class="kf-btn kf-pri" data-ir="treinos">Ir para os treinos</button>' }));
 };
 
-/* Afinador: a nota, o ponteiro e as seis cordas para ouvir */
 VIEWS.afinador = () => {
-  const A = afinacao(), nomes = ['6ª', '5ª', '4ª', '3ª', '2ª', '1ª'];
+  const A = afinacao(), nomes = A.map((_, i) => `${A.length - i}ª`);
   return KitFacil.ui.cabecalho({ titulo: 'Afinador', sub: 'Toque uma corda solta. O som é analisado aqui e não é gravado.' })
   + `<div class="pilha afin">
     <div class="af-palco" aria-live="polite">
@@ -280,7 +327,7 @@ VIEWS.afinador = () => {
       <p class="apoio" id="af-msg">Ligue o microfone e toque uma corda solta.</p>
     </div>
     <button type="button" class="kf-btn ${afinador.ligado ? 'kf-sec' : 'kf-pri'} af-ligar" id="af-ligar">${afinador.ligado ? I.stop + 'Desligar o microfone' : I.mic + 'Ligar o microfone'}</button>
-    <div class="cordas" role="group" aria-label="Ouvir cada corda">${A.map((m, i) => `<button type="button" class="corda-bt" data-corda="${i}" aria-label="Ouvir a ${nomes[i]} corda, ${NOTAS[pc(m)]}"><b>${CIFRA[pc(m)]}</b><small>${nomes[i]}</small></button>`).join('')}</div>
+    <div class="cordas" role="group" aria-label="Ouvir cada corda" style="grid-template-columns:repeat(${A.length},minmax(0,1fr))">${A.map((m, i) => `<button type="button" class="corda-bt" data-corda="${i}" aria-label="Ouvir a ${nomes[i]} corda, ${NOTAS[pc(m)]}"><b>${CIFRA[pc(m)]}</b><small>${nomes[i]}</small></button>`).join('')}</div>
     <div class="campo af-tipo"><label class="kf-rotulo" for="af-afinacao">Afinação</label><select id="af-afinacao">${AFINACOES.map(([k, n]) => `<option value="${k}"${(DB.cfg.afinacao || 'padrao') === k ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
   </div>`;
 };
@@ -339,10 +386,10 @@ VIEWS.progresso = () => {
   if (aba === 'semana') corpo = `<div class="dados"><div class="dado"><b>${diasSeguidos()}</b><span class="apoio">dias seguidos</span></div><div class="dado"><b>${minutosSemana()}</b><span class="apoio">min em 7 dias</span></div><div class="dado"><b>${(total / 60).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b><span class="apoio">horas no total</span></div></div>
       <section class="cartao"><div class="grafico">${graficoSemana()}</div><p class="apoio">Minutos por dia. A linha tracejada é a meta de ${DB.cfg.meta} min; as barras escuras bateram a meta. Maior sequência: ${maiorSequencia()} dias.</p></section>`;
   else if (aba === 'andamentos') {
-    const ids = [...new Set(T().map(t => t.id))].filter(id => modelo(id));
-    corpo = ids.length ? `<ul class="andas cartao">${ids.map(id => { const m = modelo(id), b = melhorLimpo(id), X = T().filter(t => t.id === id), ul = X[X.length - 1], pr = Math.min(100, Math.round(b / m.alvo * 100)); return `<li><span><b>${esc(m.nome)}</b><span class="apoio">${esc(CATEGORIAS.find(c => c[0] === m.cat)[1])} · último ${ul.bpm} bpm · melhor limpo ${b || '–'} · meta ${m.alvo}</span></span><span class="barra-prog" style="width:80px" role="progressbar" aria-label="${esc(m.nome)}: melhor andamento em relação à meta" aria-valuenow="${pr}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pr}%"></span></span></li>`; }).join('')}</ul>`
+    const ids = [...new Set(T().map(t => t.id))].filter(id => modelo(id)).slice(-40).reverse();
+    corpo = ids.length ? `<ul class="andas cartao">${ids.map(id => { const m = modelo(id), b = melhorLimpo(id), X = T().filter(t => t.id === id), ul = X[X.length - 1], pr = Math.min(100, Math.round(b / m.alvo * 100)); return `<li><span><b>${esc(tituloDe(m))}</b><span class="apoio">${esc(CATEGORIAS.find(c => c[0] === m.cat)[1])} · último ${ul.bpm} bpm · melhor limpo ${b || '–'} · meta ${m.alvo}</span></span><span class="barra-prog" style="width:80px" role="progressbar" aria-label="${esc(m.nome)}: melhor andamento em relação à meta" aria-valuenow="${pr}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pr}%"></span></span></li>`; }).join('')}</ul>`
       : KitFacil.ui.vazio({ titulo: 'Nenhum andamento ainda', texto: 'Termine um treino e diga se saiu limpo: o seu melhor andamento aparece aqui, com a meta.', acao: '<button type="button" class="kf-btn kf-pri" data-ir="treinos">Ir para os treinos</button>' });
-  } else corpo = `<p class="apoio">${DB.conquistas.length} de ${CONQUISTAS.length} conquistas.</p><ul class="conquistas">${CONQUISTAS.map(([id, nome, como]) => { const c = temConquista(id); return `<li class="${c ? 'ganha' : ''}"><span class="cq-ic">${I.medalha}</span><span><b>${esc(nome)}</b><span class="apoio">${c ? `ganha ${quando(c.em)}` : esc(como)}</span></span></li>`; }).join('')}</ul>`;
+  } else corpo = `<p class="apoio">${ganhas()} de ${CONQUISTAS.length} conquistas.</p><ul class="conquistas">${CONQUISTAS.map(([id, nome, como]) => { const c = temConquista(id); return `<li class="${c ? 'ganha' : ''}"><span class="cq-ic">${I.medalha}</span><span><b>${esc(nome)}</b><span class="apoio">${c ? `ganha ${quando(c.em)}` : esc(como)}</span></span></li>`; }).join('')}</ul>`;
   return KitFacil.ui.cabecalho({ titulo: 'Progresso', sub: 'Sua constância, seus andamentos e as conquistas.' }) + abas + `<div class="pilha">${corpo}</div>`;
 };
 VIEWS.ajustes = () => KitFacil.ajustes.html({
@@ -354,11 +401,9 @@ VIEWS.ajustes = () => KitFacil.ajustes.html({
 // a Teoria leva aos treinos: a escala e a posição equivalentes no catálogo
 function modeloDaTeoria() {
   const e = TEO.escala, d = Math.max(0, TEO.desenho);
-  if (e === 'penta-menor') return ['esc:penta-menor', d];
-  if (e === 'penta-maior') return ['esc:penta-maior', (d + 4) % 5];
-  if (e === 'blues') return ['esc:blues', [0, 1, 2, 4, 5][d]];
-  const m = MODELOS.find(x => x.cat === 'escalas' && x.escala === e && x.id !== 'esc:maior-3' && x.id !== 'esc:menor-3') || MODELOS.find(x => x.cat === 'escalas' && x.escala === e);
-  return m ? [m.id, 0] : null;
+  const m = MODELOS.find(x => x.cat === 'escalas' && x.grupo === 'Escala' && x.escala === e);
+  if (!m) return null;
+  return [m.id, e === 'blues' ? [0, 1, 2, 4, 5][d] : d];
 }
 
 const TEO = { raiz: 9, escala: 'penta-menor', rotulo: 'nota', desenho: -1, acRaiz: 0, acTipo: '', tom: 0 };
@@ -543,8 +588,7 @@ function afinadorDesligar() {
   if (afinador.fluxo) afinador.fluxo.getTracks().forEach(t => t.stop()); afinador.fluxo = null;
   pintarAfinador();
 }
-const AFINACOES = [['padrao', 'Padrão', [40, 45, 50, 55, 59, 64]], ['meio', 'Meio tom abaixo', [39, 44, 49, 54, 58, 63]], ['drop-d', 'Drop D', [38, 45, 50, 55, 59, 64]], ['tom', 'Um tom abaixo', [38, 43, 48, 53, 57, 62]]];
-const afinacao = () => (AFINACOES.find(a => a[0] === DB.cfg.afinacao) || AFINACOES[0])[2];
+const afinacao = () => afinacaoDe(DB.cfg.afinacao || 'padrao')[2];
 function mostrarNota(f) {
   const n = notaDe(f), el = $('#af-nota'), pt = $('#af-ponteiro'), msg = $('#af-msg'); if (!el) return;
   const ok = Math.abs(n.cents) <= 5, m = 12 * Math.log2(f / 440) + 69, A = afinacao();
@@ -559,112 +603,144 @@ function pintarAfinador() { const b = $('#af-ligar'); if (b) { b.innerHTML = afi
 
 
 /* ================= janela do treino =================
-   Duas vistas, uma de cada vez: o palco (braço, tablatura, relógio, andamento e o botão grande de tocar) e os ajustes
-   (tom, posição, escala, combinação, figura, duração, subida do andamento, som). A sessão dura o tempo escolhido e
-   passa pelas etapas do plano (posições e tons), uma por volta, no mesmo ritmo do relógio. */
+   Duas vistas, uma de cada vez: o palco (braço, tablatura, parte da linha, andamento e o botão grande de tocar) e os
+   ajustes (afinação, tom, posição, escala, figura, o que fazer a cada N voltas, subida do andamento, som, rótulos).
+   No treino do dia, os quatro treinos vêm em fila: cada um por N voltas, com aviso uma volta antes da troca. */
 const SUBIDAS = [[0, 'Manter o andamento'], [1, '+1 bpm a cada volta'], [2, '+2 bpm a cada volta'], [5, '+5 bpm a cada volta']];
-const BPM_MIN = 30, BPM_MAX = 240;
+const BPM_MIN = 30, BPM_MAX = 260;
 function abrirTreino(id, op = {}) {
-  const m = modelo(id); if (!m) return;
-  const salvo = (DB.cfg.trCfg || {})[m.id] || {};
-  let cfg = { ...cfgPadrao(m), ...salvo, ...(op.cfg || {}) }, dur = op.dur || DB.cfg.trDur || 'curto';
-  let plano = planoSessao(m, cfg, dur), etapa = 0, ex = volta(m, plano[0]);
-  let bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, op.bpm || melhorLimpo(m.id) || m.bpm));
-  const segs = () => (DURACOES.find(d => d[0] === dur) || DURACOES[0])[2] * 60;
+  const fila = op.fila || null; let filaI = 0;
+  let m = modelo(fila ? fila[0] : id); if (!m) return;
+  const cfgDe = (mm, extra) => ({ ...cfgPadrao(mm), ...((DB.cfg.trCfg || {})[mm.id] || {}), ...(extra || {}) });
+  let cfg = cfgDe(m, op.cfg), ex = volta(m, cfg);
+  const bpmDe = mm => Math.max(BPM_MIN, Math.min(BPM_MAX, melhorLimpo(mm.id) || mm.bpm));
+  let bpm = op.bpm || bpmDe(m);
+  const voltasEtapa = () => DB.cfg.trVoltas || 4, percurso = () => fila ? 'fila' : (DB.cfg.trPercurso || 'repetir');
   const sel = (id, ops, v, rot) => `<div class="campo"><label class="kf-rotulo" for="${id}">${rot}</label><select id="${id}">${ops.map(([k, l]) => `<option value="${esc(String(k))}"${String(v) === String(k) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
   const seg = (attr, ops, v, rot) => `<div class="campo"><span class="kf-rotulo" id="tr-${attr}-l">${rot}</span><div class="kf-seg" role="group" aria-labelledby="tr-${attr}-l">${ops.map(([k, l]) => `<button type="button" data-${attr}="${k}" aria-pressed="${String(v) === String(k)}">${l}</button>`).join('')}</div></div>`;
-  const ajustesHTML = () => `
+  const ajustesHTML = () => { const R = m.regioes(cfg), base = ex.modelo.ehRiff ? m.afinPadrao : 'padrao'; return `
+    ${sel('tr-afin', afinacoesPara(m.ehRiff ? m.afinPadrao : 'padrao').map(a => [a[0], a[1]]), ex.afinId, 'Afinação')}
     ${m.usaTom ? sel('tr-raiz', NOTAS.map((n, i) => [i, `${n} (${CIFRA[i]})`]), cfg.raiz, 'Tom') : ''}
     ${m.trocaEscala ? sel('tr-esc', ESCALAS_SEQ.map(e => [e, nomeEscala(e)]), cfg.escala, 'Escala') : ''}
-    ${m.regioes(cfg).length > 1 ? sel('tr-pos', m.regioes(cfg).map((r, i) => [i, r]), cfg.pos, m.usaTom ? 'Posição no braço' : 'Casa do dedo 1') : ''}
-    ${m.temPerm && !m.variaPerm ? `<div class="campo"><span class="kf-rotulo" id="tr-perm-l">Ordem dos dedos</span><div class="perms" role="group" aria-labelledby="tr-perm-l">${PERMS.map(p => `<button type="button" class="perm" data-perm="${p}" aria-pressed="${p === cfg.perm}"><b>${permTexto(p)}</b></button>`).join('')}</div></div>` : ''}
-    ${m.cat !== 'licks' && m.cat !== 'riffs' ? sel('tr-fig', FIGURAS_TREINO.map(([f, n, t]) => [f, `${n} · ${t}`]), cfg.fig, 'Figura') : ''}
-    ${seg('dur', DURACOES.map(([k, n, min]) => [k, `${min} min`]), dur, 'Duração')}
+    ${R.length > 1 ? sel('tr-pos', R.map((r, i) => [i, r]), cfg.pos, 'Posição no braço') : ''}
+    ${m.cat === 'escalas' ? sel('tr-fig', FIGURAS_TREINO.map(([f, n, t]) => [f, `${n} · ${t}`]), cfg.fig, 'Figura') : ''}
+    ${m.cat === 'escalas' ? seg('tam', TAMANHOS.map(([k, n]) => [k, n]), cfg.tam, 'Tamanho') : ''}
+    ${fila ? '' : sel('tr-perc', [['repetir', 'Repetir o mesmo treino'], ...(m.usaTom ? [['tom', 'Ir para o próximo tom (ciclo das quartas)']] : []), ...(R.length > 1 ? [['posicao', 'Ir para a próxima posição']] : [])], percurso(), 'A cada etapa')}
+    ${seg('voltas', [[2, '2 voltas'], [4, '4 voltas'], [8, '8 voltas']], voltasEtapa(), fila ? 'Voltas de cada treino' : 'Tamanho da etapa')}
     ${sel('tr-sobe', SUBIDAS, DB.cfg.trSobe || 0, 'Subir o andamento')}
-    ${seg('rot', [['dedo', 'Dedos'], ['nota', 'Notas'], ...(m.usaTom ? [['grau', 'Graus']] : [])], cfg.rotulo || m.rotulo || 'nota', 'No braço, mostrar')}
+    ${seg('som', [['dist', 'Distorcido'], ['limpo', 'Limpo']], DB.cfg.trSom || 'dist', 'Som do exemplo')}
+    ${seg('rot', [['dedo', 'Dedos'], ['nota', 'Notas'], ...(ex.raiz != null ? [['grau', 'Graus']] : [])], cfg.rotulo || m.rotulo || 'nota', 'No braço, mostrar')}
     <div class="tr-op"><label class="kf-check"><input type="checkbox" id="tr-guia" ${DB.cfg.trGuia !== false ? 'checked' : ''}><span>Tocar o exemplo junto comigo</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-metro" ${DB.cfg.trMetro !== false ? 'checked' : ''}><span>Metrônomo</span></label></div>
-    <button type="button" class="kf-btn kf-pri" data-tr-pronto>${I.check}Pronto</button>`;
-  KitFacil.dialogo.abrir({ titulo: ex.nome, sub: ex.sub, classe: 'kf-alto kf-largo', nome: 'treino',
+    <button type="button" class="kf-btn kf-pri" data-tr-pronto>${I.check}Pronto</button>`; };
+  const subDe = () => (fila ? `Treino do dia · ${filaI + 1} de ${fila.length} · ` : '') + ex.sub;
+  const legenda = e => { const T2 = new Set(e.evs.flatMap(x => tecs(x))); const l = [...T2].filter(t => TEC_NOMES[t]).map(t => `<b>${t === 'pm' ? 'PM' : TEC_TAB[t] || (t === 'harm' ? '<12>' : t)}</b> ${TEC_NOMES[t]}`); return l.length ? l.join(' · ') : ''; };
+  KitFacil.dialogo.abrir({ titulo: tituloDe(m), sub: subDe(), classe: 'kf-alto kf-largo', nome: 'treino',
     corpo: `<div class="tr-vista" id="tr-v-palco">
-        <div class="tr-palco"><div class="tr-topo"><span class="tr-chip" id="tr-tempo" aria-label="Tempo que falta">${fmtTempo(segs())}</span><span class="tr-chip" id="tr-etapa">${plano.length > 1 ? `Etapa 1 de ${plano.length}` : 'Etapa única'}</span></div>
+        <div class="tr-palco"><div class="tr-topo"><button type="button" class="tr-fav" id="tr-fav" aria-pressed="${favorito(m.id)}" aria-label="Favorito">${favorito(m.id) ? '★' : '☆'}</button><span class="tr-chip" id="tr-parte">${esc(ex.partes ? ex.partes[0].nome : m.cat === 'escalas' ? m.grupo : 'Treino')}</span><span class="tr-chip" id="tr-volta">${(ex.compasso || [4, 1])[0]}/${(ex.compasso || [4, 1])[1] === 1 ? 4 : 8}</span></div>
+          <div class="tr-aviso" id="tr-aviso" hidden></div>
           <div class="tr-braco" id="tr-braco">${bracoTreino(ex)}</div><div class="tab-wrap" id="tr-tab">${tabSVG(ex)}</div><div class="tr-conta" id="tr-conta" aria-live="assertive"></div></div>
-        ${m.temTec ? `<p class="tr-legenda">${Object.entries(TECNICAS).map(([k, t]) => `<b>${k}</b> ${t}`).join(' · ')}</p>` : ''}
+        <p class="tr-legenda" id="tr-legenda">${legenda(ex)}</p>
         <div class="tr-ctrl"><div class="tr-bpm" role="group" aria-label="Andamento"><button type="button" class="kf-btn kf-sec" data-tr-bpm="-5" aria-label="5 batidas a menos">−5</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="-1" aria-label="1 batida a menos">−1</button><span class="tr-bpm-v"><output id="tr-bpm">${bpm}</output><small>bpm</small></span><button type="button" class="kf-btn kf-sec" data-tr-bpm="1" aria-label="1 batida a mais">+1</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="5" aria-label="5 batidas a mais">+5</button></div>
           <button type="button" class="play-grande" id="tr-ir" aria-label="Começar">${I.play}</button></div>
-        <p class="tr-status" id="tr-status" aria-live="polite">Meta: ${m.alvo} bpm${melhorLimpo(m.id) ? ` · seu melhor limpo: ${melhorLimpo(m.id)} bpm` : ''}</p>
+        <p class="tr-status" id="tr-status" aria-live="polite"></p>
         <div class="tr-res" id="tr-res" hidden></div></div>
       <div class="tr-vista pilha" id="tr-v-ajustes" hidden></div>`,
     pe: `<button type="button" class="kf-btn kf-sec" id="tr-aj">${I.ajustes}Ajustes</button><button type="button" class="kf-btn kf-sec" id="tr-exemplo">${I.ouvir}Ouvir uma volta</button>`,
     aoFechar: () => { if (treino.tocando) treino.parar(); },
     aoMontar: d => {
-      const vP = $('#tr-v-palco', d), vA = $('#tr-v-ajustes', d), tabW = $('#tr-tab', d), brW = $('#tr-braco', d), conta = $('#tr-conta', d), res = $('#tr-res', d), status = $('#tr-status', d), tempo = $('#tr-tempo', d), etp = $('#tr-etapa', d);
-      let desenhado = null, tabN = [], brN = [], cur = null, ultI = -2, px = pxDe(ex), visitadas = new Set([0]);
-      const titulo = e => { const h = $('.kf-dlg-cab h2', d), s = $('.kf-dlg-sub', d); if (h) h.textContent = e.nome; if (s) s.textContent = e.sub; };
+      const vP = $('#tr-v-palco', d), vA = $('#tr-v-ajustes', d), tabW = $('#tr-tab', d), brW = $('#tr-braco', d), conta = $('#tr-conta', d), res = $('#tr-res', d), status = $('#tr-status', d), parteC = $('#tr-parte', d), voltaC = $('#tr-volta', d), aviso = $('#tr-aviso', d);
+      let desenhado = null, tabN = [], brN = [], cur = null, ultI = -2, px = pxDe(ex), voltasNa = 0, feitos = [];
+      const meta = () => { status.textContent = `Meta: ${m.alvo} bpm${melhorLimpo(m.id) ? ` · seu melhor limpo: ${melhorLimpo(m.id)} bpm` : ''}`; };
+      const titulo = e => { const h = $('.kf-dlg-cab h2', d), s = $('.kf-dlg-sub', d); if (h) h.textContent = tituloDe(e.modelo); if (s) s.textContent = subDe(); $('#tr-legenda', d).innerHTML = legenda(e); const f = $('#tr-fav', d); f.setAttribute('aria-pressed', favorito(e.modelo.id)); f.textContent = favorito(e.modelo.id) ? '★' : '☆'; };
+      // o braço mostra um compasso de cada vez nas linhas longas (senão fica pequeno demais) e troca junto com a música
+      let janelas = [[0, 0]], jan = -1, compTxt = '';
+      const calcJanelas = e => { const [cn, cp] = e.compasso || [4, 1], bl = cn * cp, tot = e.evs.reduce((s, x) => s + x.d, 0); if (tot <= 2 * bl + 1e-6) return [[0, e.evs.length]]; const r = []; let t = 0, ini = 0, b = 1; e.evs.forEach((x, i) => { if (t >= b * bl - 1e-6) { r.push([ini, i]); ini = i; b++; } t += x.d; }); r.push([ini, e.evs.length]); return r; };
+      const desenharBraco = (e, j) => { jan = j; brW.innerHTML = bracoTreino(e, ...janelas[j]); brN = []; $$('.nt', brW).forEach(g => g.dataset.i.split(' ').forEach(i => (brN[+i] = brN[+i] || []).push(g))); voltaC.textContent = janelas.length > 1 ? `compasso ${j + 1} de ${janelas.length} · ${compTxt}` : compTxt; };
       const desenhar = e => {
-        const ch = JSON.stringify([e.id, e.cfg, e.rotulo]); if (desenhado === ch) return; desenhado = ch;
-        brW.innerHTML = bracoTreino(e); tabW.innerHTML = tabSVG(e); tabW.scrollLeft = 0; px = pxDe(e);
-        cur = $('.tab-cursor', tabW); tabN = $$('.tab-n', tabW); brN = [];
-        $$('.nt', brW).forEach(g => g.dataset.i.split(' ').forEach(i => brN[+i] = g)); ultI = -2; titulo(e);
+        const ch = JSON.stringify([e.id, e.cfg, e.rotulo, e.afinId]); if (desenhado === ch) return; desenhado = ch;
+        const [cn, cp] = e.compasso || [4, 1]; compTxt = `${cn}/${cp === 1 ? 4 : cp === .5 ? 8 : 16}`;
+        janelas = calcJanelas(e); desenharBraco(e, 0);
+        tabW.innerHTML = tabSVG(e); tabW.scrollLeft = 0; px = pxDe(e);
+        cur = $('.tab-cursor', tabW); tabN = []; $$('.tab-n', tabW).forEach(g => tabN[+g.dataset.i] = g); ultI = -2; titulo(e);
+        parteC.textContent = e.partes ? e.partes[0].nome : e.modelo.cat === 'escalas' ? e.modelo.grupo : 'Treino';
       };
-      desenhar(ex);
+      desenhar(ex); meta();
       const setBpm = v => { bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(v))); $('#tr-bpm', d).textContent = bpm; };
       $$('[data-tr-bpm]', d).forEach(b => b.onclick = () => setBpm(bpm + +b.dataset.trBpm));
-      const guardar = () => { DB.cfg.trCfg = { ...(DB.cfg.trCfg || {}), [m.id]: { raiz: cfg.raiz, pos: cfg.pos, fig: cfg.fig, escala: cfg.escala, perm: cfg.perm, rotulo: cfg.rotulo } }; DB.cfg.trDur = dur; commit(); };
-      const replanejar = () => { plano = planoSessao(m, cfg, dur); etapa = 0; ex = volta(m, plano[0]); visitadas = new Set([0]); desenhar(ex); tempo.textContent = fmtTempo(segs()); etp.textContent = plano.length > 1 ? `Etapa 1 de ${plano.length}` : 'Etapa única'; };
-      // ajustes: uma vista no lugar do palco; os campos mudam o treino na hora (sem tocar)
+      $('#tr-fav', d).onclick = () => { const on = alternarFavorito(m.id); titulo(ex); KitFacil.avisar(on ? 'Treino nos favoritos.' : 'Treino fora dos favoritos.'); };
+      const guardar = () => { DB.cfg.trCfg = { ...(DB.cfg.trCfg || {}), [m.id]: { raiz: cfg.raiz, pos: cfg.pos, fig: cfg.fig, escala: cfg.escala, rotulo: cfg.rotulo, afin: cfg.afin, tam: cfg.tam } }; commit(); };
+      const refazer = () => { ex = volta(m, cfg); desenhar(ex); };
+      // ajustes: uma vista no lugar do palco; os campos mudam o treino na hora
       const abrirAjustes = () => {
         if (treino.tocando) return;
         vA.innerHTML = ajustesHTML(); vP.hidden = true; vA.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'true'); KitFacil.movimento.entrar(vA, { de: 'tela' });
-        const muda = () => { guardar(); replanejar(); };
-        ligarAj();
-        function ligarAj() {
-          $('#tr-raiz', vA)?.addEventListener('change', e => { cfg.raiz = +e.target.value; muda(); });
-          $('#tr-esc', vA)?.addEventListener('change', e => { cfg.escala = e.target.value; cfg.pos = 0; muda(); const p = $('#tr-pos', vA); if (p) { p.innerHTML = m.regioes(cfg).map((r, i) => `<option value="${i}">${esc(r)}</option>`).join(''); p.value = '0'; } });
-          $('#tr-pos', vA)?.addEventListener('change', e => { cfg.pos = +e.target.value; muda(); });
-          $('#tr-fig', vA)?.addEventListener('change', e => { cfg.fig = +e.target.value; muda(); });
-          $('#tr-sobe', vA)?.addEventListener('change', e => { DB.cfg.trSobe = +e.target.value; commit(); });
-          $$('[data-perm]', vA).forEach(b => b.onclick = () => { cfg.perm = b.dataset.perm; $$('[data-perm]', vA).forEach(x => x.setAttribute('aria-pressed', x === b)); muda(); });
-          $$('[data-dur]', vA).forEach(b => b.onclick = () => { dur = b.dataset.dur; $$('[data-dur]', vA).forEach(x => x.setAttribute('aria-pressed', x === b)); muda(); });
-          $$('[data-rot]', vA).forEach(b => b.onclick = () => { cfg.rotulo = b.dataset.rot; $$('[data-rot]', vA).forEach(x => x.setAttribute('aria-pressed', x === b)); muda(); });
-          ['guia', 'metro'].forEach(k => $('#tr-' + k, vA).addEventListener('change', e => { DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked; commit(); }));
-          $('[data-tr-pronto]', vA).onclick = fecharAjustes;
-        }
+        const muda = () => { guardar(); refazer(); };
+        $('#tr-afin', vA).addEventListener('change', e => { cfg.afin = e.target.value; muda(); });
+        $('#tr-raiz', vA)?.addEventListener('change', e => { cfg.raiz = +e.target.value; muda(); });
+        $('#tr-esc', vA)?.addEventListener('change', e => { cfg.escala = e.target.value; cfg.pos = 0; muda(); const p = $('#tr-pos', vA); if (p) { p.innerHTML = m.regioes(cfg).map((r, i) => `<option value="${i}">${esc(r)}</option>`).join(''); p.value = '0'; } });
+        $('#tr-pos', vA)?.addEventListener('change', e => { cfg.pos = +e.target.value; muda(); });
+        $('#tr-fig', vA)?.addEventListener('change', e => { cfg.fig = +e.target.value; muda(); });
+        $('#tr-perc', vA)?.addEventListener('change', e => { DB.cfg.trPercurso = e.target.value; commit(); });
+        $('#tr-sobe', vA).addEventListener('change', e => { DB.cfg.trSobe = +e.target.value; commit(); });
+        const segL = (attr, f) => $$(`[data-${attr}]`, vA).forEach(b => b.onclick = () => { $$(`[data-${attr}]`, vA).forEach(x => x.setAttribute('aria-pressed', x === b)); f(b.dataset[attr]); });
+        segL('tam', v => { cfg.tam = v; muda(); });
+        segL('voltas', v => { DB.cfg.trVoltas = +v; commit(); });
+        segL('som', v => { DB.cfg.trSom = v; commit(); });
+        segL('rot', v => { cfg.rotulo = v; muda(); });
+        ['guia', 'metro'].forEach(k => $('#tr-' + k, vA).addEventListener('change', e => { DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked; commit(); }));
+        $('[data-tr-pronto]', vA).onclick = fecharAjustes;
       };
       const fecharAjustes = () => { vA.hidden = true; vP.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'false'); KitFacil.movimento.entrar(vP, { de: 'tela' }); $('#tr-ir', d).focus(); };
       $('#tr-aj', d).onclick = () => vA.hidden ? abrirAjustes() : fecharAjustes();
-      // a próxima volta: segue o relógio pelas etapas do plano, sem pular nenhuma
-      let soUma = false;
-      const proxima = (prev, tocado) => {
+      // a próxima etapa: na fila do treino do dia, o próximo treino; senão, o próximo tom ou a próxima posição
+      const proximaEtapa = () => {
+        if (fila) { if (filaI + 1 >= fila.length) return null; const mm = modelo(fila[filaI + 1]); const cc = cfgDe(mm); return { m: mm, cfg: cc, ex: volta(mm, cc) }; }
+        const p = percurso(); if (p === 'repetir') return null;
+        const cc = { ...cfg, ...(p === 'tom' ? { raiz: pc((cfg.raiz || 0) + 5) } : { pos: ((cfg.pos || 0) + 1) % m.regioes(cfg).length }) };
+        return { m, cfg: cc, ex: volta(m, cc) };
+      };
+      let soUma = false, acabou = false;
+      const proxima = prev => {
         if (!prev) return { ex, bpm };
-        if (soUma || tocado >= segs() - .5) return null;
-        const alvo = Math.floor(tocado / segs() * plano.length), nova = Math.min(plano.length - 1, Math.max(etapa, Math.min(etapa + 1, alvo)));
-        if (nova !== etapa) { etapa = nova; visitadas.add(etapa); ex = volta(m, plano[etapa]); }
+        if (soUma) return null;
+        voltasNa++;
+        if (voltasNa >= voltasEtapa()) {
+          const pe = proximaEtapa();
+          if (fila && !pe) { acabou = true; return null; }
+          if (pe) { if (fila) { feitos.push({ m, cfg: { ...cfg }, voltas: voltasNa, bpm }); filaI++; bpm = bpmDe(pe.m); setBpm(bpm); } m = pe.m; cfg = pe.cfg; ex = pe.ex; voltasNa = 0; }
+        }
         const sobe = DB.cfg.trSobe || 0; if (sobe) setBpm(Math.min(m.alvo + 40, bpm + sobe));
         return { ex, bpm };
       };
-      const aoRodada = r => { desenhar(r.ex); etp.textContent = plano.length > 1 ? `Etapa ${etapa + 1} de ${plano.length}` : `Volta ${r.n}`; status.textContent = `Volta ${r.n} · ${r.bpm} bpm`; };
-      const aoQuadro = (r, beat, falta, i, decorrido) => {
+      const aoRodada = r => {
+        desenhar(r.ex); status.textContent = `Volta ${voltasNa + 1}${percurso() !== 'repetir' ? ` de ${voltasEtapa()}` : ''} · ${r.bpm} bpm`;
+        const pe = voltasNa === voltasEtapa() - 1 ? proximaEtapa() : null;
+        aviso.hidden = !pe; if (pe) aviso.innerHTML = `<b>A seguir:</b> ${esc(fila ? tituloDe(pe.m) : pe.ex.sub)}`;
+      };
+      const aoQuadro = (r, beat, falta, i) => {
         conta.textContent = falta ? String(falta) : ''; conta.classList.toggle('on', !!falta);
-        if (!soUma) tempo.textContent = fmtTempo(segs() - decorrido);
         const x = 40 + Math.max(0, beat) * px; cur.setAttribute('x1', x); cur.setAttribute('x2', x);
         tabW.scrollLeft = Math.max(0, x - tabW.clientWidth * .35);
         if (i === ultI) return; ultI = i;
-        tabN.forEach((g, k) => g.classList.toggle('agora', k === i));
-        brN.forEach(g => g && g.classList.remove('agora', 'prox'));
-        const prox = i < 0 ? 0 : i + 1;
-        if (brN[prox] && prox < r.ex.notas.length) brN[prox].classList.add('prox');
-        if (i >= 0 && brN[i]) { brN[i].classList.remove('prox'); brN[i].classList.add('agora'); }
+        const evs = r.ex.evs, k = i < -1 ? -1 - i : i;
+        if (k >= 0) { const j = janelas.findIndex(([a, b]) => k >= a && k < b); if (j >= 0 && j !== jan) desenharBraco(r.ex, j); }
+        tabN.forEach((g, j) => g && g.classList.toggle('agora', j === i));
+        brN.forEach(gs => gs && gs.forEach(g => g.classList.remove('agora', 'prox')));
+        let prox = k < 0 ? 0 : k + 1; while (prox < evs.length && !evs[prox].n.length) prox++;
+        if (brN[prox]) brN[prox].forEach(g => g.classList.add('prox'));
+        if (i >= 0 && brN[i]) brN[i].forEach(g => { g.classList.remove('prox'); g.classList.add('agora'); });
+        if (r.ex.partes && k >= 0) { const p = r.ex.partes.filter(q => q.i <= k).pop(); if (p && parteC.textContent !== p.nome) parteC.textContent = p.nome; }
       };
       const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; };
-      const limpar = () => { conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g.classList.remove('agora')); brN.forEach(g => g && g.classList.remove('agora', 'prox')); ultI = -2; };
+      const limpar = () => { if (jan > 0) desenharBraco(ex, 0); conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g && g.classList.remove('agora')); brN.forEach(gs => gs && gs.forEach(g => g.classList.remove('agora', 'prox'))); ultI = -2; aviso.hidden = true; };
+      const registrar = (mm, cc, voltas, bpmR, min, extra = {}) => { const rec = { id: uid(), ex: mm.id, cfg: { ...cc }, voltas, bpm: bpmR, min, limpo: null, em: Date.now(), ...extra }; DB.treinos.push(rec); return rec; };
       const resultado = info => {
-        const min = Math.round(info.segs / 6) / 10, concluido = info.tocado >= segs() - 1, P = [...visitadas].map(k => plano[k]);
-        registrarPratica(min);
-        const rec = { id: uid(), ex: m.id, cfg: { ...plano[0] }, dur, concluido, bpm: info.bpm, voltas: info.voltas, min, limpo: null, em: Date.now(),
-          ...(m.temPerm ? { perms: [...new Set(P.map(c => c.perm || '1234'))] } : {}), ...(m.usaTom ? { posicoes: [...new Set(P.map(c => c.pos))], tons: [...new Set(P.map(c => c.raiz))].length } : {}) };
-        DB.treinos.push(rec); commit(); conferirConquistas();
-        res.innerHTML = `<p class="tr-fim"><b>${concluido ? 'Treino concluído.' : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
+        const min = Math.round(info.segs / 6) / 10; registrarPratica(min);
+        feitos.forEach(f => registrar(f.m, f.cfg, f.voltas, f.bpm, 0, { dia: true }));
+        const rec = registrar(m, cfg, Math.max(0, info.voltas - feitos.reduce((s, f) => s + f.voltas, 0)), info.bpm, min, fila ? { dia: true, diaFim: acabou } : {});
+        feitos = []; commit(); conferirConquistas();
+        res.innerHTML = `<p class="tr-fim"><b>${acabou ? 'Treino do dia concluído.' : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
           <p class="apoio">Saiu limpo, sem errar nem atrasar?</p>
           <div class="tr-limpo"><button type="button" class="kf-btn kf-pri" data-limpo="1">${I.check}Saiu limpo</button><button type="button" class="kf-btn kf-sec" data-limpo="0">Ainda não</button></div>`;
         res.hidden = false;
@@ -673,17 +749,17 @@ function abrirTreino(id, op = {}) {
           const novo = ok ? Math.min(BPM_MAX, info.bpm + 5) : Math.max(BPM_MIN, info.bpm - 5); setBpm(novo);
           $('#tr-ir', d).focus(); // o foco não se perde quando os botões saem
           res.innerHTML = `<p class="tr-fim">${ok ? `Registrado: ${info.bpm} bpm limpo. Na próxima, ${novo} bpm.` : `Sem problema: repita a ${novo} bpm até sair limpo.`}</p>`;
+          meta();
         });
       };
       const rodar = exemplo => {
         if (treino.tocando) { treino.parar(); return; }
-        res.hidden = true; soUma = exemplo; limpar(); botoes(true);
-        if (!exemplo) { etapa = 0; visitadas = new Set([0]); ex = volta(m, plano[0]); }
-        const ok = treinoTocar({ guia: exemplo || DB.cfg.trGuia !== false, metronomo: DB.cfg.trMetro !== false, proxima, aoRodada, aoQuadro,
+        res.hidden = true; soUma = exemplo; acabou = false; voltasNa = 0; feitos = []; limpar(); botoes(true);
+        if (!exemplo && fila && filaI > 0) { filaI = 0; m = modelo(fila[0]); cfg = cfgDe(m); ex = volta(m, cfg); setBpm(bpmDe(m)); }
+        const ok = treinoTocar({ guia: exemplo || DB.cfg.trGuia !== false, metronomo: DB.cfg.trMetro !== false, distorcer: (DB.cfg.trSom || 'dist') === 'dist', proxima, aoRodada, aoQuadro,
           aoFim: info => {
-            botoes(false); limpar(); if (!exemplo) tempo.textContent = fmtTempo(Math.max(0, segs() - info.tocado));
-            status.textContent = `Meta: ${m.alvo} bpm${melhorLimpo(m.id) ? ` · seu melhor limpo: ${melhorLimpo(m.id)} bpm` : ''}`;
-            if (exemplo || (info.segs < 15 && info.tocado < segs() - 1)) return; // menos de 15 s não conta, a não ser que a sessão tenha chegado ao fim
+            botoes(false); limpar(); meta();
+            if (exemplo || (info.segs < 15 && !acabou)) return; // menos de 15 s não conta
             if (info.voltas) resultado(info); else { registrarPratica(Math.round(info.segs / 6) / 10); conferirConquistas(); }
           } });
         if (!ok) { botoes(false); KitFacil.avisar('Este navegador não consegue tocar som. Tente outro navegador.'); }
@@ -740,9 +816,11 @@ function render() {
 }
 function ligar(m, r) {
   // treinos: abrir pelo modelo (com a duração escolhida), sortear da lista e continuar o último
-  $$('[data-tr-modelo]', m).forEach(b => b.onclick = () => abrirTreino(b.dataset.trModelo, { dur: b.dataset.dur }));
-  $$('[data-tr-sortear]', m).forEach(b => b.onclick = () => { const L = b.dataset.trSortear.split(' '); abrirTreino(L[Math.floor(Math.random() * L.length)], { dur: b.dataset.dur }); });
-  $$('[data-tr-ultimo]', m).forEach(b => b.onclick = () => { const u = ultimoTreino(); if (u) abrirTreino(u.id, { cfg: u.cfg, dur: u.dur, bpm: u.bpm }); });
+  const comTam = b => b.dataset.tam ? { cfg: { tam: b.dataset.tam } } : {};
+  $$('[data-tr-modelo]', m).forEach(b => b.onclick = () => abrirTreino(b.dataset.trModelo, comTam(b)));
+  $$('[data-tr-sortear]', m).forEach(b => b.onclick = () => { const L = b.dataset.trSortear.split(' '); abrirTreino(L[Math.floor(Math.random() * L.length)], comTam(b)); });
+  $$('[data-tr-ultimo]', m).forEach(b => b.onclick = () => { const u = ultimoTreino(); if (u) abrirTreino(u.id, { cfg: u.cfg, bpm: u.bpm }); });
+  $$('[data-dia]', m).forEach(b => b.onclick = () => abrirTreino(null, { fila: treinoDoDia(+b.dataset.dia) }));
   $$('[data-bpm]', m).forEach(b => b.onclick = () => mudarBpm(DB.cfg.bpm + +b.dataset.bpm));
   if (r === 'metronomo') {
     $('#bpm-r', m).addEventListener('input', e => mudarBpm(+e.target.value));
@@ -796,7 +874,7 @@ function ligarTeoria(m) {
   $('#ta-tipo', m)?.addEventListener('change', e => muda('acTipo', e.target.value));
   $$('[data-te-rot]', m).forEach(b => b.onclick = () => muda('rotulo', b.dataset.teRot));
   $$('[data-te-des]', m).forEach(b => b.onclick = () => muda('desenho', +b.dataset.teDes));
-  $('[data-te-treinar]', m)?.addEventListener('click', () => { const [id, pos] = modeloDaTeoria(); abrirTreino(id, { cfg: { raiz: TEO.raiz, pos } }); });
+  $('[data-te-treinar]', m)?.addEventListener('click', () => { const [id, pos] = modeloDaTeoria(); abrirTreino(id, { cfg: { raiz: TEO.raiz, pos, tam: 'moderado' } }); });
   const a = () => audio();
   $$('[data-te-ouvir]', m).forEach(b => b.onclick = () => {
     const ctx = a(); if (!ctx) return; const t = ctx.currentTime + .05;
@@ -814,7 +892,7 @@ function ligarTeoria(m) {
 /* ================= Kit Fácil ================= */
 KitFacil.iniciar({
   app: 'guitarra-facil', nome: 'Guitarra Fácil', versao: VERSAO,
-  resumo: 'Treinos de guitarra no seu andamento, com o braço desenhado.', icone: 'icons/icon-192.png',
+  resumo: 'Treinos de guitarra de rock e metal, com o braço desenhado.', icone: 'icons/icon-192.png',
   tela: () => rota(), exemploDados: 'os treinos, as músicas e o tempo de prática',
   privacidade: ['Os treinos, os andamentos, as conquistas, as músicas e o tempo de prática ficam guardados neste aparelho.', 'O som dos treinos, do metrônomo, da bateria, dos acordes e das notas é gerado aqui no aparelho.', 'O afinador usa o microfone só enquanto está ligado, com a sua permissão: o som é analisado em memória, não é gravado nem enviado.'],
   abrirAjustes: secao => { if (rota() !== 'ajustes') ir('ajustes'); else if (!secao) history.back(); },
@@ -822,13 +900,13 @@ KitFacil.iniciar({
   copia: { descricao: 'Baixe um arquivo com os treinos, as músicas e o tempo de prática.',
     baixar: () => KitFacil.copia.baixar({ db: DB }, 1),
     restaurar: async f => { const j = await KitFacil.copia.ler(f); if (!j || !j.dados || !j.dados.db) { KitFacil.avisar('Esse arquivo não é uma cópia do Guitarra Fácil.'); return; } DB = { ...vazio(), ...j.dados.db }; commit(); snapTodos(); render(); KitFacil.avisar('Cópia restaurada.'); } },
-  novidades: [{ versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
+  novidades: [{ versao: '0.6.0', itens: [`Rock e metal: ${MODELOS.length.toLocaleString('pt-BR')} treinos em riffs, solos e técnica, de 17 estilos (do hard rock ao djent) e 17 técnicas.`, 'Cada nível tem os seus treinos; a dificuldade vem da complexidade: técnicas misturadas, quiálteras, compassos ímpares e polirritmia.', 'O tamanho agora é o tamanho da linha: curto (1 compasso), moderado (2 a 4), longo (8, partes A e B) e muito longo (16 ou mais, com riff, breakdown e solo).', 'Afinações drop e sete cordas, com som distorcido, palm mute, pinch, harmônicos, notas mortas e alavanca.', 'Treino do dia, favoritos e aviso antes de trocar de etapa.', 'Visual mais escuro, com o vermelho do pedal.'] }, { versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
   // sem boas-vindas do Kit: o Início já é o menu de tudo
   boasVindas: { novo: () => PRIMEIRO_USO },
 });
-KitFacil.tema.iniciar({ chave: KEY + 'pref', cores: { claro: '#F3F3F1', escuro: '#111113' } });
+KitFacil.tema.iniciar({ chave: KEY + 'pref', cores: { claro: '#E4E4E8', escuro: '#08080A' } });
 const SY = KitFacil.sync.criar({ app: 'guitarra-facil', nome: 'Guitarra Fácil', chave: KEY + 'sync', dados: 'os treinos, as músicas e o tempo de prática',
-  carimbar, aplicar, pacote, mesmo: (a, r) => KitFacil.canon(a) === KitFacil.canon({ v: 1, cfg: r.cfg, feitas: r.feitas, musicas: r.musicas, praticas: r.praticas, andamentos: r.andamentos || [], treinos: r.treinos || [], conquistas: r.conquistas || [], st: r.st, del: r.del }),
+  carimbar, aplicar, pacote, mesmo: (a, r) => KitFacil.canon(a) === KitFacil.canon({ v: 1, cfg: r.cfg, feitas: r.feitas, musicas: r.musicas, praticas: r.praticas, andamentos: r.andamentos || [], treinos: r.treinos || [], conquistas: r.conquistas || [], favoritos: r.favoritos || [], st: r.st, del: r.del }),
   redesenhar: () => render() });
 $('#marca').innerHTML = I.marca; $('#marca-trilho').innerHTML = I.marca;
 $('#topo').innerHTML = KitFacil.topo.html({ principal: true });

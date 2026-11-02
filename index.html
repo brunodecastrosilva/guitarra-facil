@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Guitarra Fácil</title>
-<meta name="description" content="Treinos de guitarra elétrica no seu andamento, com o braço desenhado: escalas, sequências, arpejos, licks, riffs e técnica em 12 tons e três níveis, afinador, metrônomo e teoria">
-<meta name="theme-color" content="#F3F3F1">
+<meta name="description" content="Treinos de guitarra de rock e metal: riffs, solos e técnica em 17 estilos, três níveis e quatro tamanhos, com afinações drop e sete cordas, braço desenhado, afinador e metrônomo">
+<meta name="theme-color" content="#E4E4E8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,14 +17,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.5.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.6.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
 :root{
   color-scheme:light;
-  --kf-bg:#F3F3F1; --kf-surface:#FFFFFF; --kf-surface-2:#EAEAE7; --kf-line:#DAD9D4; --kf-line-2:#C8C7C1;
-  --kf-ink:#18181B; --kf-muted:#5B5B60;
+  --kf-bg:#E4E4E8; --kf-surface:#FFFFFF; --kf-surface-2:#DADADF; --kf-line:#CACAD1; --kf-line-2:#B1B1BB;
+  --kf-ink:#101013; --kf-muted:#53535C; --gf-vermelho:#C8231A; --gf-vermelho-tx:#B01E16;
   --kf-accent:#2B2B30; --kf-accent-ink:#FFFFFF; --kf-accent-soft:#E2E2E5; --kf-accent-texto:#2B2B30;
   --kf-focus:#2B2B30; --kf-scrim:rgba(14,14,16,.5); --kf-shadow:0 10px 30px rgba(14,14,16,.16),0 2px 6px rgba(14,14,16,.08);
   --kf-col:880px; --kf-col-nav:720px;
@@ -32,15 +32,15 @@
 /* modo escuro: automático (pelo aparelho) ou escolhido em Aparência; o destaque vira cromado */
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   color-scheme:dark;
-  --kf-bg:#111113; --kf-surface:#1B1B1E; --kf-surface-2:#242428; --kf-line:#2F2F34; --kf-line-2:#3E3E44;
-  --kf-ink:#F1F1F3; --kf-muted:#A6A6AD;
+  --kf-bg:#08080A; --kf-surface:#131316; --kf-surface-2:#1D1D22; --kf-line:#28282F; --kf-line-2:#3A3A43;
+  --kf-ink:#F2F2F5; --kf-muted:#A2A2AC; --gf-vermelho:#D7281D; --gf-vermelho-tx:#FF6B5E;
   --kf-accent:#D6D6DB; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E34; --kf-accent-texto:#E4E4E8;
   --kf-focus:#E4E4E8; --kf-scrim:rgba(0,0,0,.62); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
 }}
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --kf-bg:#111113; --kf-surface:#1B1B1E; --kf-surface-2:#242428; --kf-line:#2F2F34; --kf-line-2:#3E3E44;
-  --kf-ink:#F1F1F3; --kf-muted:#A6A6AD;
+  --kf-bg:#08080A; --kf-surface:#131316; --kf-surface-2:#1D1D22; --kf-line:#28282F; --kf-line-2:#3A3A43;
+  --kf-ink:#F2F2F5; --kf-muted:#A2A2AC; --gf-vermelho:#D7281D; --gf-vermelho-tx:#FF6B5E;
   --kf-accent:#D6D6DB; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E34; --kf-accent-texto:#E4E4E8;
   --kf-focus:#E4E4E8; --kf-scrim:rgba(0,0,0,.62); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
 }
@@ -195,6 +195,33 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 .acordes b{font:700 18px/1.1 var(--kf-font-display)}
 /* teoria em telas */
 .te-sec{gap:12px}
+/* palco escuro e vermelho (0.6.0): o vermelho do pedal nas trilhas, nos selos, nos botões de tocar e nos chips */
+.barra-prog > span{background:var(--gf-vermelho)}
+.ladrilho{box-shadow:inset 0 0 0 1px var(--kf-line),inset 0 3px 0 var(--gf-vermelho)}
+.ld-selo{background:var(--gf-vermelho);color:#fff}
+.play-grande,.ct-play{background:var(--gf-vermelho)}
+.seq-sem i.feito{background:var(--gf-vermelho)}
+.seq-ic .kf-i,.cq-nova > .kf-i{color:var(--gf-vermelho-tx)}
+.migalhas button{color:var(--gf-vermelho-tx)}
+.ladrilho.sub .ld-ilu{width:92px;height:64px}.ladrilho.sub .mini-braco{width:92px;height:64px}
+.dia-hero{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border:0;border-radius:var(--kf-r-lg);background:linear-gradient(0deg,var(--kf-accent),var(--kf-accent));color:var(--kf-accent-ink);font:inherit;text-align:left;cursor:pointer;box-shadow:inset 4px 0 0 var(--gf-vermelho)}
+.dia-hero small{color:inherit;opacity:.85;font-size:var(--kf-t-apoio)}
+.dia-hero .il-f{fill:color-mix(in srgb,var(--kf-accent-ink) 14%,transparent)}
+.dia-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dia-cab h2{flex:1;font-size:20px}
+.dia-ir{align-self:flex-start}
+.dia-lista{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:var(--kf-t-apoio)}
+.continuar > .kf-i{width:22px;height:22px;margin-left:auto;flex:none}
+.fav-ic{color:var(--gf-vermelho-tx)}
+.tr-topo .tr-fav{pointer-events:auto;width:36px;height:36px;margin:-4px 0 0 -4px;border:0;border-radius:50%;background:var(--kf-surface-2);color:var(--gf-vermelho-tx);font-size:20px;line-height:1;cursor:pointer}
+.tr-topo .tr-fav[aria-pressed="true"]{background:var(--gf-vermelho);color:#fff}
+.tr-topo{justify-content:flex-start}
+#tr-parte{background:var(--gf-vermelho);color:#fff}
+#tr-volta{margin-left:auto}
+.tr-aviso{position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:2;padding:8px 14px;border-radius:99px;background:var(--kf-ink);color:var(--kf-bg);font-size:14px;box-shadow:var(--kf-shadow);white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+.tr-aviso[hidden],.tr-vista[hidden]{display:none}
+.tab .tab-pm{font:700 10px var(--kf-font-mono);fill:var(--kf-muted)}
+.tab .tab-pml{stroke:var(--kf-muted);stroke-dasharray:3 3}
 /* braço do treino */
 .tr-braco{padding:6px 6px 0}
 .braco-tr{width:100%;height:auto;display:block;max-height:230px}
@@ -335,11 +362,12 @@ input[type=range]{width:100%;accent-color:var(--kf-accent);min-height:44px}
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.5.0"></script>
-<script src="teoria.js?v=0.5.0"></script>
-<script src="catalogo.js?v=0.5.0"></script>
-<script src="pratica.js?v=0.5.0"></script>
-<script src="musicas.js?v=0.5.0"></script>
-<script src="app.js?v=0.5.0"></script>
+<script src="comum/kit-facil.js?v=0.6.0"></script>
+<script src="teoria.js?v=0.6.0"></script>
+<script src="catalogo.js?v=0.6.0"></script>
+<script src="metal.js?v=0.6.0"></script>
+<script src="pratica.js?v=0.6.0"></script>
+<script src="musicas.js?v=0.6.0"></script>
+<script src="app.js?v=0.6.0"></script>
 </body>
 </html>
