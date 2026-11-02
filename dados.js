@@ -4,8 +4,9 @@
 /* ================= dados ================= */
 // coleções sincronizadas registro a registro (a mudança mais recente vence), como nos outros apps da família
 // feitas e andamentos vêm da versão com aulas (até a 0.3.0): continuam guardados e sincronizados, mas não aparecem
-const COLS = ['feitas', 'musicas', 'praticas', 'andamentos', 'treinos', 'conquistas', 'favoritos'];
-const vazio = () => ({ v: 1, cfg: { meta: 20, bpm: 80, estilo: 'rock' }, feitas: [], musicas: [], praticas: [], andamentos: [], treinos: [], conquistas: [], favoritos: [] });
+// rotinas e metas (0.13.0) e ideias do Estúdio (0.15.0) entram do mesmo jeito
+const COLS = ['feitas', 'musicas', 'praticas', 'andamentos', 'treinos', 'conquistas', 'favoritos', 'rotinas', 'metas', 'ideias'];
+const vazio = () => ({ v: 1, cfg: { meta: 20, bpm: 80, estilo: 'rock' }, feitas: [], musicas: [], praticas: [], andamentos: [], treinos: [], conquistas: [], favoritos: [], rotinas: [], metas: [], ideias: [] });
 let DB = (() => { const d = LS.get('db', null); return d && d.v === 1 ? { ...vazio(), ...d, cfg: { ...vazio().cfg, ...(d.cfg || {}) } } : vazio(); })();
 const PRIMEIRO_USO = !DB.cfg.nivel && !DB.praticas.length && !DB.treinos.length && !DB.musicas.length && !LS.get('visto', false);
 LS.set('visto', true);
@@ -43,7 +44,7 @@ function aplicar(R) {
   LS.set('db', DB); snapTodos(); SY.salvar();
   return antes !== KitFacil.canon(DB);
 }
-const pacote = () => ({ v: 1, cfg: DB.cfg, feitas: DB.feitas, musicas: DB.musicas, praticas: DB.praticas, andamentos: DB.andamentos, treinos: DB.treinos, conquistas: DB.conquistas, favoritos: DB.favoritos, st: SY.estado.st, del: SY.estado.del });
+const pacote = () => ({ v: 1, cfg: DB.cfg, feitas: DB.feitas, musicas: DB.musicas, praticas: DB.praticas, andamentos: DB.andamentos, treinos: DB.treinos, conquistas: DB.conquistas, favoritos: DB.favoritos, rotinas: DB.rotinas, metas: DB.metas, ideias: DB.ideias, st: SY.estado.st, del: SY.estado.del });
 
 /* ================= constância ================= */
 const DIA = 864e5;

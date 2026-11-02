@@ -37,7 +37,7 @@ test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início não 
   const p = a.page;
   await pronto(p);
   assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Afinador', 'Teoria', 'Mais']);
-  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Treino do dia', 'Favoritos', 'Plano de 4 semanas']);
+  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Sessão de hoje', 'Treino do dia', 'Favoritos', 'Plano de 4 semanas']);
   for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Mapa do braço', 'Mapa do braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
@@ -220,8 +220,73 @@ test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo av
   assert.match(await p.textContent('.cam-lista li >> nth=0'), /Pulada|Feita/);
   await p.click('[data-caminho-pular]');
   await p.click('[data-caminho-de="5"]');
-  assert.equal(await p.locator('.dia-hero').count(), 1, 'quem já toca vê o treino do dia');
+  assert.equal(await p.locator('.sessao-hero').count(), 1, 'quem já toca vê a sessão de hoje');
+  assert.equal(await p.locator('nav.ladrilhos [data-ir="dia"]').count(), 1, 'e o treino do dia nos atalhos');
   assert.equal(await p.locator('.passo-hero').count(), 0);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('fase 3: primeira experiência, sessão por duração editável, rotina, preparo, competências e metas', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  // primeira experiência na tela inicial
+  assert.equal(await p.locator('.primeira-vez').count(), 1);
+  await p.click('[data-pv-seguir]');
+  assert.match(await p.textContent('#pv-erro'), /Escolha uma opção/, 'a primeira pergunta é obrigatória e diz o que fazer');
+  await p.click('[data-pv-exp="2"]'); await p.click('[data-pv-seguir]');
+  await p.click('[data-pv-obj="riffs"]'); await p.click('[data-pv-seguir]');
+  await p.click('[data-pv-gosto="thrash"]'); await p.click('[data-pv-seguir]');
+  await p.click('[data-pv-min="20"]'); await p.click('[data-pv-seguir]');
+  assert.match(await p.textContent('.primeira-vez'), /Como o app ensina/);
+  await p.click('[data-pv-seguir]');
+  const perfil = await p.evaluate(() => ({ ...DB.cfg.perfil, meta: DB.cfg.meta, de: DB.cfg.caminhoDe }));
+  assert.equal(perfil.exp, 2); assert.deepEqual(perfil.objetivos, ['riffs']); assert.ok(perfil.gostos.includes('thrash')); assert.equal(perfil.meta, 20); assert.equal(perfil.de, 5);
+  assert.equal(await p.locator('.primeira-vez').count(), 0);
+  // sessão de hoje: etapas, tempo, trocar, tirar e desfazer
+  await p.click('.sessao-hero');
+  assert.ok(await esperar(() => p.evaluate(() => rota() === 'sessao')));
+  const S = await p.evaluate(() => ({ tipos: SESSAO.etapas.map(e => e.tipo), min: minutosSessao(SESSAO), estilos: SESSAO.etapas.find(e => e.tipo === 'aplicacao').itens.map(i => modelo(i.id).estilo) }));
+  assert.deepEqual(S.tipos, ['preparo', 'aquecimento', 'principal', 'aplicacao', 'encerramento'], 'as cinco etapas da seção 5.2');
+  assert.ok(S.min >= 16 && S.min <= 24, `o tempo cabe no escolhido: ${S.min}`);
+  assert.ok(S.estilos.every(e => e === 'thrash'), 'a aplicação segue o gosto');
+  await p.click('[data-ses-min="45"]');
+  assert.ok((await p.evaluate(() => minutosSessao(SESSAO))) > S.min, 'mais tempo, mais treino');
+  const antes = await p.evaluate(() => SESSAO.etapas[2].itens[0].id);
+  await p.click('[data-ses-trocar="2:0"]');
+  assert.notEqual(await p.evaluate(() => SESSAO.etapas[2].itens[0].id), antes, 'trocar põe outro treino');
+  const n = await p.evaluate(() => SESSAO.etapas[2].itens.length);
+  await p.click('[data-ses-tirar="2:0"]');
+  assert.equal(await p.evaluate(() => SESSAO.etapas[2].itens.length), n - 1);
+  await p.click('.kf-toast button');
+  assert.equal(await p.evaluate(() => SESSAO.etapas[2].itens.length), n, 'desfazer volta o treino');
+  // rotina guardada
+  await p.click('[data-ses-guardar]');
+  await p.fill('#rot-nome', 'Antes do ensaio');
+  await p.click('[data-rot-form] button[type=submit]');
+  assert.equal(await p.evaluate(() => DB.rotinas.length), 1);
+  assert.match(await p.textContent('.rot-lista'), /Antes do ensaio/);
+  // começar: preparo com tempo, depois os treinos em fila com as voltas de cada um
+  await p.click('[data-ses-comecar]');
+  await p.locator('.kf-dlg[data-kf-dialogo="preparo"]').waitFor();
+  assert.match(await p.textContent('#prep-n'), /Gire os pulsos/);
+  await p.click('[data-prep-pular]');
+  const d = dlg(p); await d.waitFor();
+  assert.match(await d.locator('.kf-dlg-sub').textContent(), /Antes do ensaio · 1 de \d+/);
+  await p.keyboard.press('Escape');
+  // competências e metas
+  await p.evaluate(() => { DB.treinos.push({ id: 'x1', ex: 'tecnica:bends:2:moderado:0', cfg: {}, voltas: 4, bpm: 80, min: 6, limpo: true, em: Date.now() }); DB.praticas.push({ id: 'p1', em: Date.now(), min: 6 }); commit(); });
+  await p.evaluate(() => { location.hash = '#/progresso/competencias'; });
+  assert.ok(await esperar(async () => /Bends e vibrato[\s\S]*Concluída no nível intermediário/.test(await p.textContent('.comp-mapa'))));
+  assert.match(await p.textContent('.legenda-estados'), /não avalia a execução/);
+  await p.evaluate(() => { location.hash = '#/progresso/metas'; });
+  await p.click('[data-meta-nova="semana"]');
+  await p.fill('#meta-alvo', '30');
+  await p.click('[data-meta-form] button[type=submit]');
+  assert.match(await p.textContent('.meta'), /30 minutos de prática[\s\S]*6 de 30/, 'a meta conta o que foi praticado no período');
+  await p.evaluate(() => { location.hash = '#/inicio'; });
+  assert.ok(await esperar(async () => (await p.locator('.meta-mini').count()) === 1), 'a meta aparece no Início');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -260,7 +325,7 @@ test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, co
   const p = a.page;
   await pronto(p);
   await p.evaluate(() => { DB.cfg.caminhoDe = CAMINHO.length; commit(); render(); }); // quem já toca: o Início mostra o treino do dia
-  await p.click('.dia-hero');
+  await p.click('nav.ladrilhos [data-ir="dia"]');
   assert.equal(await p.locator('.dia-nivel').count(), 3);
   assert.equal(await p.locator('.dia-nivel >> nth=1 >> .dia-lista li').count(), 4);
   await p.evaluate(() => { DB.cfg.trVoltas = 2; DB.cfg.trCfg = {}; const m = treinoDoDia(2); m.forEach(id => { const x = modelo(id); x.bpm = 260; }); });

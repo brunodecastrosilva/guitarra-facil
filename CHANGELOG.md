@@ -2,6 +2,16 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.13.0 · 2026-11-02
+
+- Primeira experiência na tela inicial: experiência, objetivos, gosto musical, tempo por dia e uma apresentação do app em desenhos. Dá para pular.
+- Sessão de hoje: diga quanto tempo tem (10 a 60 minutos) e o app monta as etapas do Documento Mestre (preparo, aquecimento, treino principal, aplicação musical e encerramento), repartindo o tempo. O treino principal segue o caminho do iniciante ou a competência menos treinada; a aplicação segue o seu gosto. Troque, tire (com Desfazer), acrescente e mude a ordem de treinos e etapas.
+- Preparo guiado: quatro movimentos de pulsos, mãos, dedos e ombros, com desenho e tempo, antes dos treinos.
+- Rotinas: guarde uma sessão com nome e repita quando quiser; elas sincronizam entre aparelhos.
+- Mapa de competências em Progresso: palhetada, ritmo, acordes, ligados, bends, escalas, arpejos, troca de posição, independência dos dedos e efeitos, cada uma com o que foi praticado e o que foi concluído. O app não avalia a execução.
+- Metas de curto, médio e longo prazo (semana, mês e três meses): minutos, dias, treinos concluídos, uma competência ou o caminho do iniciante, com sugestão de valor e progresso contado sozinho. Elas aparecem no Início.
+- O Início de quem já toca mostra a sessão de hoje em destaque; o treino do dia continua nos atalhos.
+
 ## 0.12.0 · 2026-11-02
 
 - Buscar e filtrar: em Treinos, busque por nome, estilo ou técnica e combine filtros de categoria, competência, técnica, estilo, nível, tamanho, mão trabalhada e objetivo. Dá para sortear um treino entre os encontrados.

@@ -7,13 +7,14 @@
 const SUBIDAS = [[0, 'Manter o andamento'], [1, '+1 bpm a cada volta'], [2, '+2 bpm a cada volta'], [5, '+5 bpm a cada volta']];
 const BPM_MIN = 30, BPM_MAX = 260;
 function abrirTreino(id, op = {}) {
-  const fila = op.fila || null; let filaI = 0, obsBraco = null;
+  // fila: treino do dia ou sessão (op.rotulo dá o nome, op.voltas as voltas de cada treino, op.marca o registro)
+  const fila = op.fila || null, rotuloFila = op.rotulo || 'Treino do dia', marca = op.marca || 'dia'; let filaI = 0, obsBraco = null;
   let m = modelo(fila ? fila[0] : id); if (!m) return;
   const cfgDe = (mm, extra) => ({ ...cfgPadrao(mm), ...((DB.cfg.trCfg || {})[mm.id] || {}), ...(extra || {}) });
   let cfg = cfgDe(m, op.cfg), inteiro = volta(m, cfg), trecho = null, ex = inteiro;
   const bpmDe = mm => Math.max(BPM_MIN, Math.min(BPM_MAX, melhorLimpo(mm.id) || mm.bpm));
   let bpm = op.bpm || bpmDe(m);
-  const voltasEtapa = () => DB.cfg.trVoltas || 4, percurso = () => fila ? 'fila' : (DB.cfg.trPercurso || 'repetir');
+  const voltasEtapa = () => fila && op.voltas ? (op.voltas[filaI] || 4) : (DB.cfg.trVoltas || 4), percurso = () => fila ? 'fila' : (DB.cfg.trPercurso || 'repetir');
   const sel = (id, ops, v, rot) => `<div class="campo"><label class="kf-rotulo" for="${id}">${rot}</label><select id="${id}">${ops.map(([k, l]) => `<option value="${esc(String(k))}"${String(v) === String(k) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
   const seg = (attr, ops, v, rot) => `<div class="campo"><span class="kf-rotulo" id="tr-${attr}-l">${rot}</span><div class="kf-seg" role="group" aria-labelledby="tr-${attr}-l">${ops.map(([k, l]) => `<button type="button" data-${attr}="${k}" aria-pressed="${String(v) === String(k)}">${l}</button>`).join('')}</div></div>`;
   const ajustesHTML = () => { const R = m.regioes(cfg), base = ex.modelo.ehRiff ? m.afinPadrao : 'padrao'; return `
@@ -24,7 +25,7 @@ function abrirTreino(id, op = {}) {
     ${m.cat === 'escalas' ? sel('tr-fig', FIGURAS_TREINO.map(([f, n, t]) => [f, `${n} · ${t}`]), cfg.fig, 'Figura') : ''}
     ${m.cat === 'escalas' ? seg('tam', TAMANHOS.map(([k, n]) => [k, n]), cfg.tam, 'Tamanho') : ''}
     ${fila ? '' : sel('tr-perc', [['repetir', 'Repetir o mesmo treino'], ...(m.usaTom ? [['tom', 'Ir para o próximo tom (ciclo das quartas)']] : []), ...(R.length > 1 ? [['posicao', 'Ir para a próxima posição']] : [])], percurso(), 'A cada etapa')}
-    ${seg('voltas', [[2, '2 voltas'], [4, '4 voltas'], [8, '8 voltas']], voltasEtapa(), fila ? 'Voltas de cada treino' : 'Tamanho da etapa')}
+    ${fila && op.voltas ? '' : seg('voltas', [[2, '2 voltas'], [4, '4 voltas'], [8, '8 voltas']], voltasEtapa(), fila ? 'Voltas de cada treino' : 'Tamanho da etapa')}
     ${sel('tr-sobe', SUBIDAS, DB.cfg.trSobe || 0, 'Subir o andamento')}
     ${seg('acomp', [['metronomo', 'Metrônomo'], ['bateria', 'Bateria'], ['nenhum', 'Nada']], acomp(), 'Acompanhamento')}
     <div id="tr-bat-campo"${acomp() === 'bateria' ? '' : ' hidden'}>${sel('tr-bat', ESTILOS_TREINO.map(k => [k, ESTILOS_BATERIA.find(e => e[0] === k)[1]]), DB.cfg.trBateria || 'metal', 'Estilo da bateria')}</div>
@@ -37,7 +38,7 @@ function abrirTreino(id, op = {}) {
 </div>
     <button type="button" class="kf-btn kf-pri" data-tr-pronto>${I.check}Pronto</button>`; };
   function acomp() { return DB.cfg.trAcomp || (DB.cfg.trMetro === false ? 'nenhum' : 'metronomo'); }
-  const subDe = () => (fila ? `Treino do dia · ${filaI + 1} de ${fila.length} · ` : '') + ex.sub;
+  const subDe = () => (fila ? `${rotuloFila} · ${filaI + 1} de ${fila.length} · ` : '') + ex.sub;
   const legenda = e => { const T2 = new Set(e.evs.flatMap(x => tecs(x))); const l = [...T2].filter(t => TEC_NOMES[t]).map(t => `<b>${t === 'pm' ? 'PM' : TEC_TAB[t] || (t === 'harm' ? '<12>' : t)}</b> ${TEC_NOMES[t]}`); return l.length ? l.join(' · ') : ''; };
   KitFacil.dialogo.abrir({ titulo: tituloDe(m), sub: subDe(), classe: 'kf-alto kf-largo', nome: 'treino',
     corpo: `<div class="tr-vista" id="tr-v-palco">
@@ -215,10 +216,10 @@ function abrirTreino(id, op = {}) {
       const soMic = () => { res.innerHTML = `<p class="tr-fim"><b>Treino curto:</b> não entra no histórico.</p>${extrasMic()}`; res.hidden = false; ligarMic(); };
       const resultado = info => {
         const min = Math.round(info.segs / 6) / 10; registrarPratica(min);
-        feitos.forEach(f => registrar(f.m, f.cfg, f.voltas, f.bpm, 0, { dia: true }));
-        const rec = registrar(m, { ...cfg, ...(trecho ? { trecho } : {}) }, Math.max(0, info.voltas - feitos.reduce((s, f) => s + f.voltas, 0)), info.bpm, min, fila ? { dia: true, diaFim: acabou } : {});
+        feitos.forEach(f => registrar(f.m, f.cfg, f.voltas, f.bpm, 0, { [marca]: true }));
+        const rec = registrar(m, { ...cfg, ...(trecho ? { trecho } : {}) }, Math.max(0, info.voltas - feitos.reduce((s, f) => s + f.voltas, 0)), info.bpm, min, fila ? { [marca]: true, [marca + 'Fim']: acabou } : {});
         feitos = []; commit(); conferirConquistas(); verPlano();
-        res.innerHTML = `<p class="tr-fim"><b>${acabou ? 'Treino do dia concluído.' : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
+        res.innerHTML = `<p class="tr-fim"><b>${acabou ? `${rotuloFila} concluído.` : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
           ${extrasMic()}
           <div class="tr-limpo-bloco"><p class="apoio">Saiu limpo, sem errar nem atrasar? Quem decide é você: o app não mede a execução.</p>
           <div class="tr-limpo"><button type="button" class="kf-btn kf-pri" data-limpo="1">${I.check}Saiu limpo</button><button type="button" class="kf-btn kf-sec" data-limpo="0">Ainda não</button></div></div>`;
