@@ -167,7 +167,7 @@ function volta(m, c) {
   const raiz = g.raiz != null ? pc(g.raiz + desloc) : (m.usaTom ? cc.raiz : pc(A[0]));
   const esc = m.trocaEscala && cc.escala ? nomeEscala(cc.escala) : null, tom = m.usaTom ? NOTAS[raiz] : `${NOTAS[raiz]}`;
   return { id: m.id, modelo: m, cfg: cc, nome: m.nome, sub: [esc, `${tom} · ${afinacaoDe(afId)[1]}`, R.length > 1 ? R[cc.pos] : null].filter(Boolean).join(' · '),
-    evs, afin: A, afinId: afId, compasso: g.compasso || [4, 1], raiz, rotulo: c.rotulo || m.rotulo || 'nota', partes: g.partes || null, bpm: g.bpm || m.bpm, alvo: m.alvo };
+    evs, afin: A, afinId: afId, compasso: g.compasso || [4, 1], raiz, escala: g.escala || cc.escala || m.escala || null, rotulo: c.rotulo || m.rotulo || 'nota', partes: g.partes || null, bpm: g.bpm || m.bpm, alvo: m.alvo };
 }
 // leva as notas para outra afinação sem mudar a altura (escalas e solos: o tom fica o escolhido)
 function converterAltura(evs, de, para) {

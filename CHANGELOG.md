@@ -2,6 +2,18 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.7.0 · 2026-11-02
+
+- Trecho em laço: embaixo da tablatura aparecem os compassos do treino. Toque num compasso e depois em outro para repetir só esse trecho; toque de novo para voltar à linha inteira.
+- Andamento em porcentagem da meta: a porcentagem aparece sempre embaixo do número, e em Ajustes dá para ir direto a 50, 70, 85 ou 100% da meta.
+- Bateria no treino: em Ajustes, o acompanhamento pode ser metrônomo, bateria ou nada. A bateria tem 10 estilos no treino (metal, bumbo duplo, blast beat, d-beat, thrash, galope, meio tempo, rock, shuffle e funk) e segue o compasso do treino. A tela Bateria ganhou seis estilos.
+- Segunda guitarra: terças ou quintas dentro da escala do treino, ou a oitava, tocando junto com a sua linha.
+- Conferir o ritmo pelo microfone (desligado até a pessoa ligar): só o tempo de cada palhetada; no fim, quanto saiu no tempo, se adiantou ou atrasou e o compasso com mais erros. Nada é gravado nem enviado.
+- Gravar: botão ao lado do play. No fim do treino, ouça a gravação e o exemplo e compare. A gravação fica só na memória do aparelho e some ao fechar a janela.
+- Plano de 4 semanas: escolha a técnica, o nível e a meta de andamento. Cada semana tem um andamento-alvo e quatro treinos (curto, moderado, longo e muito longo); um treino conta quando sai limpo no andamento da semana. Botão novo no Início.
+- Conquistas novas: Quatro semanas (terminar um plano) e No tempo (90% no tempo com o microfone).
+- Correção: as barras de progresso (meta de hoje e andamentos) tinham sumido na 0.5.0 e voltaram.
+
 ## 0.6.0 · 2026-11-02
 
 - App de rock e metal: 4.934 treinos. São 1.632 riffs e 1.632 solos em 17 estilos (hard rock, punk, heavy clássico, thrash, speed e power, groove, death, death melódico, black, doom e stoner, metalcore, deathcore, nu metal, djent, progressivo, grunge, shred) e 1.632 treinos de técnica em 17 técnicas (palhetada alternada, para baixo, palm mute, galope, tremolo, legato, tapping, varredura, pulo de corda, econômica, híbrida, bends, harmônicos e efeitos, power chords, independência dos dedos, ritmo e polirritmia, troca de posição), mais as escalas, sequências e arpejos.

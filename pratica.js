@@ -128,9 +128,14 @@ function treinoTocar(o) {
   const rodadas = [];
   const agendar = (r, ini) => {
     const seg = 60 / r.bpm, [cn, cp] = r.ex.compasso || [4, 1]; let t = 0;
-    r.ex.evs.forEach(e => { if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1, o.distorcer); t += e.d; });
+    r.ex.evs.forEach(e => {
+      if (e.n.length && o.guia) tocarEvento(e, r.ex.afin, ini + t * seg, seg, 1, o.distorcer);
+      if (o.harmonia && e.n.length === 1 && !tecs(e).some(x => x === 'x' || x === 'harm')) { const [c, k] = e.n[0]; tocarCorda(harmonizar(r.ex.afin[c] + k, r.ex, o.harmonia), ini + t * seg + .004, Math.max(.12, e.d * seg * .95), .3, tecs(e), { distorcer: o.distorcer }); }
+      t += e.d;
+    });
     const pulsos = Math.max(1, Math.ceil(t / cp - 1e-6)), batidas = pulsos * cp;
-    if (o.metronomo !== false) for (let p = 0; p < pulsos; p++) clique(p % cn === 0, ini + p * cp * seg);
+    if (o.bateria) tocarBateriaNoTreino(a, o.bateria, ini, seg, batidas, [cn, cp]);
+    else if (o.metronomo !== false) for (let p = 0; p < pulsos; p++) clique(p % cn === 0, ini + p * cp * seg);
     const rr = { ...r, ini, seg, batidas, fim: ini + batidas * seg, n: rodadas.length + 1, pos: [] };
     let q = 0; r.ex.evs.forEach(e => { rr.pos.push(q); q += e.d; });
     rodadas.push(rr); return rr;
@@ -165,6 +170,86 @@ function treinoTocar(o) {
   return true;
 }
 
+/* bateria no treino: em 4/4, o estilo escolhido; nos outros compassos, bumbo em cada pulso, caixa no meio do compasso */
+function tocarBateriaNoTreino(a, estilo, ini, seg, batidas, [cn, cp]) {
+  const dest = treino.saida || a.destination;
+  if (cn * cp === 4 && cp === 1) {
+    const [, , ppb, P] = ESTILOS_BATERIA.find(e => e[0] === estilo) || ESTILOS_BATERIA[0], tot = ppb * 4;
+    for (let i = 0; i < Math.round(batidas * ppb); i++) { const p = i % tot, q = ini + i * seg / ppb; if (P.b.includes(p)) peca(a, 'b', q, dest); if (P.c.includes(p)) peca(a, 'c', q, dest); if (P.h.includes(p)) peca(a, 'h', q, dest); }
+    return;
+  }
+  const meio = Math.floor(cn / 2);
+  for (let p = 0; p * cp < batidas - 1e-6; p++) { const q = ini + p * cp * seg, m = p % cn; peca(a, 'b', q, dest); peca(a, 'h', q, dest); if (m === meio || (cn >= 6 && m === cn - 1)) peca(a, 'c', q, dest); }
+}
+/* segunda guitarra: a nota da escala duas acima (terça) ou quatro acima (quinta), ou a oitava; fora da escala, o
+   intervalo paralelo */
+function harmonizar(m, ex, modo) {
+  if (modo === 'oitava') return m + 12;
+  const iv = ex.escala ? (ESCALAS.find(e => e[0] === ex.escala) || [])[2] : null;
+  if (!iv || ex.raiz == null) return m + (modo === 'quintas' ? 7 : 4);
+  const pcs = iv.map(i => pc(ex.raiz + i));
+  if (!pcs.includes(pc(m))) return m + (modo === 'quintas' ? 7 : 4);
+  let passos = modo === 'quintas' ? 4 : 2, h = m; while (passos > 0) { h++; if (pcs.includes(pc(h))) passos--; }
+  return h;
+}
+/* trecho em laço: só os compassos escolhidos (de e até contam de 1); uma nota que atravessa a borda é cortada */
+function recortarCompassos(ex, de, ate) {
+  const [cn, cp] = ex.compasso || [4, 1], bl = cn * cp, ini = (de - 1) * bl, fim = ate * bl, evs = [], idx = [];
+  let t = 0;
+  ex.evs.forEach((e, i) => {
+    const a = t, b = t + e.d; t = b;
+    if (b <= ini + 1e-6 || a >= fim - 1e-6) return;
+    const a2 = Math.max(a, ini), b2 = Math.min(b, fim);
+    if (a < ini - 1e-6) { evs.push({ d: b2 - a2, n: [], t: '' }); idx.push(i); return; } // começou antes: vira pausa
+    evs.push({ ...e, d: b2 - a2 }); idx.push(i);
+  });
+  const partes = ex.partes ? ex.partes.map(p => ({ ...p, i: idx.findIndex(i => i >= p.i) })).filter(p => p.i >= 0) : null;
+  return { ...ex, evs, partes: partes && partes.length ? partes.filter((p, j, L) => j === L.length - 1 || L[j + 1].i !== p.i) : null, trecho: [de, ate] };
+}
+const compassosDe = ex => { const [cn, cp] = ex.compasso || [4, 1]; return Math.max(1, Math.round(ex.evs.reduce((s, e) => s + e.d, 0) / (cn * cp))); };
+
+/* ================= microfone no treino =================
+   Só quando a pessoa liga, com permissão. Ritmo: a energia do som (abaixo de 700 Hz, para o clique e os agudos pesarem
+   menos) é lida a cada quadro; um salto de energia é um ataque. Os ataques são comparados com o começo de cada nota do
+   treino. Gravação: MediaRecorder em memória; o áudio fica neste aparelho e é apagado ao fechar a janela do treino.
+   Nada é enviado. */
+const mic = { fluxo: null, an: null, buf: null, ataques: [], ultimo: 0, base: .004, antes: 0, gravador: null, pedacos: [], url: null };
+async function micLigar(gravar) {
+  const a = audio(); if (!a || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return 'sem';
+  try { mic.fluxo = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch { return 'negado'; }
+  const fonte = a.createMediaStreamSource(mic.fluxo), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
+  mic.an = a.createAnalyser(); mic.an.fftSize = 1024; fonte.connect(f); f.connect(mic.an); mic.buf = new Float32Array(mic.an.fftSize);
+  mic.ataques = []; mic.ultimo = 0; mic.antes = 0; mic.base = .004;
+  if (gravar && window.MediaRecorder) { mic.pedacos = []; mic.gravador = new MediaRecorder(mic.fluxo); mic.gravador.ondataavailable = e => { if (e.data.size) mic.pedacos.push(e.data); }; mic.gravador.start(); }
+  return 'ok';
+}
+// lê um quadro: guarda o instante (no relógio do áudio) de cada ataque
+function micQuadro() {
+  if (!mic.an) return; const a = audio(); mic.an.getFloatTimeDomainData(mic.buf);
+  let e = 0; for (let i = 0; i < mic.buf.length; i++) e += mic.buf[i] * mic.buf[i]; e = Math.sqrt(e / mic.buf.length);
+  const agora = a.currentTime;
+  if (e > Math.max(mic.base * 3, .008) && e > mic.antes * 1.6 && agora - mic.ultimo > .07) { mic.ataques.push(agora - mic.buf.length / a.sampleRate / 2); mic.ultimo = agora; }
+  mic.base = mic.base * .995 + Math.min(e, mic.base * 2) * .005; mic.antes = e;
+}
+function micDesligar() {
+  return new Promise(res => {
+    const fim = () => { if (mic.fluxo) mic.fluxo.getTracks().forEach(t => t.stop()); mic.fluxo = null; mic.an = null; res(); };
+    if (mic.gravador && mic.gravador.state !== 'inactive') { mic.gravador.onstop = () => { if (mic.url) URL.revokeObjectURL(mic.url); mic.url = mic.pedacos.length ? URL.createObjectURL(new Blob(mic.pedacos, { type: mic.gravador.mimeType || 'audio/webm' })) : null; mic.gravador = null; fim(); }; mic.gravador.stop(); }
+    else fim();
+  });
+}
+function micApagarGravacao() { if (mic.url) URL.revokeObjectURL(mic.url); mic.url = null; mic.pedacos = []; }
+/* nota do ritmo: cada nota esperada procura o ataque mais perto (a latência do aparelho é descontada);
+   dentro de 60 ms (ou 30% da nota, o que for menor, nunca menos de 35 ms) conta como no tempo */
+function avaliarRitmo(esperados, ataques, latencia) {
+  const res = esperados.map(x => { let melhor = null; for (const t of ataques) { const d = t - latencia - x.t; if (melhor == null || Math.abs(d) < Math.abs(melhor)) melhor = d; } const tol = Math.max(.035, Math.min(.06, x.dur * .3)); return { ...x, desvio: melhor, ok: melhor != null && Math.abs(melhor) <= tol }; });
+  const certos = res.filter(r => r.ok), pct = res.length ? Math.round(certos.length / res.length * 100) : 0;
+  const media = certos.length ? Math.round(certos.reduce((s, r) => s + r.desvio, 0) / certos.length * 1000) : 0;
+  const porComp = {}; res.forEach(r => { const k = r.comp; porComp[k] = porComp[k] || [0, 0]; porComp[k][1]++; if (!r.ok) porComp[k][0]++; });
+  const pior = Object.entries(porComp).sort((a, b) => b[1][0] / b[1][1] - a[1][0] / a[1][1])[0];
+  return { pct, media, pior: pior && pior[1][0] ? +pior[0] : null, total: res.length };
+}
+
 /* ================= bateria de acompanhamento ================= */
 /* cada estilo: passos por batida e os passos (no compasso de 4 batidas) do bumbo, da caixa e do chimbal */
 const ESTILOS_BATERIA = [
@@ -174,17 +259,25 @@ const ESTILOS_BATERIA = [
   ['shuffle', 'Blues shuffle', 3, { b: [0, 6], c: [3, 9], h: [0, 2, 3, 5, 6, 8, 9, 11] }],
   ['funk', 'Funk', 4, { b: [0, 3, 7, 10], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
   ['metal', 'Metal', 4, { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [4, 12], h: [0, 4, 8, 12] }],
+  ['duplo', 'Bumbo duplo', 4, { b: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], c: [4, 12], h: [0, 4, 8, 12] }],
+  ['blast', 'Blast beat', 4, { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [1, 3, 5, 7, 9, 11, 13, 15], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['dbeat', 'D-beat', 4, { b: [0, 3, 8, 11], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['skank', 'Thrash (skank)', 4, { b: [0, 4, 8, 12], c: [2, 6, 10, 14], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['galope', 'Galope', 4, { b: [0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], c: [4, 12], h: [0, 4, 8, 12] }],
+  ['meio', 'Meio tempo (breakdown)', 4, { b: [0, 3, 6, 10], c: [8], h: [0, 4, 8, 12] }],
 ];
+const ESTILOS_TREINO = ['metal', 'duplo', 'blast', 'dbeat', 'skank', 'galope', 'meio', 'rock', 'shuffle', 'funk']; // os que acompanham o treino
 const bateria = { ligada: false, t: null, prox: 0, passo: 0 };
 let ruidoBuf = null;
 function ruido(a) { if (ruidoBuf) return ruidoBuf; const n = a.sampleRate * .5, b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return (ruidoBuf = b); }
-function peca(a, tipo, q) {
-  if (tipo === 'b') { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(140, q); o.frequency.exponentialRampToValueAtTime(42, q + .12); g.gain.setValueAtTime(.9, q); g.gain.exponentialRampToValueAtTime(.001, q + .3); o.connect(g); g.connect(a.destination); o.start(q); o.stop(q + .32); return; }
+function peca(a, tipo, q, dest) {
+  dest = dest || a.destination;
+  if (tipo === 'b') { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(140, q); o.frequency.exponentialRampToValueAtTime(42, q + .12); g.gain.setValueAtTime(.9, q); g.gain.exponentialRampToValueAtTime(.001, q + .3); o.connect(g); g.connect(dest); o.start(q); o.stop(q + .32); return; }
   const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = ruido(a);
   f.type = tipo === 'c' ? 'bandpass' : 'highpass'; f.frequency.value = tipo === 'c' ? 1800 : 7000;
   const dur = tipo === 'c' ? .18 : .05; g.gain.setValueAtTime(tipo === 'c' ? .7 : .25, q); g.gain.exponentialRampToValueAtTime(.001, q + dur);
-  s.connect(f); f.connect(g); g.connect(a.destination); s.start(q); s.stop(q + dur + .02);
-  if (tipo === 'c') { const o = a.createOscillator(), g2 = a.createGain(); o.frequency.value = 190; g2.gain.setValueAtTime(.35, q); g2.gain.exponentialRampToValueAtTime(.001, q + .1); o.connect(g2); g2.connect(a.destination); o.start(q); o.stop(q + .12); }
+  s.connect(f); f.connect(g); g.connect(dest); s.start(q); s.stop(q + dur + .02);
+  if (tipo === 'c') { const o = a.createOscillator(), g2 = a.createGain(); o.frequency.value = 190; g2.gain.setValueAtTime(.35, q); g2.gain.exponentialRampToValueAtTime(.001, q + .1); o.connect(g2); g2.connect(dest); o.start(q); o.stop(q + .12); }
 }
 function bateriaLigar(estilo, bpmFn, aoPasso) {
   const a = audio(); if (!a) return;
