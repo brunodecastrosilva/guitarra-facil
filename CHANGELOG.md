@@ -2,6 +2,11 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.16.1 · 2026-11-02
+
+- Correção: no tablet, a aba Competências do Progresso rolava para o lado.
+- Os testes passaram a abrir também as telas novas (sessão, caminho, busca, Estúdio, Biblioteca, competências e metas) no celular, no tablet e no computador.
+
 ## 0.16.0 · 2026-11-02
 
 - Baixo e cordas de fundo gravados (FluidR3): nos riffs, o baixo dobra a nota mais grave uma oitava abaixo; nas escalas, nos solos e nas melodias, o baixo marca a tônica e as cordas seguram o acorde da tônica a cada compasso.

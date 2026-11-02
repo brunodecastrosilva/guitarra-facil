@@ -5,7 +5,7 @@ presentes sem dominar (Documento Mestre, no projeto do Claude). O braço desenha
 tamanho, desliza até a nota da vez e mostra bends, slides e ligados; a tablatura escreve o ritmo e se liga ao braço.
 O som é gravado (FluidR3, MIT): guitarra limpa, baixo, cordas de fundo, bateria e metrônomo.
 
-**Fase de testes** · versão 0.16.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.16.1 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.

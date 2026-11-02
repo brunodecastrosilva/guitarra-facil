@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&family=Big+Shoulders+Display:wght@700..900&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.16.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.16.1">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -418,8 +418,8 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 .meta-prazo{font:800 12px var(--kf-font);letter-spacing:.06em;text-transform:uppercase;color:var(--kf-muted)}
 .meta h3{margin:4px 0 8px}.meta.cumprida{box-shadow:inset 0 0 0 2px var(--kf-ok)}.meta-bts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 /* mapa de competências */
-.comp-mapa{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-.comp{display:grid;gap:6px}.comp-cab{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.comp-mapa{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:10px}
+.comp{display:grid;gap:6px;min-width:0}.comp-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;align-items:baseline}.comp-ir{max-width:100%;white-space:normal;text-align:left}
 .comp-est{font-size:12.5px;padding:2px 8px;border-radius:99px;background:var(--kf-surface-2);white-space:nowrap}
 .comp.feita .comp-est{background:var(--gf-vermelho);color:#fff}.comp.praticada .comp-est{box-shadow:inset 0 0 0 1.5px var(--kf-line-2)}
 .comp-ir{justify-self:start}.legenda-estados{margin-bottom:10px}
@@ -527,30 +527,30 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.16.0"></script>
-<script src="base.js?v=0.16.0"></script>
-<script src="teoria.js?v=0.16.0"></script>
-<script src="catalogo.js?v=0.16.0"></script>
-<script src="metal.js?v=0.16.0"></script>
-<script src="caminho.js?v=0.16.0"></script>
-<script src="exercicios.js?v=0.16.0"></script>
-<script src="som.js?v=0.16.0"></script>
-<script src="pratica.js?v=0.16.0"></script>
-<script src="musicas.js?v=0.16.0"></script>
-<script src="dados.js?v=0.16.0"></script>
-<script src="plano.js?v=0.16.0"></script>
-<script src="sessao.js?v=0.16.0"></script>
-<script src="evolucao.js?v=0.16.0"></script>
-<script src="tela-inicio.js?v=0.16.0"></script>
-<script src="tela-treinos.js?v=0.16.0"></script>
-<script src="ferramentas.js?v=0.16.0"></script>
-<script src="tela-musicas.js?v=0.16.0"></script>
-<script src="tela-progresso.js?v=0.16.0"></script>
-<script src="tela-teoria.js?v=0.16.0"></script>
-<script src="laboratorio.js?v=0.16.0"></script>
-<script src="estudio.js?v=0.16.0"></script>
-<script src="biblioteca.js?v=0.16.0"></script>
-<script src="janela-treino.js?v=0.16.0"></script>
-<script src="app.js?v=0.16.0"></script>
+<script src="comum/kit-facil.js?v=0.16.1"></script>
+<script src="base.js?v=0.16.1"></script>
+<script src="teoria.js?v=0.16.1"></script>
+<script src="catalogo.js?v=0.16.1"></script>
+<script src="metal.js?v=0.16.1"></script>
+<script src="caminho.js?v=0.16.1"></script>
+<script src="exercicios.js?v=0.16.1"></script>
+<script src="som.js?v=0.16.1"></script>
+<script src="pratica.js?v=0.16.1"></script>
+<script src="musicas.js?v=0.16.1"></script>
+<script src="dados.js?v=0.16.1"></script>
+<script src="plano.js?v=0.16.1"></script>
+<script src="sessao.js?v=0.16.1"></script>
+<script src="evolucao.js?v=0.16.1"></script>
+<script src="tela-inicio.js?v=0.16.1"></script>
+<script src="tela-treinos.js?v=0.16.1"></script>
+<script src="ferramentas.js?v=0.16.1"></script>
+<script src="tela-musicas.js?v=0.16.1"></script>
+<script src="tela-progresso.js?v=0.16.1"></script>
+<script src="tela-teoria.js?v=0.16.1"></script>
+<script src="laboratorio.js?v=0.16.1"></script>
+<script src="estudio.js?v=0.16.1"></script>
+<script src="biblioteca.js?v=0.16.1"></script>
+<script src="janela-treino.js?v=0.16.1"></script>
+<script src="app.js?v=0.16.1"></script>
 </body>
 </html>

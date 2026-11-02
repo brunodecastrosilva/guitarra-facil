@@ -23,7 +23,7 @@ test('abre sem erros em celular, tablet e computador, com a moldura da família 
     assert.deepEqual(t.erros, [], `${nome}: ${t.erros.join('; ')}`);
     const n = await conferirNavAjustes(p);
     assert.deepEqual(n.erros, [], `${nome}: ${n.erros.join('; ')}`);
-    for (const r of ['inicio', 'treinos', 'treinos/riffs', 'treinos/riffs/thrash', 'treinos/riffs/thrash/avancado', 'treinos/riffs/thrash/avancado/longo', 'treinos/tecnica/sweep/avancado/muito-longo', 'treinos/escalas/intermediario/longo', 'dia', 'favoritos', 'plano', 'plano/galope', 'plano/galope/intermediario', 'afinador', 'teoria', 'teoria/circulo', 'metronomo', 'bateria', 'braco', 'acordes', 'musicas/playlists', 'progresso/conquistas']) {
+    for (const r of ['inicio', 'treinos', 'treinos/riffs', 'treinos/riffs/thrash', 'treinos/riffs/thrash/avancado', 'treinos/riffs/thrash/avancado/longo', 'treinos/tecnica/sweep/avancado/muito-longo', 'treinos/escalas/intermediario/longo', 'dia', 'favoritos', 'plano', 'plano/galope', 'plano/galope/intermediario', 'afinador', 'teoria', 'teoria/circulo', 'metronomo', 'bateria', 'braco', 'acordes', 'musicas/playlists', 'progresso/conquistas', 'progresso/competencias', 'progresso/metas', 'sessao', 'caminho', 'treinos/buscar', 'estudio', 'biblioteca']) {
       await p.evaluate(r => ir(r), r);
       assert.ok(await semRolagemLateral(p), `${nome}: rolagem lateral em ${r}`);
     }
