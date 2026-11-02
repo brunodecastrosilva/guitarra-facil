@@ -1,6 +1,6 @@
 {
   "name": "guitarra-facil",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Guitarra Fácil: treinos de guitarra de rock e metal com o braço desenhado. App web instalável (PWA) do Projeto Integrador.",
   "private": true,
   "type": "module",

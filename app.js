@@ -3,7 +3,7 @@
    nível, duração e lista, um toque por vez), Afinador, Teoria, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e
    Progresso. Tudo fica neste aparelho; a sincronização opcional e a moldura vêm do Kit Fácil (comum/). */
 'use strict';
-const VERSAO = '0.9.0';
+const VERSAO = '0.10.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -236,7 +236,6 @@ const CONQUISTAS = [
   ['limpo140', 'Rápido e limpo', 'Toque um treino limpo a 140 bpm ou mais.', () => T().some(t => limpo(t) && t.bpm >= 140)],
   ['favorito', 'Favorito', 'Marque um treino com a estrela.', () => DB.favoritos.length > 0],
   ['plano', 'Quatro semanas', 'Termine um plano de 4 semanas.', () => (DB.cfg.planosFeitos || 0) > 0],
-  ['ritmo90', 'No tempo', 'Saia 90% no tempo com o microfone conferindo.', () => T().some(t => t.ritmo >= 90)],
   ['musica', 'Primeira música', 'Marque uma música como Já toco.', () => DB.musicas.some(m => m.estado === 'toco')],
 ];
 const temConquista = id => DB.conquistas.find(c => c.id === id);
@@ -414,7 +413,7 @@ VIEWS.progresso = () => {
       <section class="cartao"><div class="grafico">${graficoSemana()}</div><p class="apoio">Minutos por dia. A linha tracejada é a meta de ${DB.cfg.meta} min; as barras escuras bateram a meta. Maior sequência: ${maiorSequencia()} dias.</p></section>`;
   else if (aba === 'andamentos') {
     const ids = [...new Set(T().map(t => t.id))].filter(id => modelo(id)).slice(-40).reverse();
-    corpo = ids.length ? `<ul class="andas cartao">${ids.map(id => { const m = modelo(id), b = melhorLimpo(id), X = T().filter(t => t.id === id), ul = X[X.length - 1], pr = Math.min(100, Math.round(b / m.alvo * 100)); return `<li><span><b>${esc(tituloDe(m))}</b><span class="apoio">${esc(CATEGORIAS.find(c => c[0] === m.cat)[1])} · último ${ul.bpm} bpm · melhor limpo ${b || '–'} · meta ${m.alvo}</span></span><span class="barra-prog" style="width:80px" role="progressbar" aria-label="${esc(m.nome)}: melhor andamento em relação à meta" aria-valuenow="${pr}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pr}%"></span></span></li>`; }).join('')}</ul>`
+    corpo = ids.length ? `<ul class="andas cartao">${ids.map(id => { const m = modelo(id), b = melhorLimpo(id), X = T().filter(t => t.id === id), ul = X[X.length - 1], pr = Math.min(100, Math.round(b / m.alvo * 100)); return `<li><span><b>${esc(tituloDe(m))}</b><span class="apoio">${esc((CATEGORIAS.find(c => c[0] === m.cat) || [0, 'Caminho do iniciante'])[1])} · último ${ul.bpm} bpm · melhor limpo ${b || '–'} · meta ${m.alvo}</span></span><span class="barra-prog" style="width:80px" role="progressbar" aria-label="${esc(m.nome)}: melhor andamento em relação à meta" aria-valuenow="${pr}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pr}%"></span></span></li>`; }).join('')}</ul>` + '<p class="apoio">Melhor limpo é o andamento que você marcou como "Saiu limpo". O app registra o que você praticou, mas não mede a execução.</p>'
       : KitFacil.ui.vazio({ titulo: 'Nenhum andamento ainda', texto: 'Termine um treino e diga se saiu limpo: o seu melhor andamento aparece aqui, com a meta.', acao: '<button type="button" class="kf-btn kf-pri" data-ir="treinos">Ir para os treinos</button>' });
   } else corpo = `<p class="apoio">${ganhas()} de ${CONQUISTAS.length} conquistas.</p><ul class="conquistas">${CONQUISTAS.map(([id, nome, como]) => { const c = temConquista(id); return `<li class="${c ? 'ganha' : ''}"><span class="cq-ic">${I.medalha}</span><span><b>${esc(nome)}</b><span class="apoio">${c ? `ganha ${quando(c.em)}` : esc(como)}</span></span></li>`; }).join('')}</ul>`;
   return KitFacil.ui.cabecalho({ titulo: 'Progresso', sub: 'Sua constância, seus andamentos e as conquistas.' }) + abas + `<div class="pilha">${corpo}</div>`;
@@ -694,8 +693,7 @@ function abrirTreino(id, op = {}) {
     <div class="tr-op"><label class="kf-check"><input type="checkbox" id="tr-verBraco" ${DB.cfg.trVerBraco !== false ? 'checked' : ''}><span>Mostrar o braço</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-verTab" ${DB.cfg.trVerTab !== false ? 'checked' : ''}><span>Mostrar a tablatura</span></label>
       <label class="kf-check"><input type="checkbox" id="tr-guia" ${DB.cfg.trGuia !== false ? 'checked' : ''}><span>Tocar o exemplo junto comigo</span></label>
-      <label class="kf-check"><input type="checkbox" id="tr-ritmo" ${DB.cfg.trRitmo ? 'checked' : ''}><span>${I.mic}Conferir meu ritmo pelo microfone (só o tempo de cada palhetada; nada é gravado nem enviado)</span></label></div>
-    <p class="apoio">Para conferir o ritmo, use fones de ouvido ou desligue o exemplo: assim o microfone ouve só a sua guitarra.</p>
+</div>
     <button type="button" class="kf-btn kf-pri" data-tr-pronto>${I.check}Pronto</button>`; };
   function acomp() { return DB.cfg.trAcomp || (DB.cfg.trMetro === false ? 'nenhum' : 'metronomo'); }
   const subDe = () => (fila ? `Treino do dia · ${filaI + 1} de ${fila.length} · ` : '') + ex.sub;
@@ -796,7 +794,7 @@ function abrirTreino(id, op = {}) {
         segL('harm', v => { DB.cfg.trHarmonia = v; commit(); });
         segL('pct', v => { setBpm(m.alvo * +v / 100); KitFacil.avisar(`Andamento: ${bpm} bpm, ${v}% da meta.`); });
         segL('rot', v => { cfg.rotulo = v; muda(); });
-        ['guia', 'ritmo'].forEach(k => $('#tr-' + k, vA).addEventListener('change', e => { DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked; commit(); }));
+        ['guia'].forEach(k => $('#tr-' + k, vA).addEventListener('change', e => { DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked; commit(); }));
         const vista = (k, outro, nome) => $('#tr-' + k, vA).addEventListener('change', e => {
           DB.cfg['tr' + k[0].toUpperCase() + k.slice(1)] = e.target.checked;
           if (!e.target.checked && DB.cfg['tr' + outro[0].toUpperCase() + outro.slice(1)] === false) { DB.cfg['tr' + outro[0].toUpperCase() + outro.slice(1)] = true; $('#tr-' + outro, vA).checked = true; KitFacil.avisar(`O treino precisa de um dos dois: ${nome} voltou.`); }
@@ -827,16 +825,13 @@ function abrirTreino(id, op = {}) {
         const sobe = DB.cfg.trSobe || 0; if (sobe) setBpm(Math.min(m.alvo + 40, bpm + sobe));
         return { ex, bpm };
       };
-      let esperados = [], ritmoLigado = false;
       const aoRodada = r => {
-        if (ritmoLigado) { const [cn, cp] = r.ex.compasso || [4, 1], bl = cn * cp, base = r.ex.trecho ? r.ex.trecho[0] : 1; r.pos.forEach((p, i) => { const e = r.ex.evs[i]; if (e.n.length && !tecs(e).some(x => x === 'h' || x === 'p' || x === 't')) esperados.push({ t: r.ini + p * r.seg, dur: e.d * r.seg, comp: base + Math.floor(p / bl + 1e-6) }); }); }
         desenhar(r.ex); status.textContent = `Volta ${voltasNa + 1}${percurso() !== 'repetir' ? ` de ${voltasEtapa()}` : ''} · ${r.bpm} bpm`;
         const pe = voltasNa === voltasEtapa() - 1 ? proximaEtapa() : null;
         aviso.hidden = !pe; if (pe) aviso.innerHTML = `<b>A seguir:</b> ${esc(fila ? tituloDe(pe.m) : pe.ex.sub)}`;
       };
       const aoQuadro = (r, beat, falta, i) => {
         conta.textContent = falta ? String(falta) : ''; conta.classList.toggle('on', !!falta);
-        if (mic.an) micQuadro();
         const x = 40 + Math.max(0, beat) * px; cur.setAttribute('x1', x); cur.setAttribute('x2', x);
         tabW.scrollLeft = Math.max(0, x - tabW.clientWidth * .35);
         if (i === ultI) return; ultI = i;
@@ -853,9 +848,8 @@ function abrirTreino(id, op = {}) {
       const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; recBt.disabled = tocando; recBt.classList.toggle('gravando', tocando && !!mic.gravador); recTexto(); pintarDica(tocando); };
       const limpar = () => { if (jan > 0) desenharBraco(ex, 0); else mirar(ex.evs.slice(...janelas[0])); conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g && g.classList.remove('agora')); apagarNotas(); ultI = -2; aviso.hidden = true; };
       const registrar = (mm, cc, voltas, bpmR, min, extra = {}) => { const rec = { id: uid(), ex: mm.id, cfg: { ...cc }, voltas, bpm: bpmR, min, limpo: null, em: Date.now(), ...extra }; DB.treinos.push(rec); return rec; };
-      // o que o microfone trouxe: a nota do ritmo e os botões da gravação (que fica só neste aparelho)
-      const extrasMic = ritmo => `${ritmo ? `<p class="tr-ritmo"><b>Saiu no tempo: ${ritmo.pct}%</b> das ${ritmo.total} palhetadas${ritmo.media ? ` · em média ${Math.abs(ritmo.media)} ms ${ritmo.media < 0 ? 'adiantado' : 'atrasado'}` : ''}${ritmo.pior ? ` · mais erros no compasso ${ritmo.pior}` : ''}.</p>` : ''}
-          ${mic.url ? `<div class="tr-grav"><div class="tr-grav-bts"><button type="button" class="kf-btn kf-sec" data-grav="ouvir">${I.play}Ouvir a gravação</button><button type="button" class="kf-btn kf-sec" data-grav="exemplo">${I.ouvir}Ouvir o exemplo</button><button type="button" class="kf-btn kf-sec" data-grav="apagar">Apagar</button></div><p class="apoio">A gravação fica só neste aparelho e some ao fechar a janela.</p></div>` : ''}`;
+      // a gravação (que fica só neste aparelho): ouvir e comparar com o exemplo; o app não dá nota
+      const extrasMic = () => `${mic.url ? `<div class="tr-grav"><div class="tr-grav-bts"><button type="button" class="kf-btn kf-sec" data-grav="ouvir">${I.play}Ouvir a gravação</button><button type="button" class="kf-btn kf-sec" data-grav="exemplo">${I.ouvir}Ouvir o exemplo</button><button type="button" class="kf-btn kf-sec" data-grav="apagar">Apagar</button></div><p class="apoio">A gravação fica só neste aparelho e some ao fechar a janela.</p></div>` : ''}`;
       let tocador = null;
       const ligarMic = () => $$('[data-grav]', res).forEach(b => b.onclick = () => {
         const q = b.dataset.grav;
@@ -863,22 +857,22 @@ function abrirTreino(id, op = {}) {
         if (q === 'exemplo') { if (tocador) tocador.pause(); rodar(true); }
         if (q === 'apagar') { if (tocador) tocador.pause(); micApagarGravacao(); $('#tr-ir', d).focus(); $('.tr-grav', res)?.remove(); KitFacil.avisar('Gravação apagada.'); }
       });
-      const soMic = ritmo => { res.innerHTML = `<p class="tr-fim"><b>Treino curto:</b> não entra no histórico.</p>${extrasMic(ritmo)}`; res.hidden = false; ligarMic(); };
-      const resultado = (info, ritmo) => {
+      const soMic = () => { res.innerHTML = `<p class="tr-fim"><b>Treino curto:</b> não entra no histórico.</p>${extrasMic()}`; res.hidden = false; ligarMic(); };
+      const resultado = info => {
         const min = Math.round(info.segs / 6) / 10; registrarPratica(min);
         feitos.forEach(f => registrar(f.m, f.cfg, f.voltas, f.bpm, 0, { dia: true }));
-        const rec = registrar(m, { ...cfg, ...(trecho ? { trecho } : {}) }, Math.max(0, info.voltas - feitos.reduce((s, f) => s + f.voltas, 0)), info.bpm, min, { ...(fila ? { dia: true, diaFim: acabou } : {}), ...(ritmo ? { ritmo: ritmo.pct } : {}) });
+        const rec = registrar(m, { ...cfg, ...(trecho ? { trecho } : {}) }, Math.max(0, info.voltas - feitos.reduce((s, f) => s + f.voltas, 0)), info.bpm, min, fila ? { dia: true, diaFim: acabou } : {});
         feitos = []; commit(); conferirConquistas(); verPlano();
         res.innerHTML = `<p class="tr-fim"><b>${acabou ? 'Treino do dia concluído.' : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
-          ${extrasMic(ritmo)}
-          <div class="tr-limpo-bloco"><p class="apoio">Saiu limpo, sem errar nem atrasar?</p>
+          ${extrasMic()}
+          <div class="tr-limpo-bloco"><p class="apoio">Saiu limpo, sem errar nem atrasar? Quem decide é você: o app não mede a execução.</p>
           <div class="tr-limpo"><button type="button" class="kf-btn kf-pri" data-limpo="1">${I.check}Saiu limpo</button><button type="button" class="kf-btn kf-sec" data-limpo="0">Ainda não</button></div></div>`;
         res.hidden = false; ligarMic();
         $$('[data-limpo]', res).forEach(b => b.onclick = () => {
           const ok = b.dataset.limpo === '1'; rec.limpo = ok; commit(); conferirConquistas(); verPlano();
           const novo = ok ? Math.min(BPM_MAX, info.bpm + 5) : Math.max(BPM_MIN, info.bpm - 5); setBpm(novo);
           $('#tr-ir', d).focus(); // o foco não se perde quando os botões saem
-          $('.tr-limpo-bloco', res).outerHTML = `<p class="tr-fim">${ok ? `Registrado: ${info.bpm} bpm limpo. Na próxima, ${novo} bpm.` : `Sem problema: repita a ${novo} bpm até sair limpo.`}</p>`;
+          $('.tr-limpo-bloco', res).outerHTML = `<p class="tr-fim">${ok ? `Marcado por você: ${info.bpm} bpm limpo. Na próxima, ${novo} bpm.` : `Sem problema: repita a ${novo} bpm até sair limpo.`}</p>`;
           meta();
         });
       };
@@ -888,11 +882,10 @@ function abrirTreino(id, op = {}) {
       const rodar = async exemplo => {
         if (treino.tocando) { treino.parar(); return; }
         if (rodar.ocupado) return; rodar.ocupado = true;
-        if (!exemplo) res.hidden = true; soUma = exemplo; acabou = false; voltasNa = 0; feitos = []; esperados = []; limpar(); botoes(true);
+        if (!exemplo) res.hidden = true; soUma = exemplo; acabou = false; voltasNa = 0; feitos = []; limpar(); botoes(true);
         if (!exemplo && fila && filaI > 0) { filaI = 0; m = modelo(fila[0]); cfg = cfgDe(m); inteiro = volta(m, cfg); trecho = null; aplicarTrecho(); pintarTrecho(); setBpm(bpmDe(m)); }
         const gravar = !exemplo && recBt.getAttribute('aria-pressed') === 'true';
-        ritmoLigado = !exemplo && !!DB.cfg.trRitmo;
-        if (gravar || ritmoLigado) { micApagarGravacao(); const r = await micLigar(gravar); if (r !== 'ok') { ritmoLigado = false; KitFacil.avisar(r === 'negado' ? 'Sem permissão para o microfone: o treino segue sem conferir nem gravar.' : 'Este navegador não usa o microfone: o treino segue sem conferir nem gravar.'); } }
+        if (gravar) { micApagarGravacao(); const r = await micLigar(true); if (r !== 'ok') KitFacil.avisar(r === 'negado' ? 'Sem permissão para o microfone: o treino segue sem gravar.' : 'Este navegador não usa o microfone: o treino segue sem gravar.'); }
         botoes(true); // agora o botão de gravar mostra se está gravando
         { let el = vP.parentElement; while (el && el.scrollHeight <= el.clientHeight + 1) el = el.parentElement; if (el && el.scrollTop > 0) el.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } // o braço volta para a vista
         const ac = acomp();
@@ -900,12 +893,10 @@ function abrirTreino(id, op = {}) {
           proxima, aoRodada, aoQuadro,
           aoFim: async info => {
             botoes(false); limpar(); meta();
-            const a = audio(), fimT = a ? a.currentTime : 0, temMic = !!mic.fluxo;
             await micDesligar();
-            const r0 = ritmoLigado && temMic ? avaliarRitmo(esperados.filter(x => x.t < fimT - .1), mic.ataques, ((a && (a.outputLatency || a.baseLatency)) || 0) + .015) : null; const ritmo = r0 && r0.total ? r0 : null;
             if (exemplo) return;
-            if (info.segs < 15 && !acabou) { if (mic.url || ritmo) soMic(ritmo); return; } // menos de 15 s não conta
-            if (info.voltas) resultado(info, ritmo); else { registrarPratica(Math.round(info.segs / 6) / 10); conferirConquistas(); if (mic.url || ritmo) soMic(ritmo); }
+            if (info.segs < 15 && !acabou) { if (mic.url) soMic(); return; } // menos de 15 s não conta
+            if (info.voltas) resultado(info); else { registrarPratica(Math.round(info.segs / 6) / 10); conferirConquistas(); if (mic.url) soMic(); }
           } });
         rodar.ocupado = false;
         if (!ok) { botoes(false); micDesligar(); KitFacil.avisar('Este navegador não consegue tocar som. Tente outro navegador.'); }
@@ -1045,17 +1036,17 @@ KitFacil.iniciar({
   app: 'guitarra-facil', nome: 'Guitarra Fácil', versao: VERSAO,
   resumo: 'Treinos de guitarra de rock e metal, com o braço desenhado.', icone: 'icons/icon-192.png',
   tela: () => rota(), exemploDados: 'os treinos, as músicas e o tempo de prática',
-  privacidade: ['Os treinos, os andamentos, as conquistas, as músicas e o tempo de prática ficam guardados neste aparelho.', 'O som dos treinos, do metrônomo, da bateria, dos acordes e das notas é gerado aqui no aparelho.', 'O afinador usa o microfone só enquanto está ligado, com a sua permissão: o som é analisado em memória, não é gravado nem enviado.', 'No treino, o microfone só é usado quando você liga "Conferir meu ritmo" ou "Gravar": o ritmo é analisado em memória, e a gravação fica só neste aparelho e é apagada ao fechar a janela do treino. Nada é enviado.', 'O plano de 4 semanas fica guardado com os seus treinos.'],
+  privacidade: ['Os treinos, os andamentos, as conquistas, as músicas e o tempo de prática ficam guardados neste aparelho.', 'O som dos treinos, do metrônomo, da bateria, dos acordes e das notas sai de gravações que acompanham o app e toca aqui no aparelho.', 'O afinador usa o microfone só enquanto está ligado, com a sua permissão: o som é analisado em memória, não é gravado nem enviado.', 'No treino, o microfone só é usado quando você liga "Gravar": a gravação fica só neste aparelho, é apagada ao fechar a janela do treino e nunca é enviada nem avaliada.', 'O plano de 4 semanas fica guardado com os seus treinos.'],
   abrirAjustes: secao => { if (rota() !== 'ajustes') ir('ajustes'); else if (!secao) history.back(); },
   emAjustes: () => rota() === 'ajustes',
   copia: { descricao: 'Baixe um arquivo com os treinos, as músicas e o tempo de prática.',
     baixar: () => KitFacil.copia.baixar({ db: DB }, 1),
     restaurar: async f => { const j = await KitFacil.copia.ler(f); if (!j || !j.dados || !j.dados.db) { KitFacil.avisar('Esse arquivo não é uma cópia do Guitarra Fácil.'); return; } DB = { ...vazio(), ...j.dados.db }; commit(); snapTodos(); render(); KitFacil.avisar('Cópia restaurada.'); } },
-  novidades: [{ versao: '0.9.0', itens: ['Caminho do iniciante: cinco etapas, do primeiro toque numa corda solta ao primeiro bend, com os dedos no braço e uma dica em cada passo.', 'Início novo: o próximo passo em destaque e o caminho inteiro, com "Você está aqui".', 'Já toca? Escolha onde começar ou vá direto ao treino do dia.'] }, { versao: '0.8.0', itens: ['Som novo: guitarra limpa, bateria e metrônomo gravados de instrumentos de verdade, mais altos e por igual. Funciona sem internet.', 'O braço do treino fica sempre no mesmo tamanho e desliza até as notas da vez.', 'Bends, slides, ligados e vibratos se movem no braço junto com a nota.', 'Braço e tablatura juntos; em Ajustes do treino dá para esconder um ou outro.', 'O toque duplo não dá mais zoom no app.'] }, { versao: '0.7.0', itens: ['Repita só um trecho: toque nos compassos embaixo da tablatura para tocar só eles em laço.', 'Andamento em porcentagem da meta (50%, 70%, 85% ou 100%) e a porcentagem sempre embaixo do número.', 'Bateria no treino, no lugar do metrônomo: bumbo duplo, blast beat, d-beat, thrash, galope, meio tempo e outros.', 'Segunda guitarra em harmonia: terças, quintas ou oitava junto com a sua linha.', 'Conferir o ritmo pelo microfone (só o tempo de cada palhetada) e gravar o treino para ouvir depois; nada sai do aparelho.', 'Plano de 4 semanas: escolha a técnica, o nível e a meta de andamento; o app monta quatro treinos por semana até lá.'] }, { versao: '0.6.0', itens: [`Rock e metal: ${MODELOS.length.toLocaleString('pt-BR')} treinos em riffs, solos e técnica, de 17 estilos (do hard rock ao djent) e 17 técnicas.`, 'Cada nível tem os seus treinos; a dificuldade vem da complexidade: técnicas misturadas, quiálteras, compassos ímpares e polirritmia.', 'O tamanho agora é o tamanho da linha: curto (1 compasso), moderado (2 a 4), longo (8, partes A e B) e muito longo (16 ou mais, com riff, breakdown e solo).', 'Afinações drop e sete cordas, com palm mute, pinch, harmônicos, notas mortas e alavanca.', 'Treino do dia, favoritos e aviso antes de trocar de etapa.', 'Visual mais escuro, com o vermelho do pedal.'] }, { versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
+  novidades: [{ versao: '0.10.0', itens: ['O app abre no tema escuro. O claro e o automático continuam em Ajustes.', 'O microfone do treino só grava: ouça a gravação junto com o exemplo e julgue você mesmo. Saiu a nota automática de ritmo.', '"Saiu limpo" aparece como marcado por você: o app registra a prática, mas não mede a execução.'] }, { versao: '0.9.0', itens: ['Caminho do iniciante: cinco etapas, do primeiro toque numa corda solta ao primeiro bend, com os dedos no braço e uma dica em cada passo.', 'Início novo: o próximo passo em destaque e o caminho inteiro, com "Você está aqui".', 'Já toca? Escolha onde começar ou vá direto ao treino do dia.'] }, { versao: '0.8.0', itens: ['Som novo: guitarra limpa, bateria e metrônomo gravados de instrumentos de verdade, mais altos e por igual. Funciona sem internet.', 'O braço do treino fica sempre no mesmo tamanho e desliza até as notas da vez.', 'Bends, slides, ligados e vibratos se movem no braço junto com a nota.', 'Braço e tablatura juntos; em Ajustes do treino dá para esconder um ou outro.', 'O toque duplo não dá mais zoom no app.'] }, { versao: '0.7.0', itens: ['Repita só um trecho: toque nos compassos embaixo da tablatura para tocar só eles em laço.', 'Andamento em porcentagem da meta (50%, 70%, 85% ou 100%) e a porcentagem sempre embaixo do número.', 'Bateria no treino, no lugar do metrônomo: bumbo duplo, blast beat, d-beat, thrash, galope, meio tempo e outros.', 'Segunda guitarra em harmonia: terças, quintas ou oitava junto com a sua linha.', 'Conferir o ritmo pelo microfone (só o tempo de cada palhetada) e gravar o treino para ouvir depois; nada sai do aparelho.', 'Plano de 4 semanas: escolha a técnica, o nível e a meta de andamento; o app monta quatro treinos por semana até lá.'] }, { versao: '0.6.0', itens: [`Rock e metal: ${MODELOS.length.toLocaleString('pt-BR')} treinos em riffs, solos e técnica, de 17 estilos (do hard rock ao djent) e 17 técnicas.`, 'Cada nível tem os seus treinos; a dificuldade vem da complexidade: técnicas misturadas, quiálteras, compassos ímpares e polirritmia.', 'O tamanho agora é o tamanho da linha: curto (1 compasso), moderado (2 a 4), longo (8, partes A e B) e muito longo (16 ou mais, com riff, breakdown e solo).', 'Afinações drop e sete cordas, com palm mute, pinch, harmônicos, notas mortas e alavanca.', 'Treino do dia, favoritos e aviso antes de trocar de etapa.', 'Visual mais escuro, com o vermelho do pedal.'] }, { versao: '0.5.0', itens: ['Cada função na sua tela: Início com menu de botões grandes, Treinos, Afinador, Teoria e, em Mais, Metrônomo, Bateria, Mapa do braço, Acordes, Músicas e Progresso.', `Catálogo com ${MODELOS.length} treinos em escalas, sequências, arpejos, licks, riffs e técnica, nos 12 tons e em todo o braço.`, 'Escolha um toque por vez: categoria, nível (iniciante, intermediário, avançado) e duração (2, 5, 10 ou 20 minutos).', 'Treinos longos percorrem as posições do braço e os tons sozinhos, com relógio na tela.', 'Janela do treino mais limpa: braço, tablatura, andamento e um botão grande; o resto fica em Ajustes.', 'Afinador com ponteiro, a corda mais perto e outras afinações; metrônomo com compasso e toque no ritmo; acordes para ouvir.'] }, { versao: '0.4.0', itens: ['O app agora é feito de treinos: sem trilha de aulas, sem teste de nível e sem professor.', 'Treino com o braço desenhado: a nota da vez acende, a próxima fica marcada e a tablatura rola junto.', 'Cromático 1-2-3-4 com as 24 combinações dos dedos: escolha a casa, as cordas e a figura, ou siga, sorteie e suba de casa a cada volta.', 'Escalas nos cinco desenhos, em qualquer tom, e um botão Treinar na Teoria.', 'Andamento de 1 em 1 ou de 5 em 5 bpm, e subida automática a cada volta.', 'Sequência de dias, a semana na tela Hoje, resumo da semana e 13 conquistas.'] }, { versao: '0.3.0', itens: ['Treinos com som e tablatura rolando, Teoria com o braço desenhado, bateria de acompanhamento e playlists recomendadas.'] }, { versao: '0.2.0', itens: ['Afinador pelo microfone, mapa das notas no braço e dez acordes. Ícone novo: o pedal de efeito.'] }, { versao: '0.1.0', itens: ['Primeira versão em testes: metrônomo, notas para afinar, primeiros acordes e lista de músicas.'] }],
   // sem boas-vindas do Kit: o Início já é o menu de tudo
   boasVindas: { novo: () => PRIMEIRO_USO },
 });
-KitFacil.tema.iniciar({ chave: KEY + 'pref', cores: { claro: '#E4E4E8', escuro: '#08080A' } });
+KitFacil.tema.iniciar({ chave: KEY + 'pref', cores: { claro: '#E4E4E8', escuro: '#08080A' }, padrao: 'escuro' }); // Documento Mestre, decisão 3A: escuro de fábrica
 const SY = KitFacil.sync.criar({ app: 'guitarra-facil', nome: 'Guitarra Fácil', chave: KEY + 'sync', dados: 'os treinos, as músicas e o tempo de prática',
   carimbar, aplicar, pacote, mesmo: (a, r) => KitFacil.canon(a) === KitFacil.canon({ v: 1, cfg: r.cfg, feitas: r.feitas, musicas: r.musicas, praticas: r.praticas, andamentos: r.andamentos || [], treinos: r.treinos || [], conquistas: r.conquistas || [], favoritos: r.favoritos || [], st: r.st, del: r.del }),
   redesenhar: () => render() });

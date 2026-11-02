@@ -282,25 +282,28 @@ test('treino 0.7: trecho em laço, porcentagem da meta, bateria e segunda guitar
   await a.fechar();
 });
 
-test('microfone no treino: ritmo conferido e gravação só no aparelho; sem permissão, o treino segue', async () => {
+test('microfone no treino: só gravar e comparar, sem nota automática; sem permissão, o treino segue', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  const r = await p.evaluate(() => avaliarRitmo([{ t: 1, dur: .25, comp: 1 }, { t: 1.5, dur: .25, comp: 1 }, { t: 2, dur: .25, comp: 2 }, { t: 2.5, dur: .25, comp: 2 }], [1.01, 1.49, 2.2, 2.51], 0));
-  assert.equal(r.pct, 75); assert.equal(r.pior, 2); assert.equal(r.total, 4);
-  assert.equal(await p.evaluate(() => avaliarRitmo([{ t: 1, dur: .5, comp: 1 }], [1.12], .1).pct), 100, 'a latência do aparelho é descontada');
+  assert.equal(await p.evaluate(() => typeof avaliarRitmo), 'undefined', 'não existe nota de ritmo pelo áudio (Documento Mestre, seção 7)');
+  assert.equal(await p.evaluate(() => CONQUISTAS.some(c => c[0] === 'ritmo90')), false, 'nem conquista que dependa dela');
   // sem permissão: aviso e o treino toca mesmo assim
-  await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('negado', 'NotAllowedError'); }; DB.cfg.trRitmo = true; });
+  await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('negado', 'NotAllowedError'); }; });
   await p.evaluate(() => abrirTreino('tecnica:galope:1:curto:0', { bpm: 260 }));
   const d = dlg(p);
   await d.waitFor();
+  await d.locator('#tr-aj').click();
+  assert.equal(await d.locator('#tr-ritmo').count(), 0, 'sem a opção de conferir o ritmo');
+  await d.locator('[data-tr-pronto]').click();
+  await d.locator('#tr-rec').click();
   await d.locator('#tr-ir').click();
   assert.ok(await esperar(() => p.evaluate(() => /Sem permissão para o microfone/.test(document.querySelector('.kf-toast')?.textContent || ''))), 'aviso sem permissão');
   assert.ok(await esperar(() => p.evaluate(() => treino.tocando)), 'o treino segue sem o microfone');
   await d.locator('#tr-ir').click();
   await p.keyboard.press('Escape');
-  // com microfone (um som gerado no lugar da guitarra): grava, confere o ritmo e apaga
-  await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { const ac = audio(), o = ac.createOscillator(), g = ac.createGain(), dst = ac.createMediaStreamDestination(); o.frequency.value = 110; g.gain.value = 0; o.connect(g); g.connect(dst); o.start(); const t0 = ac.currentTime + .5; for (let i = 0; i < 40; i++) { g.gain.setValueAtTime(.8, t0 + i * .23); g.gain.setValueAtTime(0, t0 + i * .23 + .08); } return dst.stream; }; });
+  // com microfone (um som gerado no lugar da guitarra): grava, mostra para ouvir e apaga
+  await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { const ac = audio(), o = ac.createOscillator(), dst = ac.createMediaStreamDestination(); o.frequency.value = 110; o.connect(dst); o.start(); return dst.stream; }; });
   await p.evaluate(() => abrirTreino('tecnica:galope:1:curto:0', { bpm: 260 }));
   await d.waitFor();
   await d.locator('#tr-rec').click();
@@ -308,14 +311,15 @@ test('microfone no treino: ritmo conferido e gravação só no aparelho; sem per
   assert.equal(await d.locator('#tr-rec span').textContent(), 'Vai gravar');
   await d.locator('#tr-ir').click();
   assert.ok(await esperar(() => d.locator('#tr-rec span').textContent().then(t => t === 'Gravando')), 'mostra que está gravando');
-  assert.ok(await esperar(() => p.evaluate(() => mic.ataques.length >= 2), 6000), 'o microfone ouve os ataques');
   assert.ok(await esperar(() => d.locator('#tr-status').textContent().then(x => /Volta 3/.test(x)), 8000), 'duas voltas inteiras');
   await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; });
   await d.locator('#tr-ir').click();
-  assert.ok(await esperar(() => d.locator('[data-grav="ouvir"]').isVisible()), 'a gravação aparece no fim');
-  assert.match(await d.locator('.tr-ritmo').textContent(), /Saiu no tempo: \d+%/);
-  assert.equal(await d.locator('[data-limpo]').count(), 2);
-  assert.ok(await p.evaluate(() => typeof DB.treinos[DB.treinos.length - 1].ritmo === 'number'), 'a nota do ritmo fica no histórico');
+  assert.ok(await esperar(() => d.locator('[data-grav="ouvir"]').isVisible()), 'a gravação aparece no fim, com o exemplo para comparar');
+  assert.equal(await d.locator('[data-grav="exemplo"]').count(), 1);
+  assert.match(await d.locator('.tr-limpo-bloco').textContent(), /Quem decide é você/);
+  assert.equal(await p.evaluate(() => 'ritmo' in DB.treinos[DB.treinos.length - 1]), false, 'nenhuma nota no histórico');
+  await d.locator('[data-limpo="1"]').click();
+  assert.match(await d.locator('#tr-res').textContent(), /Marcado por você/);
   assert.equal(await p.evaluate(() => mic.fluxo), null, 'o microfone desliga no fim');
   await d.locator('[data-grav="apagar"]').click();
   assert.equal(await d.locator('.tr-grav').count(), 0);

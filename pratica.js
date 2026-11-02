@@ -184,47 +184,25 @@ function recortarCompassos(ex, de, ate) {
 }
 const compassosDe = ex => { const [cn, cp] = ex.compasso || [4, 1]; return Math.max(1, Math.round(ex.evs.reduce((s, e) => s + e.d, 0) / (cn * cp))); };
 
-/* ================= microfone no treino =================
-   Só quando a pessoa liga, com permissão. Ritmo: a energia do som (abaixo de 700 Hz, para o clique e os agudos pesarem
-   menos) é lida a cada quadro; um salto de energia é um ataque. Os ataques são comparados com o começo de cada nota do
-   treino. Gravação: MediaRecorder em memória; o áudio fica neste aparelho e é apagado ao fechar a janela do treino.
-   Nada é enviado. */
-const mic = { fluxo: null, an: null, buf: null, ataques: [], ultimo: 0, base: .004, antes: 0, gravador: null, pedacos: [], url: null };
-async function micLigar(gravar) {
-  const a = audio(); if (!a || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return 'sem';
+/* ================= gravação no treino =================
+   Só quando a pessoa liga "Gravar", com permissão: MediaRecorder em memória. O áudio fica neste aparelho, é apagado ao
+   fechar a janela do treino e nunca é enviado nem avaliado (Documento Mestre, seção 7: nada de nota automática pelo
+   áudio; a pessoa ouve a gravação junto com o exemplo e julga). */
+const mic = { fluxo: null, gravador: null, pedacos: [], url: null };
+async function micLigar() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) return 'sem';
   try { mic.fluxo = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch { return 'negado'; }
-  const fonte = a.createMediaStreamSource(mic.fluxo), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
-  mic.an = a.createAnalyser(); mic.an.fftSize = 1024; fonte.connect(f); f.connect(mic.an); mic.buf = new Float32Array(mic.an.fftSize);
-  mic.ataques = []; mic.ultimo = 0; mic.antes = 0; mic.base = .004;
-  if (gravar && window.MediaRecorder) { mic.pedacos = []; mic.gravador = new MediaRecorder(mic.fluxo); mic.gravador.ondataavailable = e => { if (e.data.size) mic.pedacos.push(e.data); }; mic.gravador.start(); }
+  mic.pedacos = []; mic.gravador = new MediaRecorder(mic.fluxo); mic.gravador.ondataavailable = e => { if (e.data.size) mic.pedacos.push(e.data); }; mic.gravador.start();
   return 'ok';
-}
-// lê um quadro: guarda o instante (no relógio do áudio) de cada ataque
-function micQuadro() {
-  if (!mic.an) return; const a = audio(); mic.an.getFloatTimeDomainData(mic.buf);
-  let e = 0; for (let i = 0; i < mic.buf.length; i++) e += mic.buf[i] * mic.buf[i]; e = Math.sqrt(e / mic.buf.length);
-  const agora = a.currentTime;
-  if (e > Math.max(mic.base * 3, .008) && e > mic.antes * 1.6 && agora - mic.ultimo > .07) { mic.ataques.push(agora - mic.buf.length / a.sampleRate / 2); mic.ultimo = agora; }
-  mic.base = mic.base * .995 + Math.min(e, mic.base * 2) * .005; mic.antes = e;
 }
 function micDesligar() {
   return new Promise(res => {
-    const fim = () => { if (mic.fluxo) mic.fluxo.getTracks().forEach(t => t.stop()); mic.fluxo = null; mic.an = null; res(); };
+    const fim = () => { if (mic.fluxo) mic.fluxo.getTracks().forEach(t => t.stop()); mic.fluxo = null; res(); };
     if (mic.gravador && mic.gravador.state !== 'inactive') { mic.gravador.onstop = () => { if (mic.url) URL.revokeObjectURL(mic.url); mic.url = mic.pedacos.length ? URL.createObjectURL(new Blob(mic.pedacos, { type: mic.gravador.mimeType || 'audio/webm' })) : null; mic.gravador = null; fim(); }; mic.gravador.stop(); }
     else fim();
   });
 }
 function micApagarGravacao() { if (mic.url) URL.revokeObjectURL(mic.url); mic.url = null; mic.pedacos = []; }
-/* nota do ritmo: cada nota esperada procura o ataque mais perto (a latência do aparelho é descontada);
-   dentro de 60 ms (ou 30% da nota, o que for menor, nunca menos de 35 ms) conta como no tempo */
-function avaliarRitmo(esperados, ataques, latencia) {
-  const res = esperados.map(x => { let melhor = null; for (const t of ataques) { const d = t - latencia - x.t; if (melhor == null || Math.abs(d) < Math.abs(melhor)) melhor = d; } const tol = Math.max(.035, Math.min(.06, x.dur * .3)); return { ...x, desvio: melhor, ok: melhor != null && Math.abs(melhor) <= tol }; });
-  const certos = res.filter(r => r.ok), pct = res.length ? Math.round(certos.length / res.length * 100) : 0;
-  const media = certos.length ? Math.round(certos.reduce((s, r) => s + r.desvio, 0) / certos.length * 1000) : 0;
-  const porComp = {}; res.forEach(r => { const k = r.comp; porComp[k] = porComp[k] || [0, 0]; porComp[k][1]++; if (!r.ok) porComp[k][0]++; });
-  const pior = Object.entries(porComp).sort((a, b) => b[1][0] / b[1][1] - a[1][0] / a[1][1])[0];
-  return { pct, media, pior: pior && pior[1][0] ? +pior[0] : null, total: res.length };
-}
 
 /* ================= bateria de acompanhamento ================= */
 /* cada estilo: passos por batida e os passos (no compasso de 4 batidas) do bumbo, da caixa e do chimbal */

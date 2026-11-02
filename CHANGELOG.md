@@ -2,6 +2,14 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.10.0 · 2026-11-02
+
+- O app abre no tema escuro. O claro e o automático continuam em Ajustes › Aparência, e a escolha de cada pessoa vale mais que a de fábrica.
+- O microfone do treino só grava: saiu a conferência do ritmo com porcentagem e a conquista "No tempo". No fim, ouça a gravação junto com o exemplo; quem julga é você.
+- "Saiu limpo" agora aparece como marcado por você. O app registra o que você praticou, mas não mede a execução.
+- Correção: a aba Andamentos do Progresso não abria depois de treinar um passo do caminho do iniciante.
+- Kit Fácil 2.8.0: tema de fábrica por app e fonte dos títulos por app (Padrão 2.6).
+
 ## 0.9.0 · 2026-11-02
 
 - Caminho do iniciante: cinco etapas de quatro passos (Primeiro contato, Palhetada e ritmo, Power chords, Primeiros riffs e Primeiros solos), do primeiro toque numa corda solta ao primeiro bend, com os dedos no braço e uma dica de como fazer em cada passo. Um passo conta quando você marca "Saiu limpo".
