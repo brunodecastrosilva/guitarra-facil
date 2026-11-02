@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.12.0 · 2026-11-02
+
+- Buscar e filtrar: em Treinos, busque por nome, estilo ou técnica e combine filtros de categoria, competência, técnica, estilo, nível, tamanho, mão trabalhada e objetivo. Dá para sortear um treino entre os encontrados.
+- Ritmo escrito na tablatura: hastes, barras de colcheia e semicolcheia, pontos, quiálteras e pausas, embaixo de cada nota.
+- Tablatura ligada ao braço: fora da reprodução, toque numa nota da tablatura para ver e ouvir a mesma nota no braço, ou toque no braço para achá-la na tablatura.
+
 ## 0.11.0 · 2026-11-02
 
 - Fonte nova nos títulos, na marca e nos números grandes: Big Shoulders Display. O resto do texto continua em Atkinson.

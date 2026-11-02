@@ -1,7 +1,7 @@
 /* Guitarra Fácil · base comum das telas: versão, atalhos do DOM, ícones, ilustrações e peças de tela (migalhas e botão grande).
    Carrega antes de todos os outros arquivos do app */
 'use strict';
-const VERSAO = '0.11.0';
+const VERSAO = '0.12.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -29,6 +29,7 @@ const I = {
   medalha: svg('<circle cx="12" cy="15" r="5.5"/><path d="M8.6 10.6 6 3h4l2 5 2-5h4l-2.6 7.6"/><path d="m12 12.6.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/>'),
   chama: svg('<path d="M12 3c.8 3.6 5.5 5.3 5.5 10.2a5.5 5.5 0 0 1-11 0c0-2.6 1.4-3.9 2.2-5.6.9 1.5 1.5 2.3 2.6 2.4-.2-2.6-.4-4.6.7-7z"/>'),
   sortear: svg('<path d="M3 7h3.5c2 0 3 1 4.5 3.5l2 3.5c1.5 2.5 2.5 3.5 4.5 3.5H21M18 14.5l3 3-3 3M3 17.5h3.5c1.3 0 2.2-.4 3-1.3M14 7.8c.8-.9 1.7-1.3 3-1.3H21M18 3.5l3 3-3 3"/>'),
+  busca: svg('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
   ajustes: svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>'),
   ouvir: svg('<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),

@@ -162,6 +162,36 @@ test('modelo único de exercício: todo exercício tem origem, objetivo e compet
   await a.fechar();
 });
 
+test('fase 2: busca com filtros combinados, tablatura com ritmo e tablatura ligada ao braço', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  await irPelaNav(p, 'Treinos');
+  await p.fill('#busca-ini', 'galope');
+  await p.click('[data-busca-form] button[type=submit]');
+  assert.ok(await esperar(() => p.evaluate(() => rota() === 'treinos' && parte(1) === 'buscar')));
+  assert.match(await p.textContent('#busca-res'), /\d+ treinos? encontrados?/);
+  const antes = await p.evaluate(() => filtrarExercicios(BUSCA).length);
+  await p.evaluate(() => { const s = document.querySelector('#f-nivel'); s.value = '1'; s.dispatchEvent(new Event('change')); });
+  assert.ok(await esperar(async () => (await p.evaluate(() => filtrarExercicios(BUSCA).length)) < antes), 'cada filtro a mais deixa a lista menor');
+  await p.evaluate(() => { const s = document.querySelector('#f-competencia'); s.value = 'bends'; s.dispatchEvent(new Event('change')); });
+  assert.ok(await esperar(() => p.evaluate(() => indice.pronto), 20000), 'o índice fica pronto');
+  assert.ok(await esperar(async () => /encontrado|Nenhum treino/.test(await p.textContent('#busca-res'))));
+  await p.click('[data-filtro-limpar] >> nth=0');
+  assert.equal(await p.evaluate(() => BUSCA.nivel + BUSCA.competencia + BUSCA.busca), '');
+  // tablatura com ritmo e ligada ao braço
+  await p.evaluate(() => abrirTreino('riffs:thrash:2:curto:1'));
+  const d = dlg(p); await d.waitFor();
+  assert.ok(await d.locator('.tab-ritmo .rt-h').count() > 0, 'o ritmo aparece embaixo da tablatura');
+  await d.locator('.tab-n >> nth=1').click();
+  assert.equal(await d.locator('.tab-n.sel').count(), 1);
+  assert.ok(await d.locator('.braco-tr .nt.sel').count() >= 1, 'a nota escolhida na tablatura aparece no braço');
+  await d.locator('.braco-tr .nt >> nth=0').click();
+  assert.ok(await d.locator('.tab-n.sel').count() >= 1, 'e a do braço aparece na tablatura');
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
 test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo avança e quem já toca escolhe onde começar', async () => {
   const a = await aparelho(amb);
   const p = a.page;

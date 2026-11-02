@@ -4,7 +4,7 @@ Treinos de guitarra de rock e metal no celular e no computador: riffs, solos e t
 quatro tamanhos de linha, com afinações drop e sete cordas. O app conta, toca junto com som de guitarra limpa gravada,
 acende a nota da vez no braço desenhado (que desliza até ela e mostra bends, slides e ligados) e rola a tablatura.
 
-**Fase de testes** · versão 0.11.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.12.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.

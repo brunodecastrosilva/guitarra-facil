@@ -17,7 +17,10 @@ const listaDe = (cat, sub, nivel, tam) => MODELOS.filter(m => m.cat === cat && (
 const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(m.nome)}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
 VIEWS.treinos = () => {
   const [, cat, a, b, c] = caminho(), C = CATEGORIAS.find(x => x[0] === cat);
+  if (cat === 'buscar') return telaBusca();
   if (!C) return KitFacil.ui.cabecalho({ titulo: 'Treinos', sub: `${MODELOS.length.toLocaleString('pt-BR')} treinos de rock e metal, em três níveis e quatro tamanhos.` })
+    + `<form class="busca-ini" data-busca-form role="search"><label class="kf-rotulo" for="busca-ini">Buscar treinos</label><div class="busca-linha"><input id="busca-ini" type="search" class="kf-entrada" placeholder="galope, thrash, bend, pentatônica…" value="${esc(BUSCA.busca)}"><button type="submit" class="kf-btn kf-pri">${I.busca || ''}Buscar</button></div>
+      <button type="button" class="kf-btn kf-sec busca-filtros" data-ir="treinos/buscar">${I.ajustes}Filtrar por técnica, competência, mão e mais</button></form>`
     + `<div class="ladrilhos">${CATEGORIAS.map(([id, nome, d]) => ladrilho({ ir: 'treinos/' + id, ilu: ILU[id], nome, sub: d, selo: MODELOS.filter(m => m.cat === id).length.toLocaleString('pt-BR') })).join('')}</div>`;
   const base = 'treinos/' + C[0], temSub = C[0] !== 'escalas';
   const SUBS = C[0] === 'tecnica' ? TECNICAS_TREINO.map(t => [t.id, t.nome, t.d]) : ESTILOS.map(e => [e.id, e.nome, `No estilo de ${e.inspira}.`]);
@@ -60,3 +63,48 @@ VIEWS.afinador = () => {
     <div class="campo af-tipo"><label class="kf-rotulo" for="af-afinacao">Afinação</label><select id="af-afinacao">${AFINACOES.map(([k, n]) => `<option value="${k}"${(DB.cfg.afinacao || 'padrao') === k ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
   </div>`;
 };
+
+/* busca e filtros combinados (Documento Mestre, seção 6): os filtros ficam guardados enquanto o app está aberto */
+const BUSCA = { busca: '', categoria: '', estilo: '', tecnica: '', nivel: '', tamanho: '', mao: '', competencia: '', objetivo: '', n: 30 };
+const FILTROS = () => [
+  ['categoria', 'Categoria', [...CATEGORIAS.map(c => [c[0], c[1]]), ['caminho', 'Caminho do iniciante'], ...(typeof OBRAS !== 'undefined' ? [['biblioteca', 'Biblioteca']] : []), ['estudio', 'Suas criações']]],
+  ['competencia', 'Competência', COMPETENCIAS.map(c => [c[0], c[1]])],
+  ['tecnica', 'Técnica', Object.entries(TECNICAS_NOTAS)],
+  ['estilo', 'Estilo', ESTILOS.map(e => [e.id, e.nome])],
+  ['nivel', 'Nível', NIVEIS.map(n => [n[0], n[2]])],
+  ['tamanho', 'Tamanho', TAMANHOS.map(t => [t[0], t[1]])],
+  ['mao', 'Mão trabalhada', MAOS],
+  ['objetivo', 'Objetivo', OBJETIVOS],
+];
+const precisaIndice = () => !!(BUSCA.mao || BUSCA.competencia || BUSCA.tecnica);
+function telaBusca() {
+  return migalhas([['treinos', 'Treinos'], [null, 'Buscar e filtrar']]) + KitFacil.ui.cabecalho({ titulo: 'Buscar e filtrar', sub: 'Combine o que quiser: técnica, competência, estilo, nível, tamanho, mão e objetivo.' })
+    + `<div class="pilha"><section class="cartao filtros-cx"><div class="campo"><label class="kf-rotulo" for="busca-q">Buscar</label><input id="busca-q" type="search" class="kf-entrada" placeholder="galope, thrash, bend, pentatônica…" value="${esc(BUSCA.busca)}"></div>
+      <div class="filtros">${FILTROS().map(([k, rot, ops]) => `<div class="campo"><label class="kf-rotulo" for="f-${k}">${rot}</label><select id="f-${k}" data-filtro="${k}"><option value="">Todos</option>${ops.map(([v, n]) => `<option value="${esc(String(v))}"${String(BUSCA[k]) === String(v) ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('')}</div>
+      <button type="button" class="kf-btn kf-sec" data-filtro-limpar>Limpar os filtros</button></section>
+      <div id="busca-res" aria-live="polite"></div></div>`;
+}
+function pintarBusca(m) {
+  const res = $('#busca-res', m); if (!res) return;
+  if (precisaIndice() && !indice.pronto) { res.innerHTML = `<p class="apoio">Preparando o catálogo: ${indice.feitos.toLocaleString('pt-BR')} de ${MODELOS.length.toLocaleString('pt-BR')} treinos classificados…</p>`; prepararIndice(() => pintarBusca(m)); clearTimeout(pintarBusca.t); pintarBusca.t = setTimeout(() => { if (!indice.pronto) pintarBusca(m); }, 400); return; }
+  const f = { ...BUSCA }, L = filtrarExercicios(f), V = L.slice(0, BUSCA.n);
+  res.innerHTML = L.length ? `<p class="apoio busca-n"><b>${L.length.toLocaleString('pt-BR')}</b> ${L.length === 1 ? 'treino encontrado' : 'treinos encontrados'}${L.length > 1 ? ` · <button type="button" class="kf-link" data-tr-sortear="${esc(L.slice(0, 400).map(x => x.id).join(' '))}">sortear um</button>` : ''}</p>
+      <ul class="tr-lista">${V.map(x => itemTreino(x, x.cat === 'escalas' ? (BUSCA.tamanho || 'moderado') : null)).join('')}</ul>${L.length > V.length ? `<button type="button" class="kf-btn kf-sec busca-mais" data-busca-mais>Mostrar mais ${Math.min(30, L.length - V.length)}</button>` : ''}`
+    : KitFacil.ui.vazio({ titulo: 'Nenhum treino com esses filtros', texto: 'Tire um filtro ou troque a busca. Os filtros se somam: cada um a mais deixa a lista menor.', acao: '<button type="button" class="kf-btn kf-pri" data-filtro-limpar>Limpar os filtros</button>' });
+  const comTam = b => b.dataset.tam ? { cfg: { tam: b.dataset.tam } } : {};
+  $$('[data-tr-modelo]', res).forEach(b => b.onclick = () => abrirTreino(b.dataset.trModelo, comTam(b)));
+  $$('[data-tr-sortear]', res).forEach(b => b.onclick = () => { const L2 = b.dataset.trSortear.split(' '); abrirTreino(L2[Math.floor(Math.random() * L2.length)]); });
+  $$('[data-busca-mais]', res).forEach(b => b.onclick = () => { BUSCA.n += 30; pintarBusca(m); });
+  $$('[data-filtro-limpar]', res).forEach(b => b.onclick = limparFiltros);
+}
+function limparFiltros() { Object.keys(BUSCA).forEach(k => { BUSCA[k] = k === 'n' ? 30 : ''; }); redesenhar(); }
+function ligarBusca(m) {
+  const f = $('[data-busca-form]', m);
+  if (f) f.addEventListener('submit', e => { e.preventDefault(); BUSCA.busca = $('#busca-ini', m).value.trim(); BUSCA.n = 30; ir('treinos/buscar'); });
+  if (parte(1) !== 'buscar') return;
+  const q = $('#busca-q', m); let t = 0;
+  q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { BUSCA.busca = q.value.trim(); BUSCA.n = 30; pintarBusca(m); }, 220); });
+  $$('[data-filtro]', m).forEach(sel => sel.addEventListener('change', () => { BUSCA[sel.dataset.filtro] = sel.value; BUSCA.n = 30; pintarBusca(m); }));
+  $$('[data-filtro-limpar]', m).forEach(b => b.onclick = limparFiltros);
+  pintarBusca(m);
+}

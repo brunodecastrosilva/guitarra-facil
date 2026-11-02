@@ -97,6 +97,20 @@ function abrirTreino(id, op = {}) {
       };
       const aplicarVista = () => { brW.hidden = DB.cfg.trVerBraco === false; tabW.hidden = DB.cfg.trVerTab === false; pintarDica(false); if (!brW.hidden) { desloc = null; mirar(ex.evs.slice(...(janelas[jan] || [0, ex.evs.length])), false); } };
       desenhar(ex); meta();
+      // tablatura e braço ligados (Documento Mestre, seção 9): tocar numa nota de um marca a mesma nota no outro e faz
+      // soar; durante a reprodução, só a nota da vez acende
+      const marcar = idx => { $$('.sel', d).forEach(g => g.classList.remove('sel')); idx.forEach(i => { if (tabN[i]) tabN[i].classList.add('sel'); (brN[i] || []).forEach(g => g.classList.add('sel')); }); };
+      tabW.addEventListener('click', e => {
+        const g = e.target.closest('.tab-n'); if (!g || treino.tocando) return;
+        const i = +g.dataset.i, j = janelas.findIndex(([a, b]) => i >= a && i < b); if (j >= 0 && j !== jan) desenharBraco(ex, j);
+        marcar([i]); mirar([ex.evs[i]]); const a = audio(); if (a) tocarEvento(ex.evs[i], ex.afin, a.currentTime + .02, .6, 1);
+      });
+      trilho.addEventListener('click', e => {
+        const g = e.target.closest('.nt'); if (!g || treino.tocando) return;
+        const idx = g.dataset.i.split(' ').map(Number), [c, k] = g.dataset.nota.split(',').map(Number); marcar(idx);
+        const a = audio(); if (a) tocarCorda(ex.afin[c] + k, a.currentTime + .02, 1.2, .45);
+        const t0 = tabN[idx[0]]; if (t0 && !tabW.hidden) { const r = t0.getBBox(); tabW.scrollLeft = Math.max(0, r.x - tabW.clientWidth * .35); }
+      });
       const setBpm = v => { bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(v))); $('#tr-bpm', d).textContent = bpm; $('#tr-pct', d).textContent = `bpm · ${Math.round(bpm / m.alvo * 100)}% da meta`; };
       $$('[data-tr-bpm]', d).forEach(b => b.onclick = () => setBpm(bpm + +b.dataset.trBpm));
       $('#tr-fav', d).onclick = () => { const on = alternarFavorito(m.id); titulo(ex); KitFacil.avisar(on ? 'Treino nos favoritos.' : 'Treino fora dos favoritos.'); };
@@ -223,6 +237,7 @@ function abrirTreino(id, op = {}) {
       const rodar = async exemplo => {
         if (treino.tocando) { treino.parar(); return; }
         if (rodar.ocupado) return; rodar.ocupado = true;
+        $$('.sel', d).forEach(g => g.classList.remove('sel'));
         if (!exemplo) res.hidden = true; soUma = exemplo; acabou = false; voltasNa = 0; feitos = []; limpar(); botoes(true);
         if (!exemplo && fila && filaI > 0) { filaI = 0; m = modelo(fila[0]); cfg = cfgDe(m); inteiro = volta(m, cfg); trecho = null; aplicarTrecho(); pintarTrecho(); setBpm(bpmDe(m)); }
         const gravar = !exemplo && recBt.getAttribute('aria-pressed') === 'true';

@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&family=Big+Shoulders+Display:wght@700..900&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.11.0">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.12.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
@@ -385,6 +385,22 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 .tab-n.agora rect{fill:#2B2B30;stroke:#2B2B30}.tab-n.agora text{fill:#fff}
 .tab-n.ok rect{fill:#DDEFE3;stroke:#2F8F57}.tab-n.erro rect{fill:#FBE3DF;stroke:#C7432F}
 .tab-cursor{stroke:#C7432F;stroke-width:2.5}
+/* ritmo embaixo da tablatura */
+.tab-ritmo .rt-h,.tab-ritmo .rt-pz{stroke:var(--kf-ink);stroke-width:1.6;fill:none;stroke-linecap:round}
+.tab-ritmo .rt-b{stroke:var(--kf-ink);stroke-width:2.6}
+.tab-ritmo .rt-p{fill:var(--kf-ink)}.tab-ritmo .rt-a{fill:var(--kf-surface);stroke:var(--kf-ink);stroke-width:1.4}
+.tab-ritmo .rt-3{font:700 10px var(--kf-font-mono);fill:var(--kf-muted)}
+/* nota escolhida: a mesma nota marcada na tablatura e no braço (anel grosso, não só a cor) */
+.tab-n.sel rect{stroke:var(--gf-vermelho);stroke-width:3}
+.braco-tr .nt.sel circle{stroke:var(--gf-vermelho);stroke-width:5}
+.tab-n,.braco-tr .nt{cursor:pointer}
+/* busca e filtros */
+.busca-ini{display:grid;gap:8px;margin:0 0 16px}
+.busca-linha{display:flex;gap:8px}.busca-linha input{flex:1;min-width:0}
+.busca-filtros{justify-self:start}
+.filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin:12px 0}
+.busca-n{margin:4px 0 10px}.busca-mais{margin-top:12px;width:100%}
+.kf-link{border:0;background:none;padding:0;color:var(--kf-accent-texto);font:inherit;text-decoration:underline;cursor:pointer;min-height:24px}
 .tr-conta{position:absolute;inset:0;display:grid;place-items:center;font:800 64px var(--kf-font-display);color:#C7432F;pointer-events:none;opacity:0;transition:opacity .2s}
 .tr-conta.on{opacity:1;background:color-mix(in srgb,var(--kf-surface) 70%,transparent)}
 .tr-op{display:flex;flex-direction:column;gap:6px}
@@ -446,25 +462,25 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.11.0"></script>
-<script src="base.js?v=0.11.0"></script>
-<script src="teoria.js?v=0.11.0"></script>
-<script src="catalogo.js?v=0.11.0"></script>
-<script src="metal.js?v=0.11.0"></script>
-<script src="caminho.js?v=0.11.0"></script>
-<script src="exercicios.js?v=0.11.0"></script>
-<script src="som.js?v=0.11.0"></script>
-<script src="pratica.js?v=0.11.0"></script>
-<script src="musicas.js?v=0.11.0"></script>
-<script src="dados.js?v=0.11.0"></script>
-<script src="plano.js?v=0.11.0"></script>
-<script src="tela-inicio.js?v=0.11.0"></script>
-<script src="tela-treinos.js?v=0.11.0"></script>
-<script src="ferramentas.js?v=0.11.0"></script>
-<script src="tela-musicas.js?v=0.11.0"></script>
-<script src="tela-progresso.js?v=0.11.0"></script>
-<script src="tela-teoria.js?v=0.11.0"></script>
-<script src="janela-treino.js?v=0.11.0"></script>
-<script src="app.js?v=0.11.0"></script>
+<script src="comum/kit-facil.js?v=0.12.0"></script>
+<script src="base.js?v=0.12.0"></script>
+<script src="teoria.js?v=0.12.0"></script>
+<script src="catalogo.js?v=0.12.0"></script>
+<script src="metal.js?v=0.12.0"></script>
+<script src="caminho.js?v=0.12.0"></script>
+<script src="exercicios.js?v=0.12.0"></script>
+<script src="som.js?v=0.12.0"></script>
+<script src="pratica.js?v=0.12.0"></script>
+<script src="musicas.js?v=0.12.0"></script>
+<script src="dados.js?v=0.12.0"></script>
+<script src="plano.js?v=0.12.0"></script>
+<script src="tela-inicio.js?v=0.12.0"></script>
+<script src="tela-treinos.js?v=0.12.0"></script>
+<script src="ferramentas.js?v=0.12.0"></script>
+<script src="tela-musicas.js?v=0.12.0"></script>
+<script src="tela-progresso.js?v=0.12.0"></script>
+<script src="tela-teoria.js?v=0.12.0"></script>
+<script src="janela-treino.js?v=0.12.0"></script>
+<script src="app.js?v=0.12.0"></script>
 </body>
 </html>

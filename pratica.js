@@ -60,13 +60,48 @@ function deslocarPara([a, b], vis, atual) {
   return Math.max(0, Math.min(max, alvo));
 }
 
-/* tablatura: uma coluna por batida (mais larga quando as notas são curtas); PM em cima das notas abafadas,
-   as técnicas ao lado da casa, linhas de compasso no tamanho do compasso do treino */
 function pxDe(ex) { const m = Math.min(...ex.evs.map(e => e.d)); return Math.max(56, Math.ceil((ex.evs.some(e => tecs(e).some(t => TEC_TAB[t])) ? 40 : 30) / m)); }
+/* tablatura: uma coluna por batida (mais larga quando as notas são curtas); PM em cima das notas abafadas, as técnicas
+   ao lado da casa, linhas de compasso e, embaixo, o ritmo escrito (Documento Mestre, seção 9): haste para a semínima,
+   uma barra para a colcheia, duas para a semicolcheia, três para a fusa; notas curtas do mesmo tempo ligadas pela
+   barra; ponto nas pontuadas; "3" nas quiálteras; meia haste com bolinha aberta na mínima; pausas desenhadas. */
+function ritmoTab(ex, PX, y0) {
+  const [, cp] = ex.compasso || [4, 1], barras = d => d <= 1 / 8 + 1e-6 ? 3 : d <= 1 / 4 + 1e-6 ? 2 : d < 1 - 1e-6 ? 1 : 0;
+  const base = d => { for (const b of [4, 2, 1, .5, .25, .125]) { if (Math.abs(d - b) < 1e-6) return [b, false, false]; if (Math.abs(d - b * 1.5) < 1e-6) return [b, true, false]; if (Math.abs(d - b * 2 / 3) < 1e-6) return [b, false, true]; } return [d, false, false]; };
+  const X = [], hy = y0 + 22; let t = 0, s = '';
+  ex.evs.forEach((e, i) => { X.push({ x: 40 + t * PX + 9, t, d: e.d, i, pausa: !e.n.length, b: base(e.d) }); t += e.d; });
+  // grupos: notas curtas seguidas dentro do mesmo tempo
+  const grupos = []; let g = [];
+  X.forEach(n => { const curta = !n.pausa && n.b[0] < 1 - 1e-6, tempo = Math.floor(n.t / cp + 1e-6); if (curta && g.length && g[0].tempo === tempo) g.push({ ...n, tempo }); else { if (g.length) grupos.push(g); g = curta ? [{ ...n, tempo }] : []; if (!curta) grupos.push([n]); } });
+  if (g.length) grupos.push(g);
+  grupos.forEach(G => {
+    G.forEach(n => {
+      if (n.pausa) { const [b] = n.b, x = n.x;
+        if (b >= 2) s += `<rect x="${x - 5}" y="${y0 + (b >= 4 ? 6 : 9)}" width="10" height="4" class="rt-p"/>`;
+        else if (b >= 1) s += `<path d="M${x - 2} ${y0 + 2}l4 5-4 4 4 5" class="rt-pz"/>`;
+        else s += `<circle cx="${x - 2}" cy="${y0 + 7}" r="2" class="rt-p"/><path d="M${x + 2} ${y0 + 5}l-3 13" class="rt-pz"/>${barras(b) > 1 ? `<circle cx="${x - 3}" cy="${y0 + 12}" r="2" class="rt-p"/>` : ''}`;
+        return; }
+      const [b, ponto] = n.b; if (b >= 4) return;
+      s += `<line x1="${n.x}" y1="${b >= 2 ? hy - 9 : y0}" x2="${n.x}" y2="${hy}" class="rt-h"/>`;
+      if (b >= 2) s += `<circle cx="${n.x}" cy="${hy - 12}" r="3" class="rt-a"/>`;
+      if (ponto) s += `<circle cx="${n.x + 5}" cy="${hy - 3}" r="1.6" class="rt-p"/>`;
+    });
+    const notas = G.filter(n => !n.pausa && n.b[0] < 1 - 1e-6);
+    if (!notas.length) return;
+    if (notas.length === 1) { const n = notas[0]; for (let k = 0; k < barras(n.b[0]); k++) s += `<path d="M${n.x} ${hy - k * 4}l7 -5" class="rt-h"/>`; }
+    else {
+      const minB = Math.min(...notas.map(n => barras(n.b[0])));
+      for (let k = 0; k < minB; k++) s += `<line x1="${notas[0].x}" y1="${hy - k * 4}" x2="${notas[notas.length - 1].x}" y2="${hy - k * 4}" class="rt-b"/>`;
+      notas.forEach((n, j) => { for (let k = minB; k < barras(n.b[0]); k++) { const viz = notas[j + 1] || notas[j - 1], dx = viz === notas[j + 1] ? 6 : -6; s += `<line x1="${n.x}" y1="${hy - k * 4}" x2="${n.x + dx}" y2="${hy - k * 4}" class="rt-b"/>`; } });
+    }
+    if (notas.some(n => n.b[2])) s += `<text x="${(notas[0].x + notas[notas.length - 1].x) / 2}" y="${hy + 11}" text-anchor="middle" class="rt-3">3</text>`;
+  });
+  return s;
+}
 function tabSVG(ex) {
   const A = ex.afin, N = A.length, PX = pxDe(ex), [cn, cp] = ex.compasso || [4, 1], barra = cn * cp;
-  const total = Math.ceil(ex.evs.reduce((s, e) => s + e.d, 0) / cp - 1e-6) * cp, L = 40 + total * PX + 30, y = c => 30 + (N - 1 - c) * 17, alto = y(0) + 16;
-  let s = `<svg class="tab" viewBox="0 0 ${L} ${alto}" width="${L}" height="${alto}" role="img" aria-label="Tablatura de ${esc(ex.nome)}">`;
+  const total = Math.ceil(ex.evs.reduce((s, e) => s + e.d, 0) / cp - 1e-6) * cp, L = 40 + total * PX + 30, y = c => 30 + (N - 1 - c) * 17, y0 = y(0) + 12, alto = y0 + 38;
+  let s = `<svg class="tab" viewBox="0 0 ${L} ${alto}" width="${L}" height="${alto}" role="img" aria-label="Tablatura de ${esc(ex.nome)}, com o ritmo embaixo">`;
   A.forEach((m, c) => { s += `<text x="8" y="${y(c) + 4}" class="tab-r">${nomeCorda(m)}</text><line x1="24" y1="${y(c)}" x2="${L - 10}" y2="${y(c)}" class="tab-l"/>`; });
   for (let b = 0; b <= total + 1e-6; b += cp) { const forte = Math.abs(b / barra - Math.round(b / barra)) < 1e-6; s += `<line x1="${40 + b * PX}" y1="${y(N - 1) - 6}" x2="${40 + b * PX}" y2="${y(0) + 6}" class="tab-b${forte ? ' forte' : ''}"/>`; }
   let t = 0, pmIni = null;
@@ -81,6 +116,7 @@ function tabSVG(ex) {
     t += e.d;
   });
   fechaPM(40 + t * PX);
+  s += `<g class="tab-ritmo" aria-hidden="true">${ritmoTab(ex, PX, y0)}</g>`;
   return s + `<line class="tab-cursor" x1="0" y1="2" x2="0" y2="${alto - 2}"/></svg>`;
 }
 
