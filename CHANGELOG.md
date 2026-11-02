@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.14.0 · 2026-11-02
+
+- O Mapa do braço virou o Braço, um laboratório: o braço inteiro no mesmo tamanho fixo do treino, da corda solta à casa 22, em cinco modos. Notas (naturais ou todas), Escala (tom e escala, com notas ou graus), Acorde (as notas do acorde por todo o braço), Intervalos (toque numa nota e veja a distância das outras) e Livre (escolha até seis notas, ouça juntas ou em sequência e veja o nome do acorde).
+- O laboratório muda de afinação, inclusive drops e sete cordas, e toca a escala ou o acorde escolhido. Da escala, um botão leva ao treino dela.
+- Teoria dentro do exercício: os treinos com escala mostram qual é e têm o botão "Ver no braço", que abre o laboratório com a escala e o tom do treino.
+
 ## 0.13.0 · 2026-11-02
 
 - Primeira experiência na tela inicial: experiência, objetivos, gosto musical, tempo por dia e uma apresentação do app em desenhos. Dá para pular.

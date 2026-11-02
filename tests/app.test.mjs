@@ -38,7 +38,7 @@ test('barra de baixo: Início, Treinos, Afinador, Teoria e Mais; o Início não 
   await pronto(p);
   assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Afinador', 'Teoria', 'Mais']);
   assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Sessão de hoje', 'Treino do dia', 'Favoritos', 'Plano de 4 semanas']);
-  for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Mapa do braço', 'Mapa do braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
+  for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Braço', 'Braço'], ['Acordes', 'Acordes'], ['Músicas', 'Músicas'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
   }
@@ -291,6 +291,37 @@ test('fase 3: primeira experiência, sessão por duração editável, rotina, pr
   await a.fechar();
 });
 
+test('fase 4: braço laboratório com notas, escala, acorde, intervalos e modo livre; o treino leva ao braço', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  await irPelaNav(p, 'Braço');
+  assert.ok(await p.locator('.lab-vis [data-lab]').count() > 60, 'as notas naturais pelo braço');
+  await p.click('[data-lab-modo="escala"]');
+  const notas = await p.evaluate(() => [...new Set([...document.querySelectorAll('.lab-vis [data-lab] text')].map(t => t.textContent))].sort().join(' '));
+  assert.equal(notas, 'A C D E G', 'só as notas da pentatônica de Lá menor');
+  await p.click('[data-lab-rot="grau"]');
+  assert.ok(await p.locator('.lab-vis .nt.raiz text:text-is("T")').count() > 0, 'a tônica em graus');
+  await p.click('[data-lab-modo="acorde"]');
+  assert.match(await p.textContent('#lab-leitura'), /Lá menor \(Am\): Lá, Dó, Mi/);
+  await p.click('[data-lab-modo="intervalos"]');
+  await p.click('[data-lab="1,0"]'); await p.click('[data-lab="2,2"]');
+  assert.match(await p.textContent('#lab-leitura'), /Quinta justa/);
+  await p.click('[data-lab-modo="livre"]');
+  for (const n of ['1,0', '2,2', '3,2', '4,1']) await p.click(`[data-lab="${n}"]`);
+  assert.match(await p.textContent('#lab-leitura'), /Lá menor \(Am\)/, 'o nome do acorde montado');
+  await p.selectOption('#lab-afin', 'sete').catch(async () => { await p.evaluate(() => { const s = document.querySelector('#lab-afin'); s.value = 'sete'; s.dispatchEvent(new Event('change')); }); });
+  assert.equal(await p.evaluate(() => document.querySelectorAll('.lab-braco .braco-cordas text').length), 7, 'sete cordas');
+  // do treino para o braço
+  await p.evaluate(() => abrirTreino('esc:penta-menor:1'));
+  const d = dlg(p); await d.waitFor();
+  assert.match(await d.locator('#tr-teoria').textContent(), /pentatônica menor/);
+  await d.locator('[data-tr-braco]').click();
+  assert.ok(await esperar(() => p.evaluate(() => rota() === 'braco' && LAB.modo === 'escala' && LAB.escala === 'penta-menor')));
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
 test('treino: braço sempre do mesmo tamanho, deslizando até as notas; braço e tablatura podem sair um de cada vez; som gravado e limpo', async () => {
   const a = await aparelho(amb);
   const p = a.page;
@@ -530,9 +561,9 @@ test('metrônomo e bateria em telas próprias: andamento, compasso, toque no rit
   await irPelaNav(p, 'Acordes');
   assert.equal(await p.evaluate(() => bateria.ligada), false, 'sair da tela para a bateria');
   await p.click('[data-acorde="0"]');
-  await irPelaNav(p, 'Mapa do braço');
-  await p.click('[data-braco="todas"]');
-  assert.equal(await p.locator('.braco [data-nota]').count(), 78);
+  await irPelaNav(p, 'Braço');
+  await p.click('[data-lab-todas="1"]');
+  assert.equal(await p.locator('.lab-vis [data-lab]').count(), 6 * 23, 'todas as notas, da corda solta à casa 22');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });

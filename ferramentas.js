@@ -19,9 +19,7 @@ VIEWS.bateria = () => KitFacil.ui.cabecalho({ titulo: 'Bateria', sub: 'Escolha o
     <div class="metro-bpm"><button type="button" class="kf-btn kf-sec" data-bpm="-5" aria-label="5 batidas a menos">−5</button><output id="bpm" aria-live="polite">${DB.cfg.bpm}</output><button type="button" class="kf-btn kf-sec" data-bpm="5" aria-label="5 batidas a mais">+5</button></div>
     <button type="button" class="play-grande${bateria.ligada ? ' on' : ''}" id="bat-ligar" aria-label="${bateria.ligada ? 'Parar a bateria' : 'Tocar a bateria'}">${bateria.ligada ? I.stop : I.play}</button>
   </div>`;
-VIEWS.braco = () => KitFacil.ui.cabecalho({ titulo: 'Mapa do braço', sub: 'Toque numa nota para ouvir.' })
-  + `<div class="pilha"><div class="kf-seg" role="group" aria-label="Notas mostradas"><button type="button" data-braco="naturais" aria-pressed="${DB.cfg.braco !== 'todas'}">Naturais</button><button type="button" data-braco="todas" aria-pressed="${DB.cfg.braco === 'todas'}">Todas</button></div>
-    <div class="braco-wrap">${bracoSVG(DB.cfg.braco === 'todas')}</div></div>`;
+// VIEWS.braco: o laboratório do braço mora em laboratorio.js
 VIEWS.acordes = () => KitFacil.ui.cabecalho({ titulo: 'Acordes', sub: 'Toque num acorde para ouvir. Os números são os dedos.' })
   + `<div class="acordes">${ACORDES.map(([nome, casas, dedos], i) => `<button type="button" class="acorde" data-acorde="${i}" aria-label="Ouvir ${esc(nome)}">${diagrama(casas, dedos, nome)}<b>${esc(nome)}</b></button>`).join('')}</div>
   <p class="apoio" style="margin-top:12px">X: não toque a corda. O: corda solta. A barra é a pestana.</p>`;
