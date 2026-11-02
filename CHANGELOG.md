@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.11.0 · 2026-11-02
+
+- Fonte nova nos títulos, na marca e nos números grandes: Big Shoulders Display. O resto do texto continua em Atkinson.
+- Por dentro (fase 1 do Documento Mestre, a Fundação): o código foi separado em arquivos por responsabilidade, e todo exercício passou a ter as mesmas informações (origem, objetivo, estilo, técnicas, competências e mão trabalhada). É a base dos filtros, das sessões e do mapa de competências que vêm a seguir.
+- O app classifica o catálogo em segundo plano, depois que a tela aparece, e guarda o resultado neste aparelho.
+
 ## 0.10.0 · 2026-11-02
 
 - O app abre no tema escuro. O claro e o automático continuam em Ajustes › Aparência, e a escolha de cada pessoa vale mais que a de fábrica.

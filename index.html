@@ -16,13 +16,15 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
-<link rel="stylesheet" href="comum/kit-facil.css?v=0.10.0">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:wght@400..800&family=Big+Shoulders+Display:wght@700..900&display=swap">
+<link rel="stylesheet" href="comum/kit-facil.css?v=0.11.0">
 <style>
 /* Guitarra Fácil: grafite de amplificador (preto, mas não tão preto), com detalhes cromados no modo escuro.
    O app muda só a cor de destaque, os neutros, a marca e as guias próprias (lei 6). */
 :root{
   color-scheme:light;
+  /* fonte dos títulos (Padrão 2.6; decisão 3A, opção A): Big Shoulders Display, com a Atkinson logo depois */
+  --kf-font-display:"Big Shoulders Display","Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,sans-serif;
   --kf-bg:#E4E4E8; --kf-surface:#FFFFFF; --kf-surface-2:#DADADF; --kf-line:#CACAD1; --kf-line-2:#B1B1BB;
   --kf-ink:#101013; --kf-muted:#53535C; --gf-vermelho:#C8231A; --gf-vermelho-tx:#B01E16;
   --kf-accent:#2B2B30; --kf-accent-ink:#FFFFFF; --kf-accent-soft:#E2E2E5; --kf-accent-texto:#2B2B30;
@@ -444,14 +446,25 @@ html{touch-action:manipulation} /* toque duplo não dá zoom; o gesto de pinça 
 <main id="main"></main>
 <nav class="kf-nav" aria-label="Seções"><div class="kf-nav-in" id="nav"></div></nav>
 <noscript><p style="padding:24px">O Guitarra Fácil precisa de JavaScript ligado para funcionar.</p></noscript>
-<script src="comum/kit-facil.js?v=0.10.0"></script>
-<script src="teoria.js?v=0.10.0"></script>
-<script src="catalogo.js?v=0.10.0"></script>
-<script src="metal.js?v=0.10.0"></script>
-<script src="caminho.js?v=0.10.0"></script>
-<script src="som.js?v=0.10.0"></script>
-<script src="pratica.js?v=0.10.0"></script>
-<script src="musicas.js?v=0.10.0"></script>
-<script src="app.js?v=0.10.0"></script>
+<script src="comum/kit-facil.js?v=0.11.0"></script>
+<script src="base.js?v=0.11.0"></script>
+<script src="teoria.js?v=0.11.0"></script>
+<script src="catalogo.js?v=0.11.0"></script>
+<script src="metal.js?v=0.11.0"></script>
+<script src="caminho.js?v=0.11.0"></script>
+<script src="exercicios.js?v=0.11.0"></script>
+<script src="som.js?v=0.11.0"></script>
+<script src="pratica.js?v=0.11.0"></script>
+<script src="musicas.js?v=0.11.0"></script>
+<script src="dados.js?v=0.11.0"></script>
+<script src="plano.js?v=0.11.0"></script>
+<script src="tela-inicio.js?v=0.11.0"></script>
+<script src="tela-treinos.js?v=0.11.0"></script>
+<script src="ferramentas.js?v=0.11.0"></script>
+<script src="tela-musicas.js?v=0.11.0"></script>
+<script src="tela-progresso.js?v=0.11.0"></script>
+<script src="tela-teoria.js?v=0.11.0"></script>
+<script src="janela-treino.js?v=0.11.0"></script>
+<script src="app.js?v=0.11.0"></script>
 </body>
 </html>

@@ -137,6 +137,31 @@ test('janela do treino: afinação, rótulos, etapa por posição com aviso ante
   await a.fechar();
 });
 
+test('modelo único de exercício: todo exercício tem origem, objetivo e competências; filtros combinados e busca; índice guardado no aparelho', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  await p.evaluate(() => new Promise(r => prepararIndice(r)));
+  const r = await p.evaluate(() => {
+    const semDim = MODELOS.filter(m => !m.origem || !m.objetivo || !infoExercicio(m).competencias.length).map(m => m.id);
+    const galope = filtrarExercicios({ busca: 'galope', categoria: 'tecnica', nivel: 2 });
+    const combinados = filtrarExercicios({ categoria: 'riffs', estilo: 'thrash', competencia: 'acordes', mao: 'palheta' });
+    const ligados = filtrarExercicios({ tecnica: 'h', nivel: 3 });
+    return { semDim: semDim.slice(0, 5), galope: galope.length, galopeOk: galope.every(m => m.cat === 'tecnica' && m.nivel === 2), combinados: combinados.length, combOk: combinados.every(m => m.estilo === 'thrash' && infoExercicio(m).competencias.includes('acordes')),
+      ligados: ligados.length, ligOk: ligados.every(m => infoExercicio(m).tecnicas.includes('h') || m.sub === 'h'), acento: filtrarExercicios({ busca: 'TECNICA palhetada' }).length > 0,
+      caminho: modelo('cam:contato:1').origem, guardado: !!localStorage.getItem(KEY + 'indice') };
+  });
+  assert.deepEqual(r.semDim, [], 'todo exercício tem origem, objetivo e pelo menos uma competência');
+  assert.ok(r.galope > 0 && r.galopeOk, 'busca com filtro');
+  assert.ok(r.combinados > 0 && r.combOk, 'estilo, competência e mão juntos');
+  assert.ok(r.ligados > 0 && r.ligOk, 'filtro por técnica das notas');
+  assert.ok(r.acento, 'a busca ignora acentos e maiúsculas');
+  assert.equal(r.caminho, 'fundamental');
+  assert.ok(r.guardado, 'o índice fica guardado para a próxima vez');
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
 test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo avança e quem já toca escolhe onde começar', async () => {
   const a = await aparelho(amb);
   const p = a.page;

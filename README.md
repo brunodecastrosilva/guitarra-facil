@@ -4,7 +4,7 @@ Treinos de guitarra de rock e metal no celular e no computador: riffs, solos e t
 quatro tamanhos de linha, com afinações drop e sete cordas. O app conta, toca junto com som de guitarra limpa gravada,
 acende a nota da vez no braço desenhado (que desliza até ela e mostra bends, slides e ligados) e rola a tablatura.
 
-**Fase de testes** · versão 0.10.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.11.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.
@@ -96,18 +96,27 @@ constante `VERSAO` (`app.js`), no cache do `sw.js`, no `?v=` do `index.html`, no
 
 ## Estrutura
 
+Scripts clássicos, carregados nesta ordem (sem build). Arquitetura e decisões: `claude/arquitetura.md` no projeto.
+
 | Arquivo | Conteúdo |
 |---|---|
-| `index.html` | moldura e visual (grafite de amplificador) |
-| `teoria.js` | motor de teoria (escalas, acordes, intervalos, campo harmônico), afinações e conversão entre elas, e os desenhos do braço e do círculo |
-| `catalogo.js` | níveis, tamanhos, categorias, posições pelo braço, escalas, sequências e arpejos, e a volta do treino (afinação, dedos, compasso) |
-| `caminho.js` | o caminho do iniciante: as cinco etapas, os vinte passos (notas, dedos e dica) e o registro deles como treinos |
-| `metal.js` | os 17 estilos e as 17 técnicas, o gerador de riffs (ritmo, texturas, partes, breakdown), de frases de solo e de técnica, e o registro dos treinos |
-| `som.js` | o som: guitarra limpa (palm mute, pinch, harmônico, nota morta, bend, slide, vibrato, alavanca), peças da bateria e metrônomo, a partir das gravações de `sons/`, com nivelamento e limitador na saída |
-| `pratica.js` | braço do treino (tamanho fixo, deslizando) e tablatura, tocador em voltas, trecho em laço, harmonia, gravação pelo microfone e bateria |
-| `sons/` | gravações do FluidR3 (MIT): `guitarra/` uma nota por arquivo (MIDI 28 a 91) e `bateria/` peças e clique; licença em `LICENCA-FluidR3.txt` |
-| `musicas.js` | playlists de inspiração por estilo (título, artista e o que ouvir) |
-| `app.js` | dados, telas (uma por função), janela do treino, sequência e conquistas, metrônomo, afinador e ligação com o Kit |
+| `index.html` | moldura e visual (grafite de amplificador, fonte dos títulos Big Shoulders Display) |
+| `base.js` | versão, atalhos do DOM, ícones, ilustrações, migalhas e botão grande; o registro das telas (`VIEWS`) |
+| `teoria.js` | motor de teoria (escalas, acordes, intervalos, campo harmônico), afinações e desenhos do braço e do círculo |
+| `catalogo.js` | níveis, tamanhos, categorias, escalas, sequências e arpejos, e a volta do treino (afinação, dedos, compasso) |
+| `metal.js` | os 17 estilos e as 17 técnicas e os geradores de riffs, solos e técnica |
+| `caminho.js` | o caminho do iniciante: cinco etapas, vinte passos escritos à mão |
+| `exercicios.js` | o modelo único de exercício: origem, objetivo, estilo, técnicas, competências e mão; índice, filtros e busca |
+| `som.js` | o som: guitarra limpa, bateria e metrônomo a partir de `sons/`, com nivelamento e limitador |
+| `pratica.js` | braço do treino (fixo, deslizando, técnicas animadas), tablatura, tocador em voltas, trecho em laço, harmonia, gravação e bateria |
+| `musicas.js` | playlists de inspiração por estilo |
+| `dados.js` | o objeto salvo, sincronização, constância, histórico (praticado e concluído), treino do dia e conquistas |
+| `plano.js` | plano de 4 semanas |
+| `tela-*.js` | uma tela por arquivo: Início e caminho, Treinos, Músicas, Progresso, Teoria |
+| `ferramentas.js` | metrônomo, bateria, mapa do braço, acordes e afinador |
+| `janela-treino.js` | a janela do treino e os seus ajustes |
+| `app.js` | rotas, navegação, Ajustes, desenho das telas e início do Kit |
+| `sons/` | gravações do FluidR3 (MIT) e a licença |
 | `comum/` | **Kit Fácil**: igual nos apps da família; não edite só aqui |
 | `sw.js`, `manifest.webmanifest`, `icons/` | instalação e uso sem internet |
 | `tests/` | testes do app |
