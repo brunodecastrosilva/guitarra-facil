@@ -99,7 +99,7 @@ test('treinos um toque por vez: categoria, nível, tamanho e lista; gênero não
   assert.match(await dlg(p).locator('.kf-dlg-cab h2').textContent(), /^#\d{4} · Aplicar ritmo, acordes e articulações em um riff$/);
   assert.doesNotMatch(await dlg(p).textContent(), /Metalcore|Thrash|Hard rock/i);
   assert.match(await dlg(p).locator('#tr-volta').textContent(), /compasso 1 de 16/, 'linha longa: o braço vai de compasso em compasso');
-  assert.ok(await dlg(p).locator('.tab-pm').count() >= 1, 'palm mute marcado na tablatura');
+  assert.ok(await dlg(p).locator('.tab-n').count() >= 1, 'a seleção abre uma tablatura completa');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -195,7 +195,7 @@ test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo av
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  assert.match(await p.textContent('.passo-hero'), /Seu próximo passo · 1 de 4 · Primeiro contato[\s\S]*A primeira nota/);
+  assert.match(await p.textContent('.passo-hero'), /Seu próximo passo · 1 de 4 · Primeiro contato[\s\S]*#\d{4} · A corda mais grossa, solta/);
   assert.equal(await p.locator('.cam-lista li').count(), 5);
   assert.match(await p.textContent('.cam-lista li.atual'), /Você está aqui/, 'a etapa atual diz em palavras, não só na cor');
   const r = await p.evaluate(() => CAMINHO.flatMap(e => e.ids).map(id => { const v = volta(modelo(id), {}); const b = v.evs.reduce((s, e) => s + e.d, 0) / 4; return [id, Math.abs(b - Math.round(b)) < 1e-6, v.evs.every(e => e.n.every(([c, k]) => c >= 0 && c < 6 && k >= 0 && k <= 24)), !!modelo(id).dica]; }).filter(x => !x[1] || !x[2] || !x[3]));
@@ -211,11 +211,11 @@ test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo av
   await d.locator('#tr-ir').click();
   await d.locator('[data-limpo="1"]').click();
   await p.keyboard.press('Escape');
-  assert.ok(await esperar(async () => /A primeira nota/.test(await p.textContent('.cam-lista')) || /2 de 4/.test(await p.textContent('.passo-hero'))));
-  assert.match(await p.textContent('.passo-hero'), /2 de 4[\s\S]*As seis cordas soltas/, 'o passo limpo avança o caminho');
+  assert.ok(await esperar(async () => /A corda mais grossa, solta/.test(await p.textContent('.cam-lista')) || /2 de 4/.test(await p.textContent('.passo-hero'))));
+  assert.match(await p.textContent('.passo-hero'), /2 de 4[\s\S]*Da mais grossa à mais fina e de volta/, 'o passo limpo avança o caminho');
   await p.click('[data-caminho-pular]');
   await p.click('[data-caminho-de="3"]');
-  assert.match(await p.textContent('.passo-hero'), /Primeiros riffs[\s\S]*Motor/);
+  assert.match(await p.textContent('.passo-hero'), /Primeiros riffs[\s\S]*Corda solta abafada e dois acordes/);
   assert.match(await p.textContent('.cam-lista li >> nth=0'), /Pulada|Feita/);
   await p.click('[data-caminho-pular]');
   await p.click('[data-caminho-de="5"]');
@@ -714,7 +714,7 @@ test('início e progresso: sequência de dias, continuar, abas de progresso e co
   assert.equal(await p.locator('.grafico rect').count(), 7);
   await p.click('.abas button:has-text("Andamentos")');
   assert.match(await p.textContent('.andas'), /#\d{4} · Aplicar ritmo, acordes e articulações em um riff[\s\S]*melhor limpo 140/);
-  assert.match(await p.textContent('.andas'), /Pentatônica menor/, 'treino antigo vira a escala de hoje');
+  assert.match(await p.textContent('.andas'), /#\d{4} · Mapear pentatônica menor no braço/, 'treino antigo vira a escala de hoje');
   await p.click('.abas button:has-text("Conquistas")');
   assert.match(await p.textContent('.conquistas'), /Nível avançado[\s\S]*ganha/);
   assert.deepEqual(a.erros, []);

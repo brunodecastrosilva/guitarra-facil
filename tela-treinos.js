@@ -21,7 +21,15 @@ const NIVEL_TECNICA = {
   posicao: ['Localize a origem e a chegada; deslize sem interromper o som.', 'Atravesse posições em frases, preservando o pulso e a continuidade.', 'Integre deslocamentos amplos e grupos rítmicos em sequências extensas.']
 };
 const descricaoNivel = (cat, sub, n, padrao) => cat === 'tecnica' ? NIVEL_TECNICA[sub]?.[n-1] || `Foco: ${TECNICAS_TREINO.find(t => t.id === sub)?.nome.toLowerCase() || 'controle técnico'}. ${['Padrões de base, com atenção à clareza e ao pulso.', 'Frases mais extensas e maior coordenação entre as mãos.', 'Combine articulações e grupos rítmicos em contextos complexos.'][n-1]}` : padrao;
-const listaDe = (cat, sub, nivel, tam) => MODELOS.filter(m => m.cat === cat && (!sub || m.sub === sub) && m.nivel === nivel && (cat === 'escalas' || m.tamanho === tam));
+const listaDe = (cat, sub, nivel, tam) => {
+  const todos = MODELOS.filter(m => m.cat === cat && (!sub || m.sub === sub) && m.nivel === nivel && (cat === 'escalas' || m.tamanho === tam));
+  // Riffs e solos têm muitas variações internas. A entrada mostra uma seleção curta e distribuída;
+  // busca e filtros continuam dando acesso a todos os modelos sem exigir uma escolha de gênero.
+  if ((cat === 'riffs' || cat === 'solos') && !sub && todos.length > N_POR_LISTA) {
+    return Array.from({ length: N_POR_LISTA }, (_, i) => todos[Math.floor(i * todos.length / N_POR_LISTA)]);
+  }
+  return todos;
+};
 const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(tituloDe(m))}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
 VIEWS.treinos = () => {
   let [, cat, a, b, c] = caminho(); const C = CATEGORIAS.find(x => x[0] === cat);
@@ -44,7 +52,7 @@ VIEWS.treinos = () => {
   if (!TM) return migalhas([...cam, [null, N[2]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]}. Escolha o tamanho da linha.` })
     + `<div class="ladrilhos">${TAMANHOS.map(([id, nome, n, d]) => ladrilho({ ir: `${bn}/${id}`, ilu: iluTamanho(n), nome, sub: d, selo: `${n}${n >= 16 ? '+' : ''} comp.` })).join('')}</div>`;
   const L = listaDe(C[0], temSub ? S[0] : null, N[0], TM[0]);
-  return migalhas([...cam, [bn, N[2]], [null, TM[1]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]} · ${TM[1].toLowerCase()}: ${TM[3].toLowerCase()}` })
+  return migalhas([...cam, [bn, N[2]], [null, TM[1]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]} · ${TM[1].toLowerCase()}: ${TM[3].toLowerCase()} Uma seleção variada; use Buscar e filtrar para ver todo o catálogo.` })
     + `<div class="pilha"><button type="button" class="kf-btn kf-sec sortear" data-tr-sortear="${esc(L.map(m => m.id).join(' '))}" data-tam="${TM[0]}">${I.sortear}Sortear um treino</button>
       <ul class="tr-lista">${L.map(m => itemTreino(m, C[0] === 'escalas' ? TM[0] : null)).join('')}</ul></div>`;
 };

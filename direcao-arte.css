@@ -1,7 +1,7 @@
 /* Direção de arte do Guitarra Fácil. Componentes do app; o Kit da família permanece intacto. */
 /* Atividades de foco usam todo o viewport: sem aplicativo aparecendo atrás, sem segunda moldura. */
 .kf-ov:has(.gf-player){align-items:stretch;padding:0}
-.gf-player.kf-dlg{width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.gf-player.kf-dlg{box-sizing:border-box;width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;border:0;border-radius:0;padding-bottom:env(safe-area-inset-bottom,0px)}
 .gf-player .kf-dlg-cab{flex-shrink:0;padding:18px 16px 14px 24px}
 .gf-player .kf-dlg-cab h2{font:800 21px/1.25 var(--kf-font)}
 .gf-player .kf-dlg-corpo{padding:4px 24px 20px}
