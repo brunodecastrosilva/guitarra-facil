@@ -8,6 +8,7 @@ try {
     const a = await aparelho(amb, { viewport }), p = a.page;
     await p.locator('.seq').waitFor();
     await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
+    await p.click('#tr-ver');
     await p.locator('#tr-demonstrar').waitFor();
     await p.waitForTimeout(350);
     await p.screenshot({ path: `revisao-visual/${nome}-treino.png` });
@@ -24,6 +25,7 @@ try {
     const a = await aparelho(amb, { viewport: { width: 1440, height: 900 } }), p = a.page;
     await p.locator('.seq').waitFor();
     await p.evaluate(id => abrirTreino(id), id);
+    await p.click('#tr-ver');
     await p.click('#tr-demonstrar'); await p.click('[data-etapa="1"]');
     await p.locator('.kf-dlg-corpo').evaluate(e => e.scrollTop = 0);
     await p.screenshot({ path: `revisao-visual/desktop-${nome}.png` });
