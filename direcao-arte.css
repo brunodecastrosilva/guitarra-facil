@@ -212,6 +212,9 @@ h2{letter-spacing:.025em}.ladrilho:hover,.musica:hover,.acorde:hover{border-colo
 .gesto-referencia{position:relative;aspect-ratio:1.5;background-image:url('assets/tecnicas.png');background-size:300% 200%;background-position:var(--pos);border-bottom:1px solid #6b4939}
 .gesto-referencia span{position:absolute;bottom:10px;left:10px;padding:5px 9px;background:#100b0cdd;color:#ffcea7;font:700 11px var(--kf-font);letter-spacing:.05em;border:1px solid #80543c;border-radius:4px}
 .gesto-cena .gesto-referencia{aspect-ratio:1}
+.gesto-layout .gesto-cena{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:center}
+.gesto-movimento{min-width:0}
+@media(max-width:600px){.gesto-layout .gesto-cena{grid-template-columns:1fr}.gesto-cena .gesto-referencia{width:min(100%,200px);margin-inline:auto}}
 .gesto-cena{background:#151012;border-color:#604539}.gesto-cena svg{background:linear-gradient(#21191a,#100e10);max-height:280px}
 .gesto-cena .gesto-madeira{fill:#32201e;stroke:#b37749;stroke-width:2}.gesto-cena .gesto-traste{stroke:#b8a79a}.gesto-cena .gesto-outra{stroke:#c7b8a5}
 .gesto-cena .gesto-dedo>path:first-child{fill:url(#pele-gesto);stroke:#582d26;stroke-width:1.5}.gesto-cena .gesto-dedo.apoio>path:first-child{fill:url(#pele-gesto)}
