@@ -876,3 +876,39 @@ test('direção de arte: movimento reduzido usa etapas estáticas e mantém o co
   await p.keyboard.press('Escape'); assert.equal(await d.count(), 0);
   assert.deepEqual(a.erros, []); await a.fechar();
 });
+
+
+test('palco cartoon: nomes na arte, quatro destinos, pausa e som persistentes', async () => {
+  const a = await aparelho(amb), p = a.page;
+  await pronto(p);
+  const menu = p.locator('.amp-menu-mobile');
+  assert.equal(await p.locator('.palco-cab').count(), 0, 'sem banner de boas-vindas');
+  assert.equal(await menu.locator('button').count(), 4);
+  assert.equal(await menu.locator('button img').evaluateAll(async ims => { await Promise.all(ims.map(im => im.decode())); return ims.every(im => im.naturalWidth > 0); }), true);
+  assert.equal(await menu.locator('button').first().textContent(), '', 'nome desenhado, sem label sobreposta');
+  await p.click('[data-palco-som]');
+  assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'true');
+  await p.click('[data-palco-som]');
+  assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'false');
+  await p.click('[data-palco-fogo]');
+  assert.equal(await p.getAttribute('html', 'data-fogo-parado'), 'true');
+  await p.reload(); await pronto(p);
+  assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'false');
+  assert.equal(await p.getAttribute('[data-palco-fogo]', 'aria-pressed'), 'false');
+  await p.click('[data-palco-som]');
+  await p.click('[data-palco-fogo]');
+  for (const [id, nome] of [['treinos','Treinos'],['explorar','Explorar o braço'],['estudio','Estúdio de criação'],['biblioteca','Biblioteca']]) {
+    await p.evaluate(() => ir('inicio'));
+    await p.locator('.amp-menu-mobile').getByRole('button', { name: nome, exact: true }).click();
+    assert.equal(await p.getAttribute('#main','data-tela'), id);
+  }
+  await p.evaluate(() => ir('inicio'));
+  await p.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await esperar(() => p.locator('[data-palco-fogo]').isDisabled()), true);
+  assert.equal(await p.getAttribute('html', 'data-fogo-parado'), 'true');
+  await p.emulateMedia({ reducedMotion: 'no-preference' });
+  await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
+  assert.equal(await esperar(() => p.evaluate(() => document.documentElement.dataset.fogoParado === 'true')), true);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});

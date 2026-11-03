@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.21.0 · 2026-11-03
+
+- Menu com a arte cartoon aprovada: quatro amplificadores com os nomes incorporados à ilustração, sem raios e sem o antigo banner de boas-vindas.
+- Fogo ilustrado com curvas animadas em camadas, brasas independentes e luz difusa; resolução e taxa de quadros adaptadas ao aparelho, pausa manual e respeito a movimento reduzido.
+- Paisagem sonora original de fogo queimando, com combustão, crepitação e estalos em estéreo. Loop de 24 segundos, volume independente, sem autoplay e suspensão durante a prática ou em segundo plano.
+
 ## 0.20.1 · 2026-11-03
 
 - Menu em pilha de amplificadores: rack lateral no desktop, pilha na entrada do celular e amplificadores no menu Mais, com textura PNG própria e indicação luminosa da seção atual.

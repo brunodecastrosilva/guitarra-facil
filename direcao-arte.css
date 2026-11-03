@@ -235,3 +235,35 @@ h2{letter-spacing:.025em}.ladrilho:hover,.musica:hover,.acorde:hover{border-colo
 @media(min-width:1100px){main[data-tela="inicio"]>.pilha{gap:20px}.palco-cab{min-height:340px}.gesto-layout{grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr)}}
 @media(max-width:600px){.palco-cab{min-height:250px;margin-top:4px}.palco-cab>div{padding:22px;max-width:78%}.palco-cab h1{font-size:42px}.palco-cab:after{background:linear-gradient(90deg,#100909df,#10090960),linear-gradient(0deg,#10090990,transparent)}.arte-png{height:180px}.gesto-referencia{aspect-ratio:1.7}}
 @media(prefers-reduced-motion:reduce){.ladrilho,.musica,.acorde{transition:none}.ladrilho:hover,.musica:hover,.acorde:hover{transform:none}}
+
+/* Palco cartoon aprovado: os nomes fazem parte dos pixels da arte. */
+body{isolation:isolate;background:#10070e}
+.fogo-palco{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse at 50% 100%,#3e0b24 0, #10070e 65%);contain:strict}
+.fogo-lado{position:absolute;inset:0 auto 0 0;width:clamp(36px,14vw,210px);background-repeat:repeat-y;background-size:100% auto;opacity:.35}
+.fogo-e{background-image:url('assets/fogo-esquerda.png')}
+.fogo-d{left:auto;right:0;background-image:url('assets/fogo-direita.png')}
+.fogo-canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
+.palco-volume{display:flex;align-items:center;gap:10px;color:#fff0d1;font:600 12px var(--kf-font);padding:4px 10px;background:#170d1ef2;border-radius:8px}
+.palco-volume input{width:100px;min-height:44px;accent-color:#ffad26}
+.palco-volume input:focus-visible{outline:3px solid #fff0b2;outline-offset:2px}
+.palco-desenhado{width:min(100%,560px);margin:0 auto 24px}
+.palco-desenhado .amp-menu-mobile{display:flex;flex-direction:column;gap:0;margin:0;isolation:isolate}
+.palco-desenhado .amp-menu-mobile button{display:block;width:100%;min-height:44px;padding:0;border:0;border-radius:0;background:none;cursor:pointer;transition:filter .15s,transform .15s;position:relative}
+.palco-desenhado .amp-menu-mobile img{display:block;width:100%;height:auto;pointer-events:none}
+.palco-desenhado .amp-menu-mobile button:hover{filter:brightness(1.12)}
+.palco-desenhado .amp-menu-mobile button:active{transform:scale(.985)}
+.palco-desenhado .amp-menu-mobile button:focus-visible{z-index:1;outline:3px solid #fff0b2;outline-offset:-6px;border-radius:16px}
+.palco-preferencias{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:12px}
+.palco-preferencias button{min-height:44px;padding:8px 12px;border:1px solid #b17a7e;background:#170d1ef2;color:#fff0d1;border-radius:8px;font:700 13px var(--kf-font);cursor:pointer}
+.palco-preferencias button:focus-visible{outline:3px solid #fff0b2;outline-offset:3px}
+.palco-preferencias button:disabled{opacity:.7;cursor:default}
+.amp-leitor{position:absolute!important;clip:rect(0,0,0,0);clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+#trilho .kf-trilho-it,.kf-mais-lista .kf-aj-item{background:#29152e;border:2px solid #805a7d;box-shadow:3px 3px 0 #050404;border-radius:8px 5px 9px 4px;color:#fff0d1;text-shadow:none}
+#trilho .kf-trilho-it:has(.amp-trilho-arte){padding:0;border:0;background:transparent;box-shadow:none;min-height:44px}
+.amp-trilho-arte{display:block;width:100%;height:auto}
+#trilho .kf-trilho-it:has(.amp-trilho-arte):after{display:none}
+#trilho .kf-trilho-it[aria-current="page"]:has(.amp-trilho-arte){outline:2px solid #ffce61;outline-offset:-3px}
+#trilho .kf-trilho-it:focus-visible{outline:3px solid #fff0b2;outline-offset:-3px}
+.kf-nav-in>.kf-nav-it:not(.kf-nav-oculto){background:#211124;border-color:#7f517a;border-radius:8px 5px 9px 4px}
+@media(max-width:600px){.palco-desenhado{margin-top:-4px}.fogo-lado{opacity:.65}}
+@media(prefers-reduced-motion:reduce){.fogo-palco *{animation:none!important}.palco-desenhado .amp-menu-mobile button{transition:none}.palco-desenhado .amp-menu-mobile button:active{transform:none}}

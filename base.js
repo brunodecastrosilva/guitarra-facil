@@ -1,7 +1,7 @@
 /* Guitarra Fácil · base comum das telas: versão, atalhos do DOM, ícones, ilustrações e peças de tela (migalhas e botão grande).
    Carrega antes de todos os outros arquivos do app */
 'use strict';
-const VERSAO = '0.20.1';
+const VERSAO = '0.21.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -71,12 +71,15 @@ ILU.solos = ILU.licks; ILU.escalas = ILU.escalas || ILU['te-escalas'];
 function arteDestaque(tipo) {
   return `<figure class="arte-destaque arte-png"><img src="assets/${tipo === 'biblioteca' ? 'backstage' : 'palco'}.png" alt="${tipo === 'biblioteca' ? 'Estúdio ilustrado com amplificadores, guitarra e discos' : 'Guitarrista ilustrado sob luzes vermelhas e âmbar'}" width="1536" height="1024" decoding="async"></figure>`;
 }
+const AMPLIFICADORES = [['treinos', 'Treinos'], ['explorar', 'Explorar o braço'], ['estudio', 'Estúdio de criação'], ['biblioteca', 'Biblioteca']];
 function palcoCabecalho(tela) {
+  if (tela === 'inicio') return `<section class="palco-desenhado" aria-label="Escolha seu próximo passo"><h1 class="amp-leitor">Escolha seu próximo passo</h1><nav class="amp-menu-mobile" aria-label="Menu principal">${AMPLIFICADORES.map(([id, nome]) => `<button type="button" data-ir="${id}" aria-label="${nome}"><img src="assets/menu-${id}.png" alt="" decoding="async" width="941" height="${{treinos:410,explorar:338,estudio:306,biblioteca:376}[id]}"></button>`).join('')}</nav><div class="palco-preferencias" role="group" aria-label="Efeitos do palco"><button type="button" data-palco-som aria-pressed="false">Ouvir o fogo</button><button type="button" data-palco-fogo aria-pressed="true">Fogo: animado</button><label class="palco-volume">Volume do fogo<input type="range" min="0" max="50" value="20" step="1" data-palco-volume aria-label="Volume do fogo"></label></div></section>`;
   if (['explorar', 'biblioteca', 'acordes', 'ajustes'].includes(tela)) return '';
-  const textos = { inicio: ['Seu palco começa aqui', 'Pegue a guitarra. Escolha seu próximo passo.'], treinos: ['Forje sua técnica', 'Um objetivo. Um movimento. Uma evolução de cada vez.'], estudio: ['Faça barulho. Crie.', 'Transforme uma ideia em seu próximo riff.'], progresso: ['Sua jornada no palco', 'Acompanhe a prática e escolha o próximo desafio.'], afinador: ['Encontre seu som', 'Afine antes de entrar em cena.'], metronomo: ['Domine o pulso', 'Precisão começa com uma batida de cada vez.'], bateria: ['Toque com a banda', 'Escolha a levada e entre no ritmo.'] };
+  const textos = { treinos: ['Forje sua técnica', 'Um objetivo. Um movimento. Uma evolução de cada vez.'], estudio: ['Faça barulho. Crie.', 'Transforme uma ideia em seu próximo riff.'], progresso: ['Sua jornada no palco', 'Acompanhe a prática e escolha o próximo desafio.'], afinador: ['Encontre seu som', 'Afine antes de entrar em cena.'], metronomo: ['Domine o pulso', 'Precisão começa com uma batida de cada vez.'], bateria: ['Toque com a banda', 'Escolha a levada e entre no ritmo.'] };
   const t = textos[tela] || ['Hora de tocar', 'Seu próximo objetivo começa com uma nota.'];
-  return `<header class="palco-cab"><img src="assets/${['estudio','bateria'].includes(tela) ? 'backstage' : 'palco'}.png" alt="" width="1536" height="1024" decoding="async"><div><span class="palco-kicker">GUITARRA FÁCIL · BACKSTAGE</span><h1>${t[0]}</h1><p>${t[1]}</p></div></header>` + (tela === 'inicio' ? `<nav class="amp-menu-mobile" aria-label="Menu principal">${[['treinos','Treinos'],['explorar','Explorar o braço'],['estudio','Estúdio de criação'],['biblioteca','Biblioteca']].map(([id,nome]) => `<button type="button" data-ir="${id}"><span>${nome}</span></button>`).join('')}</nav>` : '');
+  return `<header class="palco-cab"><img src="assets/${['estudio','bateria'].includes(tela) ? 'backstage' : 'palco'}.png" alt="" width="1536" height="1024" decoding="async"><div><span class="palco-kicker">GUITARRA FÁCIL · BACKSTAGE</span><h1>${t[0]}</h1><p>${t[1]}</p></div></header>`;
 }
+
 ILU.dia = ilu('<rect x="10" y="8" width="44" height="34" rx="4" class="il-f il-l"/><path d="M10 17h44M20 4v8M44 4v8" class="il-l il-g"/><path d="M32 22c1 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 2.5-6 1 1.6 1.6 2.4 2.8 2.5-.2-2.8-.4-4.3.7-6.5z" class="il-a"/>');
 ILU.plano = ilu('<rect x="8" y="8" width="48" height="34" rx="4" class="il-f il-l"/><path d="M8 17h48" class="il-l il-g"/>' + [0, 1, 2, 3].map(i => `<rect x="${13 + i * 11}" y="${37 - (i + 1) * 4.5}" width="7" height="${(i + 1) * 4.5}" rx="1.5" class="${i === 3 ? 'il-a' : 'il-n'}"/>`).join(''));
 ILU.favoritos = ilu('<path d="M32 6l7.6 15.4 17 2.5-12.3 12 2.9 16.9L32 44.8l-15.2 8 2.9-16.9-12.3-12 17-2.5z" class="il-a" transform="scale(.85) translate(5.6 0)"/>');
