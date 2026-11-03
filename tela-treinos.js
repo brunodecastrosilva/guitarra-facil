@@ -13,6 +13,13 @@ function miniDesenho(ex) {
 }
 const iluTamanho = n => ilu(Array.from({ length: Math.min(16, n) }, (_, i) => `<rect x="${4 + (i % 8) * 7.2}" y="${n > 8 ? (i < 8 ? 12 : 27) : 20}" width="5.6" height="11" rx="1.5" class="${i === Math.min(16, n) - 1 ? 'il-a' : 'il-n'}"/>`).join('') + '<path d="M4 44h56" class="il-l"/>');
 const desenhoDe = id => { const m = modelo(id); return m ? miniDesenho(volta(m, cfgPadrao(m))) : ''; };
+const NIVEL_TECNICA = {
+  tapping: ['Um toque com a mão da palheta e retorno à nota de base. Observe o abafamento.', 'Combine tapping e ligados em frases mais extensas, equilibrando os ataques.', 'Integre tapping, mudanças de posição e outras articulações em frases complexas.'],
+  legato: ['Ligue pares de notas na mesma corda, com clareza e volume equilibrado.', 'Encadeie hammer-ons e pull-offs, mantendo o pulso nas trocas de corda.', 'Integre ligados em sequências extensas, com grupos rítmicos e mudanças de região.'],
+  bends: ['Explore a altura de chegada e o retorno do bend; estabeleça um vibrato regular.', 'Combine bends, vibrato e outras articulações em frases com maior controle.', 'Integre bends e efeitos em frases complexas, preservando afinação e expressão.'],
+  posicao: ['Localize a origem e a chegada; deslize sem interromper o som.', 'Atravesse posições em frases, preservando o pulso e a continuidade.', 'Integre deslocamentos amplos e grupos rítmicos em sequências extensas.']
+};
+const descricaoNivel = (cat, sub, n, padrao) => cat === 'tecnica' ? NIVEL_TECNICA[sub]?.[n-1] || `Foco: ${TECNICAS_TREINO.find(t => t.id === sub)?.nome.toLowerCase() || 'controle técnico'}. ${['Padrões de base, com atenção à clareza e ao pulso.', 'Frases mais extensas e maior coordenação entre as mãos.', 'Combine articulações e grupos rítmicos em contextos complexos.'][n-1]}` : padrao;
 const listaDe = (cat, sub, nivel, tam) => MODELOS.filter(m => m.cat === cat && (!sub || m.sub === sub) && m.nivel === nivel && (cat === 'escalas' || m.tamanho === tam));
 const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(m.nome)}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
 VIEWS.treinos = () => {
@@ -29,7 +36,7 @@ VIEWS.treinos = () => {
     + `<div class="ladrilhos">${SUBS.map(([id, nome, d]) => ladrilho({ ir: `${base}/${id}`, ilu: desenhoDe(`${C[0]}:${id}:2:curto:0`), nome, sub: d, classe: 'sub' })).join('')}</div>`;
   const bs = temSub ? `${base}/${S[0]}` : base, nv = temSub ? b : a, N = NIVEIS.find(n => n[1] === nv), cam = [['treinos', 'Treinos'], [base, C[1]], ...(temSub ? [[bs, S[1]]] : [])], titulo = temSub ? S[1] : C[1];
   if (!N) return migalhas([...cam.slice(0, -1), [null, cam[cam.length - 1][1]]]) + KitFacil.ui.cabecalho({ titulo, sub: 'Escolha o nível. Cada nível tem os seus treinos.' })
-    + `<div class="ladrilhos l1">${NIVEIS.map(([n, id, nome, d]) => ladrilho({ ir: `${bs}/${id}`, ilu: iluNivel(n), nome, sub: d, selo: String(MODELOS.filter(m => m.cat === C[0] && (!temSub || m.sub === S[0]) && m.nivel === n).length), classe: 'largo' })).join('')}</div>`;
+    + `<div class="ladrilhos l1">${NIVEIS.map(([n, id, nome, d]) => ladrilho({ ir: `${bs}/${id}`, ilu: iluNivel(n), nome, sub: descricaoNivel(C[0], S?.[0], n, d), selo: String(MODELOS.filter(m => m.cat === C[0] && (!temSub || m.sub === S[0]) && m.nivel === n).length), classe: 'largo' })).join('')}</div>`;
   const bn = `${bs}/${N[1]}`, tm = temSub ? c : b, TM = TAMANHOS.find(t => t[0] === tm);
   if (!TM) return migalhas([...cam, [null, N[2]]]) + KitFacil.ui.cabecalho({ titulo, sub: `${N[2]}. Escolha o tamanho da linha.` })
     + `<div class="ladrilhos">${TAMANHOS.map(([id, nome, n, d]) => ladrilho({ ir: `${bn}/${id}`, ilu: iluTamanho(n), nome, sub: d, selo: `${n}${n >= 16 ? '+' : ''} comp.` })).join('')}</div>`;

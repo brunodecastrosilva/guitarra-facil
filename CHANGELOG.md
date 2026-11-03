@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.17.0 · 2026-11-02
+
+- Demonstrações lentas de bends, slides, ligados, tapping e vibrato, com etapas, pausa e controle do movimento.
+- Andamento e reprodução sempre visíveis no rodapé do treino; tablatura com arcos de ligados e slides direcionais.
+- Grafia musical coerente no círculo das quintas e no campo harmônico; descrições de nível específicas por técnica.
+
 ## 0.16.1 · 2026-11-02
 
 - Correção: no tablet, a aba Competências do Progresso rolava para o lado.

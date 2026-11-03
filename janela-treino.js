@@ -9,7 +9,7 @@ const SUBIDAS = [[0, 'Manter o andamento'], [1, '+1 bpm a cada volta'], [2, '+2 
 const BPM_MIN = 30, BPM_MAX = 260;
 function abrirTreino(id, op = {}) {
   // fila: treino do dia ou sessão (op.rotulo dá o nome, op.voltas as voltas de cada treino, op.marca o registro)
-  const fila = op.fila || null, rotuloFila = op.rotulo || 'Treino do dia', marca = op.marca || 'dia'; let filaI = 0, obsBraco = null;
+  const fila = op.fila || null, rotuloFila = op.rotulo || 'Treino do dia', marca = op.marca || 'dia'; let filaI = 0, obsBraco = null, pararDemo = () => {};
   let m = modelo(fila ? fila[0] : id); if (!m) return;
   const cfgDe = (mm, extra) => ({ ...cfgPadrao(mm), ...((DB.cfg.trCfg || {})[mm.id] || {}), ...(extra || {}) });
   let cfg = cfgDe(m, op.cfg), inteiro = volta(m, cfg), trecho = null, ex = inteiro;
@@ -42,29 +42,37 @@ function abrirTreino(id, op = {}) {
   function acomp() { return DB.cfg.trAcomp || (DB.cfg.trMetro === false ? 'nenhum' : 'metronomo'); }
   const subDe = () => (fila ? `${rotuloFila} · ${filaI + 1} de ${fila.length} · ` : '') + ex.sub;
   const legenda = e => { const T2 = new Set(e.evs.flatMap(x => tecs(x))); const l = [...T2].filter(t => TEC_NOMES[t]).map(t => `<b>${t === 'pm' ? 'PM' : TEC_TAB[t] || (t === 'harm' ? '<12>' : t)}</b> ${TEC_NOMES[t]}`); return l.length ? l.join(' · ') : ''; };
-  KitFacil.dialogo.abrir({ titulo: tituloDe(m), sub: subDe(), classe: 'kf-alto kf-largo', nome: 'treino',
+  KitFacil.dialogo.abrir({ titulo: tituloDe(m), sub: subDe(), classe: 'kf-alto kf-largo gf-player', nome: 'treino',
     corpo: `<div class="tr-vista" id="tr-v-palco">
         <div class="tr-palco"><div class="tr-topo"><button type="button" class="tr-fav" id="tr-fav" aria-pressed="${favorito(m.id)}" aria-label="Favorito">${favorito(m.id) ? '★' : '☆'}</button><span class="tr-chip" id="tr-parte">${esc(ex.partes ? ex.partes[0].nome : m.grupo || 'Treino')}</span><span class="tr-chip" id="tr-volta">${(ex.compasso || [4, 1])[0]}/${(ex.compasso || [4, 1])[1] === 1 ? 4 : 8}</span></div>
           <div class="tr-aviso" id="tr-aviso" hidden></div>
           <div class="tr-braco" id="tr-braco"${DB.cfg.trVerBraco === false ? ' hidden' : ''}><div class="tr-braco-vis"><div class="tr-braco-trilho" id="tr-trilho">${bracoTreino(ex)}</div></div><div class="tr-braco-cordas" id="tr-cordas">${cordasBraco(ex)}</div></div><div class="tab-wrap" id="tr-tab"${DB.cfg.trVerTab === false ? ' hidden' : ''}>${tabSVG(ex)}</div><div class="tr-conta" id="tr-conta" aria-live="assertive"></div></div>
-        <p class="tr-dica" id="tr-dica"></p>
+        <div class="tr-estados" aria-label="Legenda do braço"><span><i class="atual"></i>Agora</span><span><i class="proxima"></i>A seguir</span><span><i class="tonica"></i>Tônica</span></div><p class="tr-dica" id="tr-dica"></p>
         <p class="tr-legenda" id="tr-legenda">${legenda(ex)}</p>
-        <p class="tr-teoria" id="tr-teoria"></p>
-        <div class="tr-ctrl"><div class="tr-bpm" role="group" aria-label="Andamento"><button type="button" class="kf-btn kf-sec" data-tr-bpm="-5" aria-label="5 batidas a menos">−5</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="-1" aria-label="1 batida a menos">−1</button><span class="tr-bpm-v"><output id="tr-bpm">${bpm}</output><small id="tr-pct">bpm · ${Math.round(bpm / m.alvo * 100)}% da meta</small></span><button type="button" class="kf-btn kf-sec" data-tr-bpm="1" aria-label="1 batida a mais">+1</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="5" aria-label="5 batidas a mais">+5</button></div>
-          <div class="tr-botoes"><button type="button" class="tr-rec" id="tr-rec" aria-pressed="false" aria-label="Gravar o treino">${I.mic}<span>Gravar</span></button><button type="button" class="play-grande" id="tr-ir" aria-label="Começar">${I.play}</button><span class="tr-rec-lado" aria-hidden="true"></span></div></div>
+        <p class="tr-teoria" id="tr-teoria"></p><div class="tr-aprender"><button type="button" class="kf-btn kf-sec" id="tr-demonstrar">Entender a técnica</button><span>Observe o gesto, passo a passo.</span></div>
+
         <div class="tr-trecho" id="tr-trecho" role="group" aria-label="Repetir só alguns compassos"></div>
         <p class="tr-status" id="tr-status" aria-live="polite"></p>
         <div class="tr-res" id="tr-res" hidden></div></div>
-      <div class="tr-vista pilha" id="tr-v-ajustes" hidden></div>`,
-    pe: `<button type="button" class="kf-btn kf-sec" id="tr-aj">${I.ajustes}Ajustes</button><button type="button" class="kf-btn kf-sec" id="tr-exemplo">${I.ouvir}Ouvir uma volta</button>`,
-    aoFechar: () => { if (treino.tocando) treino.parar(); micDesligar().then(micApagarGravacao); if (obsBraco) obsBraco.disconnect(); if (['inicio', 'caminho'].includes(rota())) render(); },
+      <div class="tr-vista pilha" id="tr-v-ajustes" hidden></div><section class="gesto-aula" id="tr-v-demo" hidden aria-label="Demonstração da técnica"></section>`,
+    pe: `<div id="tr-transporte"><div class="tr-ctrl"><div class="tr-bpm" role="group" aria-label="Andamento"><button type="button" class="kf-btn kf-sec" data-tr-bpm="-5" aria-label="5 batidas a menos">−5</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="-1" aria-label="1 batida a menos">−1</button><span class="tr-bpm-v"><output id="tr-bpm">${bpm}</output><small id="tr-pct">bpm · ${Math.round(bpm / m.alvo * 100)}% da meta</small></span><button type="button" class="kf-btn kf-sec" data-tr-bpm="1" aria-label="1 batida a mais">+1</button><button type="button" class="kf-btn kf-sec" data-tr-bpm="5" aria-label="5 batidas a mais">+5</button></div>
+          <div class="tr-botoes"><button type="button" class="tr-rec" id="tr-rec" aria-pressed="false" aria-label="Gravar o treino">${I.mic}<span>Gravar</span></button><button type="button" class="play-grande" id="tr-ir" aria-label="Começar">${I.play}</button><span class="tr-rec-lado" aria-hidden="true"></span></div></div></div><div class="tr-acoes"><button type="button" class="kf-btn kf-sec" id="tr-aj">${I.ajustes}Ajustes</button><button type="button" class="kf-btn kf-sec" id="tr-exemplo">${I.ouvir}Ouvir uma volta</button></div><button type="button" class="kf-btn kf-pri" id="tr-voltar-demo" hidden>Voltar ao treino</button>`,
+    aoFechar: () => { pararDemo(); if (treino.tocando) treino.parar(); micDesligar().then(micApagarGravacao); if (obsBraco) obsBraco.disconnect(); if (['inicio', 'caminho'].includes(rota())) render(); },
     aoMontar: d => {
       // a teoria do exercício: a escala e o tom, com o atalho para o laboratório do braço
       const pintarTeoria = e => { const t = $('#tr-teoria', d); if (!t) return; if (e.escala && e.raiz != null && ESCALAS.some(x => x[0] === e.escala)) { t.innerHTML = `Escala: <b>${esc(NOTAS[e.raiz])} ${esc(nomeEscala(e.escala).toLowerCase())}</b> · <button type="button" class="kf-link" data-tr-braco>Ver no braço</button>`; $('[data-tr-braco]', t).onclick = () => { if (treino.tocando) treino.parar(); verNoBraco(e); }; } else t.innerHTML = ''; };
+      const demo = $('#tr-v-demo', d), demoBt = $('#tr-demonstrar', d), transporte = $('#tr-transporte', d), acoes = $('.tr-acoes', d), voltaDemo = $('#tr-voltar-demo', d);
+      const fecharDemo = () => { pararDemo(); demo.hidden = true; vP.hidden = false; transporte.hidden = false; acoes.hidden = false; voltaDemo.hidden = true; demoBt.focus(); };
+      demoBt.onclick = () => {
+        if (treino.tocando) return;
+        pararDemo(); pararDemo = montarDemonstracao(demo, ex); vP.hidden = true; demo.hidden = false; transporte.hidden = true; acoes.hidden = true; voltaDemo.hidden = false;
+        $('.kf-dlg-corpo', d).scrollTop = 0; $('h3', demo).focus();
+      };
+      voltaDemo.onclick = fecharDemo;
       const vP = $('#tr-v-palco', d), vA = $('#tr-v-ajustes', d), tabW = $('#tr-tab', d), brW = $('#tr-braco', d), conta = $('#tr-conta', d), res = $('#tr-res', d), status = $('#tr-status', d), parteC = $('#tr-parte', d), voltaC = $('#tr-volta', d), aviso = $('#tr-aviso', d);
       let desenhado = null, tabN = [], brN = [], cur = null, ultI = -2, px = pxDe(ex), voltasNa = 0, feitos = [];
       const meta = () => { status.textContent = `Meta: ${m.alvo} bpm${melhorLimpo(m.id) ? ` · seu melhor limpo: ${melhorLimpo(m.id)} bpm` : ''}`; };
-      const titulo = e => { const h = $('.kf-dlg-cab h2', d), s = $('.kf-dlg-sub', d); if (h) h.textContent = tituloDe(e.modelo); if (s) s.textContent = subDe(); $('#tr-legenda', d).innerHTML = legenda(e); pintarTeoria(e); const f = $('#tr-fav', d); f.setAttribute('aria-pressed', favorito(e.modelo.id)); f.textContent = favorito(e.modelo.id) ? '★' : '☆'; };
+      const titulo = e => { const h = $('.kf-dlg-cab h2', d), s = $('.kf-dlg-sub', d); if (h) h.textContent = tituloDe(e.modelo); if (s) s.textContent = subDe(); $('#tr-legenda', d).innerHTML = legenda(e); pintarTeoria(e); $('.tr-aprender', d).hidden = !demonstracoesDe(e).length; const f = $('#tr-fav', d); f.setAttribute('aria-pressed', favorito(e.modelo.id)); f.textContent = favorito(e.modelo.id) ? '★' : '☆'; };
       // o braço mostra um compasso de cada vez nas linhas longas (senão fica pequeno demais) e troca junto com a música
       let janelas = [[0, 0]], jan = -1, compTxt = '', desenhado0 = false;
       const calcJanelas = e => { const [cn, cp] = e.compasso || [4, 1], bl = cn * cp, tot = e.evs.reduce((s, x) => s + x.d, 0); if (tot <= 2 * bl + 1e-6) return [[0, e.evs.length]]; const r = []; let t = 0, ini = 0, b = 1; e.evs.forEach((x, i) => { if (t >= b * bl - 1e-6) { r.push([ini, i]); ini = i; b++; } t += x.d; }); r.push([ini, e.evs.length]); return r; };
@@ -88,7 +96,7 @@ function abrirTreino(id, op = {}) {
       };
       // bend, volta do bend, slide, ligados, tapping, vibrato e trinado se movem no braço junto com a nota
       const ANIMA = ['b', 'b2', 'r', 's', 'h', 'p', 't', 'v', 'tr'];
-      const animar = (g, T, dur) => { ANIMA.forEach(t => g.classList.remove('an-' + t)); const t = T.filter(x => ANIMA.includes(x)); if (!t.length) return; g.style.setProperty('--d', Math.max(.12, dur).toFixed(3) + 's'); void g.getBoundingClientRect(); t.forEach(x => g.classList.add('an-' + x)); };
+      const animar = (g, T, dur, e, i) => { ANIMA.forEach(t => g.classList.remove('an-' + t)); const t = T.filter(x => ANIMA.includes(x)); if (!t.length) return; const c = +g.dataset.nota.split(',')[0], par = ligacaoTecnica(e, i, c); g.style.setProperty('--slide-de', `${par ? (par.de - par.ate) * BR_L : 0}px`); g.style.setProperty('--retorno', tecs(e.evs[i-1] || {}).includes('b2') ? '9px' : '18px'); g.classList.toggle('tem-ligacao', !!par); g.style.setProperty('--d', Math.max(.12, dur).toFixed(3) + 's'); void g.getBoundingClientRect(); t.forEach(x => g.classList.add('an-' + x)); };
       const apagarNotas = () => brN.forEach(gs => gs && gs.forEach(g => { g.classList.remove('agora', 'prox'); ANIMA.forEach(t => g.classList.remove('an-' + t)); }));
       const dica = $('#tr-dica', d);
       const pintarDica = tocando => { dica.hidden = tocando; dica.textContent = m.dica ? m.dica : brW.hidden ? 'Aperte ▶ e toque junto, seguindo a tablatura.' : 'Aperte ▶ e toque a nota acesa no braço. A próxima fica tracejada.'; };
@@ -138,7 +146,7 @@ function abrirTreino(id, op = {}) {
       // ajustes: uma vista no lugar do palco; os campos mudam o treino na hora
       const abrirAjustes = () => {
         if (treino.tocando) return;
-        vA.innerHTML = ajustesHTML(); vP.hidden = true; vA.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'true'); KitFacil.movimento.entrar(vA, { de: 'tela' });
+        transporte.hidden = true; vA.innerHTML = ajustesHTML(); vP.hidden = true; vA.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'true'); KitFacil.movimento.entrar(vA, { de: 'tela' });
         const muda = () => { guardar(); refazer(); };
         $('#tr-afin', vA).addEventListener('change', e => { cfg.afin = e.target.value; muda(); });
         $('#tr-raiz', vA)?.addEventListener('change', e => { cfg.raiz = +e.target.value; muda(); });
@@ -165,7 +173,7 @@ function abrirTreino(id, op = {}) {
         $$('[data-vol]', vA).forEach(r => r.addEventListener('input', () => { DB.cfg.mix = { ...MIX_PADRAO, ...(DB.cfg.mix || {}), [r.dataset.vol]: +r.value }; $(`#vol-${r.dataset.vol}-v`, vA).textContent = r.value + '%'; clearTimeout(r.t); r.t = setTimeout(commit, 400); }));
         $('[data-tr-pronto]', vA).onclick = fecharAjustes;
       };
-      const fecharAjustes = () => { vA.hidden = true; vP.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'false'); KitFacil.movimento.entrar(vP, { de: 'tela' }); $('#tr-ir', d).focus(); };
+      const fecharAjustes = () => { transporte.hidden = false; vA.hidden = true; vP.hidden = false; $('#tr-aj', d).setAttribute('aria-pressed', 'false'); KitFacil.movimento.entrar(vP, { de: 'tela' }); $('#tr-ir', d).focus(); };
       $('#tr-aj', d).onclick = () => vA.hidden ? abrirAjustes() : fecharAjustes();
       // a próxima etapa: na fila do treino do dia, o próximo treino; senão, o próximo tom ou a próxima posição
       const proximaEtapa = () => {
@@ -203,11 +211,11 @@ function abrirTreino(id, op = {}) {
         apagarNotas();
         let prox = k < 0 ? 0 : k + 1; while (prox < evs.length && !evs[prox].n.length) prox++;
         if (brN[prox]) brN[prox].forEach(g => g.classList.add('prox'));
-        if (i >= 0 && brN[i]) { const T = tecs(evs[i]); brN[i].forEach(g => { g.classList.remove('prox'); animar(g, T, evs[i].d * r.seg); g.classList.add('agora'); }); }
+        if (i >= 0 && brN[i]) { const T = tecs(evs[i]); brN[i].forEach(g => { g.classList.remove('prox'); animar(g, T, evs[i].d * r.seg, r.ex, i); g.classList.add('agora'); }); }
         if (k >= 0 && janelas[jan]) mirar(evs.slice(Math.max(k, janelas[jan][0]), Math.min(janelas[jan][1], k + 4)));
         if (r.ex.partes && k >= 0) { const p = r.ex.partes.filter(q => q.i <= k).pop(); if (p && parteC.textContent !== p.nome) parteC.textContent = p.nome; }
       };
-      const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; recBt.disabled = tocando; recBt.classList.toggle('gravando', tocando && !!mic.gravador); recTexto(); pintarDica(tocando); };
+      const botoes = tocando => { const b = $('#tr-ir', d); b.innerHTML = tocando ? I.stop : I.play; b.setAttribute('aria-label', tocando ? 'Parar' : 'Começar'); b.classList.toggle('on', tocando); $('#tr-exemplo', d).disabled = tocando; $('#tr-aj', d).disabled = tocando; recBt.disabled = tocando; recBt.classList.toggle('gravando', tocando && !!mic.gravador); recTexto(); pintarDica(tocando); demoBt.disabled = tocando; };
       const limpar = () => { if (jan > 0) desenharBraco(ex, 0); else mirar(ex.evs.slice(...janelas[0])); conta.textContent = ''; conta.classList.remove('on'); tabN.forEach(g => g && g.classList.remove('agora')); apagarNotas(); ultI = -2; aviso.hidden = true; };
       const registrar = (mm, cc, voltas, bpmR, min, extra = {}) => { const rec = { id: uid(), ex: mm.id, cfg: { ...cc }, voltas, bpm: bpmR, min, limpo: null, em: Date.now(), ...extra }; DB.treinos.push(rec); return rec; };
       // a gravação (que fica só neste aparelho): ouvir e comparar com o exemplo; o app não dá nota
@@ -227,7 +235,7 @@ function abrirTreino(id, op = {}) {
         feitos = []; commit(); conferirConquistas(); verPlano();
         res.innerHTML = `<p class="tr-fim"><b>${acabou ? `${rotuloFila} concluído.` : 'Treino parado.'}</b> ${info.voltas} ${info.voltas === 1 ? 'volta' : 'voltas'} · até ${info.bpm} bpm · ${fmtTempo(info.tocado)}</p>
           ${extrasMic()}
-          <div class="tr-limpo-bloco"><p class="apoio">Saiu limpo, sem errar nem atrasar? Quem decide é você: o app não mede a execução.</p>
+          <div class="tr-limpo-bloco">${demonstracoesDe(ex).length ? `<ul class="tr-criterios">${demonstracoesDe(ex).map(q => `<li>${esc(GESTOS[q.k].criterio)}</li>`).join('')}</ul>` : ''}<p class="apoio">Saiu limpo, sem errar nem atrasar? Quem decide é você: o app não mede a execução.</p>
           <div class="tr-limpo"><button type="button" class="kf-btn kf-pri" data-limpo="1">${I.check}Saiu limpo</button><button type="button" class="kf-btn kf-sec" data-limpo="0">Ainda não</button></div></div>`;
         res.hidden = false; ligarMic();
         $$('[data-limpo]', res).forEach(b => b.onclick = () => {

@@ -746,3 +746,66 @@ test('sincronização: treinos, favoritos, conquistas e músicas passam de um ap
   assert.deepEqual(a.erros, []); assert.deepEqual(b.erros, []);
   await a.fechar(); await b.fechar();
 });
+
+test('direção de arte: círculo e campo harmônico mantêm a grafia da tonalidade', async () => {
+  const a = await aparelho(amb), p = a.page; await pronto(p);
+  await p.evaluate(() => ir('teoria/circulo'));
+  for (const [tom, relativa, campo] of [[9, 'F#m', 'F#m'], [4, 'C#m', 'D#°'], [1, 'Bbm', 'Ebm'], [6, 'D#m', 'E#°'], [10, 'Gm', 'Eb']]) {
+    await p.click(`[data-tom="${tom}"]`);
+    assert.equal(await p.locator(`[data-tom="${tom}"] .tom-m`).textContent(), relativa);
+    assert.ok((await p.locator('.campo-h').textContent()).includes(campo));
+  }
+  assert.deepEqual(a.erros, []); await a.fechar();
+});
+
+test('direção de arte: slide respeita pares reais e não atravessa pausas ou cordas', async () => {
+  const a = await aparelho(amb), p = a.page; await pronto(p);
+  const r = await p.evaluate(() => {
+    const ex = { nome: 'Teste', afin: MIDI_SOLTAS, evs: [{ d: 1, n: [[2, 9]] }, { d: 1, n: [[2, 5]], t: 's' }, { d: 1, n: [] }, { d: 1, n: [[2, 7]], t: 's' }, { d: 1, n: [[3, 8]], t: 'h' }] };
+    return { par: ligacaoTecnica(ex, 1, 2), pausa: ligacaoTecnica(ex, 3, 2), corda: ligacaoTecnica(ex, 4, 3), demo: demonstracoesDe(ex), arcos: tabSVG(ex) };
+  });
+  assert.deepEqual(r.par, { de: 9, ate: 5, corda: 2 }); assert.equal(r.pausa, null); assert.equal(r.corda, null);
+  assert.equal(r.demo.find(x => x.k === 's').exemplo, false);
+  assert.equal(r.demo.find(x => x.k === 'h').exemplo, true, 'origem ausente é identificada como exemplo de base');
+  assert.match(r.arcos, /class="tab-art"/);
+  assert.deepEqual(a.erros, []); await a.fechar();
+});
+
+test('direção de arte: transporte sempre visível e demonstração controlável em todos os tamanhos', async () => {
+  for (const [viewport, nome] of TELAS) {
+    const a = await aparelho(amb, { viewport }), p = a.page; await pronto(p);
+    await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
+    const d = dlg(p); await d.waitFor();
+    await d.locator('#tr-demonstrar').scrollIntoViewIfNeeded();
+    const dentro = await d.locator('#tr-ir').evaluate(b => { const r = b.getBoundingClientRect(), pe = b.closest('.kf-dlg-pe').getBoundingClientRect(); return r.top >= pe.top && r.bottom <= pe.bottom && r.bottom <= innerHeight; });
+    assert.ok(dentro, nome + ': tocar não fica encoberto');
+    await d.locator('#tr-demonstrar').click();
+    assert.ok(await d.locator('#tr-v-demo').isVisible());
+    await d.locator('[data-etapa="1"]').click();
+    assert.equal(await d.locator('.gesto-transporte input').inputValue(), '50');
+    assert.match(await d.locator('.gesto-instrucao').textContent(), /corda|pulso/);
+    await d.locator('[data-gesto-play]').click();
+    await d.locator('[data-gesto-play]').click();
+    assert.equal(await d.locator('[data-gesto-play]').textContent(), 'Ver devagar');
+    await d.locator('#tr-voltar-demo').click();
+    assert.ok(await d.locator('#tr-ir').isVisible());
+    assert.ok(await semRolagemLateral(p), nome);
+    assert.deepEqual(a.erros, []); await a.fechar();
+  }
+});
+
+test('direção de arte: movimento reduzido usa etapas estáticas e mantém o controle por teclado', async () => {
+  const a = await aparelho(amb), p = a.page; await pronto(p);
+  await p.emulateMedia({ reducedMotion: 'reduce' });
+  await p.evaluate(() => abrirTreino('tecnica:tapping:1:curto:0'));
+  const d = dlg(p); await d.locator('#tr-demonstrar').click();
+  assert.ok(await d.locator('.gesto-reduzido').isVisible());
+  await d.locator('[data-gesto-play]').click();
+  assert.equal(await d.locator('.gesto-transporte input').inputValue(), '50');
+  await p.waitForTimeout(150);
+  assert.equal(await d.locator('.gesto-transporte input').inputValue(), '50', 'não inicia animação automática');
+  await d.locator('.gesto-transporte input').focus(); await p.keyboard.press('ArrowRight');
+  assert.equal(await d.locator('.gesto-transporte input').inputValue(), '51');
+  await p.keyboard.press('Escape'); assert.equal(await d.count(), 0);
+  assert.deepEqual(a.erros, []); await a.fechar();
+});

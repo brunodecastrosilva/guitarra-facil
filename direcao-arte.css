@@ -1,0 +1,111 @@
+/* Direção de arte do Guitarra Fácil. Componentes do app; o Kit da família permanece intacto. */
+.gf-player.kf-dlg{max-width:1000px}
+.gf-player .kf-dlg-cab{flex-shrink:0;padding:18px 16px 14px 24px}
+.gf-player .kf-dlg-cab h2{font:800 21px/1.25 var(--kf-font)}
+.gf-player .kf-dlg-corpo{padding:4px 24px 20px}
+.gf-player .kf-dlg-pe{display:flex;flex-direction:column;flex-shrink:0;gap:10px;padding:12px 24px 16px;background:var(--kf-surface)}
+.gf-player .kf-dlg-pe [hidden],.tr-aprender[hidden],.gesto-aula[hidden]{display:none!important}
+.gf-player .tr-ctrl{display:flex;flex-direction:row;justify-content:space-between;gap:20px;margin:0}
+.gf-player .tr-bpm{gap:6px}
+.gf-player .tr-bpm .kf-btn{flex:none;min-width:44px;padding:0 8px}
+.gf-player .tr-bpm-v{min-width:130px}
+.gf-player .tr-bpm-v output{font-size:36px}
+.gf-player .tr-botoes{width:auto;grid-template-columns:auto auto;gap:12px}
+.gf-player .tr-rec-lado{display:none}
+.gf-player .play-grande{width:60px;height:60px}
+.gf-player .tr-rec{min-width:56px;min-height:52px;background:var(--kf-bg)}
+.tr-acoes{display:flex;gap:8px}
+.gf-player .tr-acoes .kf-btn{min-height:44px}
+.gf-player .tr-palco{overflow:hidden;border:1px solid var(--kf-line);box-shadow:none;background:var(--kf-surface)}
+.gf-player .tr-legenda{font-size:14px;line-height:1.6;max-width:75ch;margin:12px auto 0}
+.gf-player .tr-teoria{font-size:14px;margin:8px 0;text-align:center}
+.gf-player .tr-dica{max-width:65ch;margin:12px auto}
+.gf-player .tr-topo .tr-fav{width:44px;height:44px;margin:0}
+.gf-player .tr-topo{align-items:center;top:8px}
+.gf-player .tr-palco .tr-braco{padding-top:56px}
+.gf-player .tr-palco .tr-braco-cordas{top:56px}
+.gf-player .tr-bpm small{line-height:1.4}
+.tr-aprender{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px;margin-top:12px;border:1px solid var(--kf-line);border-radius:16px}
+.tr-aprender span{color:var(--kf-muted);font-size:14px}
+.tr-estados{display:flex;justify-content:center;gap:20px;padding:12px 0 0;font-size:12.5px;color:var(--kf-muted)}
+.tr-estados span{display:inline-flex;align-items:center;gap:6px}
+.tr-estados i{display:inline-block;width:13px;height:13px;border-radius:50%;border:2px solid var(--kf-ink)}
+.tr-estados .atual{background:var(--gf-vermelho);border-color:var(--gf-vermelho)}
+.tr-estados .proxima{border-style:dashed}.tr-estados .tonica{border-color:var(--gf-vermelho);border-width:3px}
+.braco-tr .nt:not(.raiz):not(.agora) circle{stroke:var(--kf-muted)}
+.braco-tr .nt.prox circle{stroke:var(--kf-ink)}
+.braco-tr .nt.an-s{animation:gf-slide-real var(--d) cubic-bezier(.45,0,.2,1) both}
+.braco-tr .nt.an-t{animation:gf-tapping .32s ease-out both}
+.braco-tr .nt.an-r{--dy:calc(var(--dir) * var(--retorno,18px))}
+.braco-tr .nt.an-h{animation:gf-martelo .3s ease-out both}
+.braco-tr .nt.an-v > *{animation:gf-vibrato-real .3s ease-in-out infinite alternate}
+@keyframes gf-slide-real{0%{transform:translateX(var(--slide-de,0px))}65%,100%{transform:translateX(0)}}
+@keyframes gf-tapping{0%{transform:translateY(-22px);opacity:.5}55%{transform:translateY(2px);opacity:1}100%{transform:translateY(0)}}
+@keyframes gf-vibrato-real{from{transform:translateY(0)}to{transform:translateY(calc(var(--dir) * 3px))}}
+.tab .tab-l{stroke:var(--kf-muted);stroke-opacity:.65;stroke-width:1}
+.tab .tab-b{stroke:var(--kf-line-2)}
+.tab .tab-art{fill:none;stroke:var(--kf-ink);stroke-width:1.5;stroke-linecap:round;pointer-events:none}
+.tab .tab-tec{font:700 11px var(--kf-font-mono);fill:var(--gf-vermelho-tx)}
+.tab-n.agora rect{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}
+.tab-n.agora text{fill:#fff}
+.tab-n rect{stroke-width:1}
+.tr-criterios{text-align:left;margin:0;padding-left:20px;font-size:14px;line-height:1.6}
+/* Diagramas de gesto: a mão da escala tem contorno; a mão da palheta tem hachura e a letra T. */
+.gesto-aula{display:flex;flex-direction:column;gap:16px;min-width:0}
+.gesto-cab h3{margin:4px 0 8px;font:800 26px/1.15 var(--kf-font)}
+.gesto-cab p{margin:0;color:var(--kf-muted);font-size:14px}
+.gesto-sobretitulo{font:700 12px var(--kf-font);text-transform:uppercase;letter-spacing:.12em;color:var(--gf-vermelho-tx)}
+.gesto-escolhas{display:flex;flex-wrap:wrap;gap:8px}
+.gesto-escolhas .kf-btn{font-size:14px}
+.gesto-escolhas [aria-pressed="true"]{background:var(--kf-ink);color:var(--kf-bg);border-color:var(--kf-ink)}
+.gesto-contexto{margin:0;font:500 13px/1.5 var(--kf-font);color:var(--kf-muted)}
+.gesto-cena{background:var(--kf-surface);border:1px solid var(--kf-line);border-radius:18px;overflow:hidden}
+.gesto-cena svg{display:block;width:100%;height:auto;max-height:320px}
+.gesto-madeira{fill:var(--kf-surface-2)}
+.gesto-traste{stroke:var(--kf-line-2);stroke-width:3}
+.gesto-outra{stroke:var(--kf-muted);stroke-width:1;opacity:.4}
+.gesto-corda{fill:none;stroke:var(--gf-vermelho-tx);stroke-width:3}
+.gesto-casa{font:700 14px var(--kf-font-mono);fill:var(--kf-muted)}
+.gesto-dedo > path:first-child{fill:var(--kf-surface);stroke:var(--kf-ink);stroke-width:2.5;stroke-linecap:round}
+.gesto-dedo.apoio > path:first-child{fill:var(--kf-surface-2)}
+.gesto-dedo.outra-mao > path:first-child{stroke:var(--gf-vermelho-tx);stroke-dasharray:5 3}
+.gesto-unha{fill:none;stroke:var(--kf-muted);stroke-width:1.5}
+.gesto-dedo text{font:800 14px var(--kf-font);fill:var(--kf-ink)}
+.gesto-trajeto{stroke:var(--gf-vermelho-tx);stroke-width:2;stroke-dasharray:5 4;fill:none}
+.gesto-anotacao{font:700 14px var(--kf-font);fill:var(--kf-ink)}
+.gesto-etapas{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0;margin:0}
+.gesto-etapas button{width:100%;min-height:64px;padding:10px;border:1px solid var(--kf-line);border-radius:12px;background:var(--kf-surface);color:var(--kf-muted);font:600 14px/1.3 var(--kf-font);cursor:pointer;text-align:left}
+.gesto-etapas span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;margin-right:8px;background:var(--kf-surface-2);color:var(--kf-ink)}
+.gesto-etapas [aria-current="step"]{border-color:var(--gf-vermelho-tx);box-shadow:inset 0 -3px 0 var(--gf-vermelho);color:var(--kf-ink)}
+.gesto-instrucao{margin:0;min-height:3em;line-height:1.5}
+.gesto-transporte{display:flex;align-items:center;gap:20px}
+.gesto-transporte label{flex:1;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--kf-muted)}
+.gesto-transporte input{width:100%;min-height:32px;accent-color:var(--gf-vermelho)}
+.gesto-criterio{margin:0;padding:14px 16px;border-left:3px solid var(--gf-vermelho);background:var(--kf-surface);font-size:14px;line-height:1.5}
+.gesto-etapas button:focus-visible,.gesto-transporte input:focus-visible{outline:3px solid var(--kf-focus);outline-offset:3px}
+/* Nomes longos nos diagramas de acordes preservam a leitura. */
+.acordes b{font:700 16px/1.3 var(--kf-font)}
+@media(max-width:600px){
+ .gf-player .kf-dlg-cab{padding:12px 8px 10px 16px}
+ .gf-player .kf-dlg-cab h2{font-size:18px}
+ .gf-player .kf-dlg-corpo{padding:4px 12px 16px}
+ .gf-player .kf-dlg-pe{padding:10px 12px 12px;gap:8px}
+ .gf-player .tr-ctrl{flex-direction:column;gap:8px}
+ .gf-player .tr-bpm-v{min-width:112px}
+ .gf-player .tr-bpm-v output{font-size:30px}
+ .gf-player .tr-bpm{gap:4px;width:100%}
+ .gf-player .tr-bpm .kf-btn{min-width:44px}
+ .gf-player .tr-botoes{gap:20px}
+ .gf-player .play-grande{width:48px;height:48px}
+ .gf-player .play-grande .kf-i{width:28px;height:28px}
+ .gf-player .tr-rec{min-height:44px;flex-direction:row}
+ .gf-player .tr-acoes .kf-btn{font-size:14px;padding:0 10px}
+ .tr-aprender{flex-direction:column;gap:6px}.tr-estados{gap:14px}
+ .gesto-etapas button{font-size:12.5px;padding:8px;min-height:84px}
+ .gesto-etapas span{display:grid;margin:0 0 6px}
+ .gesto-cab h3{font-size:22px}
+ .gesto-transporte{gap:12px;align-items:stretch}
+ .gesto-transporte .kf-btn{font-size:14px;padding:0 12px;max-width:145px}
+}
+@media(max-height:550px) and (orientation:landscape){.gf-player .tr-ctrl{flex-direction:row}.gf-player .kf-dlg-pe{padding:6px 12px}.gf-player .kf-dlg-cab{padding:4px 12px}.gf-player .play-grande{width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){.braco-tr .nt[class*="an-"],.braco-tr .nt[class*="an-"] > *{animation:none}}

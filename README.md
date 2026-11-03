@@ -5,7 +5,7 @@ presentes sem dominar (Documento Mestre, no projeto do Claude). O braço desenha
 tamanho, desliza até a nota da vez e mostra bends, slides e ligados; a tablatura escreve o ritmo e se liga ao braço.
 O som é gravado (FluidR3, MIT): guitarra limpa, baixo, cordas de fundo, bateria e metrônomo.
 
-**Fase de testes** · versão 0.16.1 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.17.0 · app web em <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 Faz parte da família do **Projeto Integrador** (Conta Fácil, Elétrica Fácil, Estudo Fácil, Guitarra Fácil). As leis
 globais e o padrão técnico (`comum/PADRAO.md`) valem acima das regras deste app.
@@ -66,6 +66,10 @@ Acordes, Músicas, Progresso e Ajustes).
 - **Volumes** (Ajustes do treino): exemplo, segunda guitarra, baixo, cordas de fundo e bateria, cada um de 0 a 100.
 - **Teoria**, **Metrônomo**, **Bateria** (12 estilos, com bumbo duplo, blast beat, d-beat, thrash, galope e meio tempo),
   **Acordes**, **Músicas** (17 playlists de inspiração, com links para YouTube e Spotify).
+
+## Demonstrações de técnicas
+
+No treino, **Entender a técnica** abre um gesto esquemático em três etapas. Observe devagar, pause ou percorra o movimento pela barra. Bends mostram origem e alvo; slides usam a mesma corda e as casas do trecho; ligados distinguem o dedo de apoio do dedo em ação; tapping identifica a mão da palheta. Quando o trecho não fornece um par válido, o painel identifica um **exemplo de base**. Não há análise automática da execução. Movimento reduzido oferece posições estáticas controladas pelas etapas.
 
 ## Aparência
 
@@ -143,6 +147,10 @@ Scripts clássicos, carregados nesta ordem (sem build). Arquitetura e decisões:
 | `comum/` | **Kit Fácil**: igual nos apps da família; não edite só aqui |
 | `sw.js`, `manifest.webmanifest`, `icons/` | instalação e uso sem internet |
 | `tests/` | testes do app |
+
+## Verificação automática
+
+O GitHub Actions roda o verificador e os testes em cada alteração de `main`, nas branches `codex/**` e nos pull requests. O artefato `revisao-visual` guarda por sete dias as capturas de celular, tablet e desktop, nos temas claro e escuro. Também é possível gerar essas capturas com `node tests/visual.mjs`.
 
 ## Publicação
 

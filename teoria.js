@@ -47,11 +47,20 @@ const notasAcorde = (raiz, tipo) => (TIPOS_ACORDE.find(t => t[0] === tipo) || TI
 const grauDe = (raiz, n) => GRAUS[pc(n - raiz)];
 const nomeAcorde = (raiz, tipo) => CIFRA[raiz] + tipo;
 // campo harmônico da escala maior: tríades e tétrades de cada grau
-function campoHarmonico(raiz) {
+function grafarPorLetra(n, letra) {
+  const naturais = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  let d = pc(n - naturais[letra]); if (d > 6) d -= 12;
+  return letra + (d < 0 ? 'b'.repeat(-d) : '#'.repeat(d));
+}
+const TOM_CIRCULO = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
+const tomCirculo = n => TOM_CIRCULO[CIRCULO.indexOf(n)];
+const nomePorExtenso = cifra => ({ C: 'Dó', D: 'Ré', E: 'Mi', F: 'Fá', G: 'Sol', A: 'Lá', B: 'Si' })[cifra[0]] + cifra.slice(1).replaceAll('#', ' sustenido').replaceAll('b', ' bemol');
+function campoHarmonico(raiz, nome = CIFRA[raiz]) {
   const esc = notasEscala(raiz, 'maior'), ROM = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
   const tri = ['', 'm', 'm', '', '', 'm', '°'], tet = ['7M', 'm7', 'm7', '7M', '7', 'm7', 'm7(b5)'];
   const fun = ['tônica', 'subdominante', 'tônica', 'subdominante', 'dominante', 'tônica', 'dominante'];
-  return esc.map((n, i) => ({ grau: ROM[i], triade: nomeAcorde(n, tri[i]), tetrade: nomeAcorde(n, tet[i]), funcao: fun[i], raiz: n, tipo: tri[i] }));
+  const letras = 'CDEFGAB', inicio = letras.indexOf(nome[0]);
+  return esc.map((n, i) => ({ grau: ROM[i], triade: grafarPorLetra(n, letras[(inicio + i) % 7]) + tri[i], tetrade: grafarPorLetra(n, letras[(inicio + i) % 7]) + tet[i], funcao: fun[i], raiz: n, tipo: tri[i] }));
 }
 const relativaMenor = raiz => pc(raiz + 9);
 const CIRCULO = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5]; // Dó, Sol, Ré... (cada passo uma quinta)
@@ -94,14 +103,15 @@ function circuloSVG(sel) {
   let s = `<svg class="circulo" viewBox="0 0 320 320" role="group" aria-label="Círculo das quintas">`;
   s += `<circle cx="${cx}" cy="${cy}" r="150" fill="var(--kf-surface-2)"/><circle cx="${cx}" cy="${cy}" r="98" fill="var(--kf-surface)"/><circle cx="${cx}" cy="${cy}" r="56" fill="var(--kf-surface-2)"/>`;
   CIRCULO.forEach((n, i) => {
+    const maior = TOM_CIRCULO[i], letras = 'CDEFGAB', menor = grafarPorLetra(relativaMenor(n), letras[(letras.indexOf(maior[0]) + 5) % 7]);
     const a = (i * 30 - 90) * Math.PI / 180, on = n === sel;
     const xo = cx + 124 * Math.cos(a), yo = cy + 124 * Math.sin(a), xi = cx + 77 * Math.cos(a), yi = cy + 77 * Math.sin(a);
-    s += `<g class="tom${on ? ' on' : ''}" data-tom="${n}" role="button" tabindex="0" aria-label="${NOTAS[n]} maior, relativa ${NOTAS[relativaMenor(n)]} menor, ${ACIDENTES[i] || 'sem acidentes'}" aria-pressed="${on}">`
-      + `<circle cx="${xo}" cy="${yo}" r="22"/><text x="${xo}" y="${yo + 5}" text-anchor="middle" class="tom-M">${CIFRA_B[n]}</text>`
-      + `<text x="${xi}" y="${yi + 4}" text-anchor="middle" class="tom-m">${CIFRA_B[relativaMenor(n)]}m</text></g>`;
+    s += `<g class="tom${on ? ' on' : ''}" data-tom="${n}" role="button" tabindex="0" aria-label="${nomePorExtenso(maior)} maior, relativa ${nomePorExtenso(menor)} menor, ${ACIDENTES[i] || 'sem acidentes'}" aria-pressed="${on}">`
+      + `<circle cx="${xo}" cy="${yo}" r="22"/><text x="${xo}" y="${yo + 5}" text-anchor="middle" class="tom-M">${maior}</text>`
+      + `<text x="${xi}" y="${yi + 4}" text-anchor="middle" class="tom-m">${menor}m</text></g>`;
   });
   const i = CIRCULO.indexOf(sel);
-  s += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="tom-c">${CIFRA_B[sel]}</text><text x="${cx}" y="${cy + 16}" text-anchor="middle" class="tom-a">${ACIDENTES[i] || 'sem acidentes'}</text>`;
+  s += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="tom-c">${tomCirculo(sel)}</text><text x="${cx}" y="${cy + 16}" text-anchor="middle" class="tom-a">${ACIDENTES[i] || 'sem acidentes'}</text>`;
   return s + '</svg>';
 }
 /* figuras rítmicas: desenho, nome e duração */

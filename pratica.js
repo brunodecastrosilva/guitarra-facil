@@ -100,7 +100,7 @@ function ritmoTab(ex, PX, y0) {
 }
 function tabSVG(ex) {
   const A = ex.afin, N = A.length, PX = pxDe(ex), [cn, cp] = ex.compasso || [4, 1], barra = cn * cp;
-  const total = Math.ceil(ex.evs.reduce((s, e) => s + e.d, 0) / cp - 1e-6) * cp, L = 40 + total * PX + 30, y = c => 30 + (N - 1 - c) * 17, y0 = y(0) + 12, alto = y0 + 38;
+  const total = Math.ceil(ex.evs.reduce((s, e) => s + e.d, 0) / cp - 1e-6) * cp, L = 40 + total * PX + 30, y = c => 42 + (N - 1 - c) * 21, y0 = y(0) + 12, alto = y0 + 42;
   let s = `<svg class="tab" viewBox="0 0 ${L} ${alto}" width="${L}" height="${alto}" role="img" aria-label="Tablatura de ${esc(ex.nome)}, com o ritmo embaixo">`;
   A.forEach((m, c) => { s += `<text x="8" y="${y(c) + 4}" class="tab-r">${nomeCorda(m)}</text><line x1="24" y1="${y(c)}" x2="${L - 10}" y2="${y(c)}" class="tab-l"/>`; });
   for (let b = 0; b <= total + 1e-6; b += cp) { const forte = Math.abs(b / barra - Math.round(b / barra)) < 1e-6; s += `<line x1="${40 + b * PX}" y1="${y(N - 1) - 6}" x2="${40 + b * PX}" y2="${y(0) + 6}" class="tab-b${forte ? ' forte' : ''}"/>`; }
@@ -110,8 +110,11 @@ function tabSVG(ex) {
     const x = 40 + t * PX + 5, T = tecs(e);
     if (T.includes('pm')) { if (pmIni == null) pmIni = x; } else fechaPM(x);
     if (e.n.length) {
-      const suf = T.map(k => TEC_TAB[k] || '').join('');
-      s += `<g class="tab-n" data-i="${i}">` + e.n.map(([c, k]) => { const rot = T.includes('x') ? 'x' : T.includes('harm') ? `<${k}>` : k + suf; return `<rect x="${x - 2}" y="${y(c) - 8}" width="${String(rot).length * 7.4 + 6}" height="16" rx="4"/><text x="${x + 1}" y="${y(c) + 4.5}">${esc(String(rot))}</text>`; }).join('') + '</g>';
+      const ligados = T.some(k => ['h', 'p', 's'].includes(k)), par = e.n.length === 1 ? ligacaoTecnica(ex, i, e.n[0][0]) : null;
+      const suf = T.filter(k => !(ligados && par && ['h', 'p', 's'].includes(k))).map(k => TEC_TAB[k] || '').join('');
+      if (ligados && par) { const ant = ex.evs[i-1], x0 = x - ant.d * PX + 3, x1 = x + 3, yy = y(e.n[0][0]) - 12;
+        s += T.includes('s') ? `<path d="M${x0 + 9} ${yy + (par.de < par.ate ? 4 : -4)}L${x1 - 5} ${yy + (par.de < par.ate ? -4 : 4)}" class="tab-art"/>` : `<path d="M${x0} ${yy}Q${(x0+x1)/2} ${yy-18} ${x1} ${yy}" class="tab-art"/><text x="${(x0+x1)/2}" y="${yy-12}" text-anchor="middle" class="tab-tec">${T.includes('h') ? 'H' : 'P'}</text>`; }
+      s += `<g class="tab-n" data-i="${i}"><title>${esc(e.n.map(([c,k]) => `${N-c}ª corda, casa ${k}`).join('; '))}${T.length ? ': ' + esc(T.map(k => TEC_NOMES[k] || k).join(', ')) : ''}</title>` + e.n.map(([c, k]) => { const rot = T.includes('x') ? 'x' : T.includes('harm') ? `<${k}>` : k + suf; return `<rect x="${x - 2}" y="${y(c) - 8}" width="${String(rot).length * 7.4 + 6}" height="16" rx="4"/><text x="${x + 1}" y="${y(c) + 4.5}">${esc(String(rot))}</text>`; }).join('') + '</g>';
     }
     t += e.d;
   });
