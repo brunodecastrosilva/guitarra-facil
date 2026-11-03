@@ -51,7 +51,7 @@ function cenaTecnica(q, progresso) {
   // Sombra de contato e punho articulado: deslocamento vem do mesmo modelo musical.
   s += `<ellipse cx="${fx}" cy="${y - desloc + 5}" rx="22" ry="6" fill="#000" opacity=".35"/><path d="M${fx - 24} 267 Q${fx - 35} 245 ${fx - 16} 220 L${fx + 15} 220 Q${fx + 40} 246 ${fx + 28} 267" fill="url(#pele-gesto)" stroke="#582d26" stroke-width="2"/>`;
   // Cada dedo é desenhado como silhueta com articulação e unha; o apoio não desaparece no ligado.
-  const dedo = (cx, cy, numero, outra = false, apoio = false) => `<g class="gesto-dedo${outra ? ' outra-mao' : ''}${apoio ? ' apoio' : ''}" transform="translate(${cx} ${cy})${outra ? ' rotate(180)' : ''}"><path d="M-15 85v-65C-15-4 15-4 15 20v65"/><path d="M-10 40h20M-8 15q8-7 16 0v11H-8Z" class="gesto-unha"/><text y="65" text-anchor="middle"${outra ? ' transform="rotate(180 0 61)"' : ''}>${numero}</text></g>`;
+  const dedo = (cx, cy, numero, outra = false, apoio = false) => `<g class="gesto-dedo${outra ? ' outra-mao' : ''}${apoio ? ' apoio' : ''}" transform="translate(${cx} ${cy})${outra ? ' rotate(180)' : ''}"><path d="M-20 85Q-22 64-17 47L-14 17C-13-6 12-6 14 16L17 45Q22 64 24 85Z"/><path d="M-12 43q12 5 25 0M-11 47q11 4 22 0M-9 15q9-8 18 0v12q-9 4-18 0Z" class="gesto-unha"/><text y="65" text-anchor="middle"${outra ? ' transform="rotate(180 0 61)"' : ''}>${numero}</text></g>`;
   if (bend) { s += dedo(x(de - 2), y - desloc - 4, '1', false, true) + dedo(x(de - 1), y - desloc - 4, '2', false, true); }
   if (h || pull || tap) s += dedo(x(Math.min(de, ate)), y - 4, '1', false, true);
   s += dedo(fx, y - desloc - 4 + (tap ? -levantar : levantar), tap ? 'T' : h || pull || bend ? '3' : '1', tap);
@@ -75,7 +75,12 @@ function montarDemonstracao(el, ex) {
   const parar = () => { tocando = false; cancelAnimationFrame(raf); play.textContent = valor >= 1 ? 'Repetir movimento' : 'Ver devagar'; };
   const pintar = () => {
     const pos = { b: '0% 0%', b2: '0% 0%', s: '50% 0%', h: '100% 0%', p: '0% 100%', t: '50% 100%', v: '100% 100%' };
-    $('.gesto-cena', el).innerHTML = `<div class="gesto-referencia" role="img" aria-label="Ilustração de referência anatômica para ${esc(GESTOS[q.k].nome)}; o movimento e as casas do treino aparecem no diagrama abaixo" style="--pos:${pos[q.k]}"><span>ANATOMIA · ${esc(GESTOS[q.k].nome)}</span></div>` + cenaTecnica(q, valor); range.value = Math.round(valor * 100);
+    const palco = $('.gesto-cena', el);
+    if (palco.dataset.tecnica !== q.k) {
+      palco.dataset.tecnica = q.k;
+      palco.innerHTML = `<div class="gesto-referencia" role="img" aria-label="Ilustração de referência anatômica para ${esc(GESTOS[q.k].nome)}; o movimento e as casas do treino aparecem no diagrama abaixo" style="--pos:${pos[q.k]}"><span>ANATOMIA · ${esc(GESTOS[q.k].nome)}</span></div><div class="gesto-movimento"></div>`;
+    }
+    $('.gesto-movimento', palco).innerHTML = cenaTecnica(q, valor); range.value = Math.round(valor * 100);
     const n = Math.min(2, Math.floor(valor * 3));
     if (n !== etapa) { etapa = n; $('.gesto-instrucao', el).textContent = GESTOS[q.k].dica[n]; $$('[data-etapa]', el).forEach((b, i) => { b.setAttribute('aria-current', i === n ? 'step' : 'false'); }); }
   };
