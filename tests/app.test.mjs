@@ -12,6 +12,10 @@ const TELAS = [[{ width: 360, height: 740 }, 'celular pequeno'], [{ width: 390, 
 const pronto = p => p.locator('.seq').waitFor();
 
 const dlg = p => p.locator('.kf-dlg[data-kf-dialogo="treino"]');
+// o treino abre no preview (0.19.0): estes atalhos passam por ele como a pessoa faria
+const palco = async d => { if (await d.locator('#tr-ver').isVisible()) await d.locator('#tr-ver').click(); };
+const tocar = async d => { if (await d.locator('#tr-comecar').isVisible()) await d.locator('#tr-comecar').click(); else await d.locator('#tr-ir').click(); };
+const ajustes = async d => { await palco(d); await d.locator('#tr-aj').click(); };
 
 test('abre sem erros em celular, tablet e computador, com a moldura da família e sem rolagem lateral', async () => {
   for (const [viewport, nome] of TELAS) {
@@ -95,7 +99,7 @@ test('treinos um toque por vez: categoria, nível, tamanho e lista; gênero não
   await p.goBack();
   assert.ok(await esperar(async () => (await p.locator('.tr-item').count()) === 8), 'o voltar do aparelho volta um passo');
   await p.click('[data-tr-sortear]');
-  await dlg(p).waitFor();
+  await dlg(p).waitFor(); await palco(dlg(p));
   assert.match(await dlg(p).locator('.kf-dlg-cab h2').textContent(), /^#\d{4} · Aplicar ritmo, acordes e articulações em um riff$/);
   assert.doesNotMatch(await dlg(p).textContent(), /Metalcore|Thrash|Hard rock/i);
   assert.match(await dlg(p).locator('#tr-volta').textContent(), /compasso 1 de 16/, 'linha longa: o braço vai de compasso em compasso');
@@ -110,8 +114,8 @@ test('janela do treino: afinação, rótulos, etapa por posição com aviso ante
   await pronto(p);
   await p.evaluate(() => abrirTreino('esc:menor:1', { bpm: 260, cfg: { tam: 'curto', fig: .25 } }));
   const d = dlg(p);
-  await d.waitFor();
-  await d.locator('#tr-aj').click();
+  await d.waitFor(); await palco(dlg(p));
+  await ajustes(d);
   assert.equal(await d.locator('#tr-v-palco').isHidden(), true, 'o palco some enquanto ajusta');
   await d.locator('#tr-afin-esc').click(); await p.click('.kf-esc-op:has(span:text-is("Drop C"))');
   await d.locator('#tr-perc-esc').click(); await p.click('.kf-esc-op:has-text("próxima posição")');
@@ -121,13 +125,13 @@ test('janela do treino: afinação, rótulos, etapa por posição com aviso ante
   assert.equal(await d.locator('#tr-v-ajustes').isHidden(), true);
   assert.match(await d.locator('.kf-dlg-sub').textContent(), /Drop C · Posição 1/);
   assert.ok(await d.locator('.braco-tr .nt text:text-is("T")').count() >= 2, 'graus no braço, com a tônica');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => p.evaluate(() => !!document.querySelector('.braco-tr .nt.agora'))), 'a nota da vez acende');
   assert.ok(await esperar(() => d.locator('#tr-aviso').isVisible(), 12000), 'aviso antes da troca');
   assert.match(await d.locator('#tr-aviso').textContent(), /A seguir:.*Posição 2/);
   assert.ok(await esperar(() => d.locator('.kf-dlg-sub').textContent().then(t => /Posição 2/.test(t)), 12000), 'troca de posição');
   await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; });
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   await d.locator('[data-limpo="1"]').click();
   const t = await p.evaluate(() => DB.treinos[DB.treinos.length - 1]);
   assert.equal(t.ex, 'esc:menor:1'); assert.equal(t.limpo, true); assert.equal(t.cfg.afin, 'drop-c');
@@ -180,7 +184,7 @@ test('fase 2: busca com filtros combinados, tablatura com ritmo e tablatura liga
   assert.equal(await p.evaluate(() => BUSCA.nivel + BUSCA.competencia + BUSCA.busca), '');
   // tablatura com ritmo e ligada ao braço
   await p.evaluate(() => abrirTreino('riffs:thrash:2:curto:1'));
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.ok(await d.locator('.tab-ritmo .rt-h').count() > 0, 'o ritmo aparece embaixo da tablatura');
   await d.locator('.tab-n >> nth=1').click();
   assert.equal(await d.locator('.tab-n.sel').count(), 1);
@@ -202,13 +206,13 @@ test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo av
   assert.deepEqual(r, [], 'todo passo fecha o compasso, cabe no braço e tem dica');
   await p.evaluate(() => { modelo('cam:contato:1').bpm = 260; });
   await p.click('.passo-hero');
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.match(await d.locator('#tr-dica').textContent(), /palheta/);
   assert.equal(await d.locator('#tr-parte').textContent(), 'Passo 1 de 4');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   await p.waitForTimeout(4500);
   await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; }); // conta como treino de verdade (15 s ou mais)
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   await d.locator('[data-limpo="1"]').click();
   await p.keyboard.press('Escape');
   assert.ok(await esperar(async () => /A corda mais grossa, solta/.test(await p.textContent('.cam-lista')) || /2 de 4/.test(await p.textContent('.passo-hero'))));
@@ -252,6 +256,8 @@ test('fase 3: primeira experiência, sessão por duração editável, rotina, pr
   await p.click('[data-ses-min="45"]');
   assert.ok((await p.evaluate(() => minutosSessao(SESSAO))) > S.min, 'mais tempo, mais treino');
   const antes = await p.evaluate(() => SESSAO.etapas[2].itens[0].id);
+  assert.ok(await p.locator('[data-ses-comecar]').isVisible(), 'o Começar fica à vista sem rolar');
+  await p.click('#ses-e-principal summary');
   await p.click('[data-ses-trocar="2:0"]');
   assert.notEqual(await p.evaluate(() => SESSAO.etapas[2].itens[0].id), antes, 'trocar põe outro treino');
   const n = await p.evaluate(() => SESSAO.etapas[2].itens.length);
@@ -270,7 +276,7 @@ test('fase 3: primeira experiência, sessão por duração editável, rotina, pr
   await p.locator('.kf-dlg[data-kf-dialogo="preparo"]').waitFor();
   assert.match(await p.textContent('#prep-n'), /Gire os pulsos/);
   await p.click('[data-prep-pular]');
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.match(await d.locator('.kf-dlg-sub').textContent(), /Antes do ensaio · 1 de \d+/);
   await p.keyboard.press('Escape');
   // competências e metas
@@ -316,7 +322,7 @@ test('Explorar une braço e teoria: notas, escala, acorde, intervalos, modo livr
   assert.equal(await p.locator('#t-ritmo').count(), 1, 'ritmo está no mesmo destino');
   // do treino para o braço
   await p.evaluate(() => abrirTreino('esc:penta-menor:1'));
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.match(await d.locator('#tr-teoria').textContent(), /pentatônica menor/);
   await d.locator('[data-tr-braco]').click();
   assert.ok(await esperar(() => p.evaluate(() => rota() === 'explorar' && LAB.modo === 'escala' && LAB.escala === 'penta-menor')));
@@ -353,7 +359,7 @@ test('fase 5: Estúdio cria, edita, ouve, treina e faz variação de uma ideia; 
   await p.fill('#ed-nome', 'Riff da garagem'); await p.press('#ed-nome', 'Tab');
   assert.equal(await p.evaluate(() => modelo('ideia:' + DB.ideias[0].id).nome), 'Riff da garagem', 'a ideia vira exercício');
   await p.click('[data-ed-treinar]');
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.match(await d.locator('.kf-dlg-cab h2').textContent(), /^#\d{4} · Praticar uma criação própria$/);
   await p.keyboard.press('Escape');
   await p.click('[data-ed-variacao]');
@@ -382,15 +388,15 @@ test('fase 6: biblioteca só com domínio público e originais; baixo, cordas de
   assert.doesNotMatch(await p.textContent('main'), /Obras em domínio público/);
   // volumes e acompanhamento
   await p.evaluate(() => abrirTreino('bib:grieg-montanha', { bpm: 200 }));
-  const d = dlg(p); await d.waitFor();
-  await d.locator('#tr-aj').click();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
+  await ajustes(d);
   await d.locator('.tr-vol summary').click();
   await d.locator('#vol-baixo').fill('0');
   assert.equal(await p.evaluate(() => DB.cfg.mix.baixo), 0, 'o volume do baixo fica guardado');
   await d.locator('[data-tr-pronto]').click();
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => p.evaluate(() => treino.tocando && treino.bus && treino.bus.baixo.gain.value === 0 && treino.bus.fundo.gain.value > 0)), 'cada parte tem o seu volume');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -400,15 +406,15 @@ test('treino: braço sempre do mesmo tamanho, deslizando até as notas; braço e
   const p = a.page;
   await pronto(p);
   assert.equal(await p.evaluate(() => getComputedStyle(document.documentElement).touchAction), 'manipulation', 'toque duplo não dá zoom');
-  const largura = async id => { await p.evaluate(i => abrirTreino(i), id); await dlg(p).waitFor(); const w = await dlg(p).locator('.braco-tr').evaluate(s => s.getBoundingClientRect().width); await p.evaluate(() => KitFacil.dialogo.fechar()); await dlg(p).waitFor({ state: 'detached' }); return w; };
+  const largura = async id => { await p.evaluate(i => abrirTreino(i), id); await dlg(p).waitFor(); await palco(dlg(p)); const w = await dlg(p).locator('.braco-tr').evaluate(s => s.getBoundingClientRect().width); await p.evaluate(() => KitFacil.dialogo.fechar()); await dlg(p).waitFor({ state: 'detached' }); return w; };
   const w1 = await largura('riffs:doom:1:curto:0'), w2 = await largura('solos:shred:3:curto:1');
   assert.ok(Math.abs(w1 - w2) < 1, 'o braço tem o mesmo tamanho em qualquer treino');
   await p.evaluate(() => abrirTreino('solos:shred:3:curto:1'));
-  const d = dlg(p); await d.waitFor();
+  const d = dlg(p); await d.waitFor(); await palco(dlg(p));
   assert.match(await d.locator('#tr-trilho').evaluate(t => t.style.transform), /translateX\(-\d/, 'um solo na casa 12 faz o braço deslizar até lá');
   assert.ok(await d.locator('#tr-tab').isVisible() && await d.locator('#tr-braco').isVisible(), 'braço e tablatura juntos');
   assert.match(await d.locator('#tr-dica').textContent(), /nota acesa/);
-  await d.locator('#tr-aj').click();
+  await ajustes(d);
   assert.equal(await d.locator('[data-som]').count(), 0, 'sem a escolha de som distorcido');
   await d.locator('#tr-verBraco').uncheck();
   await d.locator('#tr-verTab').uncheck();
@@ -416,15 +422,45 @@ test('treino: braço sempre do mesmo tamanho, deslizando até as notas; braço e
   await d.locator('[data-tr-pronto]').click();
   assert.equal(await d.locator('#tr-tab').isHidden(), true);
   assert.equal(await d.locator('#tr-braco').isVisible(), true);
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => p.evaluate(() => SOM.notas.size === 64 && SOM.pecas.size === 10)), 'guitarra e bateria gravadas carregadas');
   assert.ok(await esperar(() => p.evaluate(() => !!document.querySelector('.braco-tr .nt.agora'))), 'a nota da vez acende');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
 
-test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, com aviso', async () => {
+test('preview antes de tocar e 1-2-3-4 previsível: iniciante com uma ordem e uma casa; avançados mudam de casa e pulam cordas, avisados', async () => {
+  const a = await aparelho(amb);
+  const p = a.page;
+  await pronto(p);
+  const r = await p.evaluate(() => MODELOS.filter(m => m.cat === 'tecnica' && m.sub === 'dedos').map(m => { const v = volta(m, cfgPadrao(m)), P = v.partes; return { id: m.id, nivel: m.nivel, bpm: m.bpm, casas: new Set(P.map(q => q.casa)).size, modos: [...new Set(P.map(q => q.modo))], completa: P.every((q, j) => { const b = j + 1 < P.length ? P[j + 1].i : v.evs.length, ev = v.evs.slice(q.i, b); return ev.length % 8 === 0 && ev[0].n[0][0] === 0 && ev[ev.length - 1].n[0][0] === 0; }) }; }));
+  assert.ok(r.filter(x => x.nivel === 1).every(x => x.casas === 1 && x.modos.join() === 'crom' && x.bpm === 60), 'iniciante: cromático, uma casa, 60 bpm');
+  assert.ok(r.every(x => x.completa), 'cada parte sai da 6ª corda e volta a ela');
+  assert.ok(r.some(x => x.nivel === 2 && x.casas > 1), 'intermediário anda pelo braço');
+  assert.ok(r.some(x => x.nivel === 3 && x.modos.includes('pulo')), 'avançado pula cordas');
+  await p.evaluate(() => abrirTreino('tecnica:dedos:1:longo:0'));
+  const d = dlg(p); await d.waitFor();
+  assert.ok(await d.locator('#tr-v-prev').isVisible(), 'abre no preview');
+  assert.equal(await d.locator('#tr-v-palco').isHidden(), true);
+  const partes = await d.locator('.tr-prev-parte').count();
+  assert.equal(partes, await p.evaluate(() => volta(modelo('tecnica:dedos:1:longo:0'), {}).partes.length), 'uma linha por parte');
+  assert.match(await d.locator('.tr-prev-parte >> nth=0').textContent(), /Cromático 1-\d-\d-\d[\s\S]*casa \d/);
+  assert.ok(await d.locator('.tr-prev-parte >> nth=0 >> .mini-parte .mp-caminho').count() >= 3, 'a ordem desenhada');
+  await d.locator('[data-prev-ouvir="0"]').click();
+  assert.match(await d.locator('[data-prev-ouvir="0"]').textContent(), /Parar/);
+  await d.locator('[data-prev-ouvir="0"]').click();
+  await d.locator('#tr-comecar').click();
+  assert.ok(await esperar(() => p.evaluate(() => treino.tocando)), 'Começar toca');
+  assert.ok(await d.locator('#tr-v-palco').isVisible());
+  await tocar(d);
+  await d.locator('#tr-roteiro').click();
+  assert.ok(await d.locator('#tr-v-prev').isVisible(), 'o roteiro volta pelo botão');
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('treino do dia: quatro treinos em fila; o som para no fim de cada um, pergunta se saiu limpo e só segue no toque', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
@@ -432,16 +468,31 @@ test('treino do dia: quatro treinos em fila, troca sozinho depois das voltas, co
   await p.click('nav.ladrilhos [data-ir="dia"]');
   assert.equal(await p.locator('.dia-nivel').count(), 3);
   assert.equal(await p.locator('.dia-nivel >> nth=1 >> .dia-lista li').count(), 4);
-  await p.evaluate(() => { DB.cfg.trVoltas = 2; DB.cfg.trCfg = {}; const m = treinoDoDia(2); m.forEach(id => { const x = modelo(id); x.bpm = 260; }); });
+  await p.evaluate(() => { DB.cfg.trVoltas = 1; DB.cfg.trCfg = {}; const m = treinoDoDia(2); m.forEach(id => { const x = modelo(id); x.bpm = 260; }); });
   await p.click('[data-dia="2"]');
   const d = dlg(p);
   await d.waitFor();
   assert.match(await d.locator('.kf-dlg-sub').textContent(), /^Treino do dia · 1 de 4/);
-  await d.locator('#tr-ir').click();
-  assert.ok(await esperar(() => d.locator('#tr-aviso').isVisible(), 20000), 'aviso do próximo treino');
-  assert.match(await d.locator('#tr-aviso').textContent(), /A seguir:.*·/);
-  assert.ok(await esperar(() => d.locator('.kf-dlg-sub').textContent().then(t => /2 de 4/.test(t)), 20000), 'passa para o segundo treino');
-  await d.locator('#tr-ir').click();
+  assert.match(await d.locator('.tr-prev-sup').textContent(), /Treino do dia · 1 de 4/, 'abre no preview');
+  await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; });
+  await tocar(d);
+  assert.ok(await esperar(() => d.locator('[data-fila-prox]').isVisible(), 30000), 'no fim do treino, a pausa com o próximo');
+  assert.equal(await p.evaluate(() => treino.tocando), false, 'o som parou');
+  await p.waitForTimeout(1500);
+  assert.equal(await p.evaluate(() => treino.tocando), false, 'e não volta sozinho');
+  assert.match(await d.locator('.kf-dlg-sub').textContent(), /1 de 4/, 'continua no primeiro');
+  assert.match(await d.locator('.tr-seguir').textContent(), /A seguir · 2 de 4/);
+  await d.locator('[data-limpo="1"]').click();
+  assert.equal(await p.evaluate(() => DB.treinos[DB.treinos.length - 1].limpo), true, 'o primeiro fica marcado');
+  await d.locator('[data-fila-prox]').click();
+  assert.match(await d.locator('.tr-prev-sup').textContent(), /2 de 4/, 'o próximo abre no preview');
+  // parar no meio do segundo e recomeçar não volta ao primeiro
+  await tocar(d);
+  assert.ok(await esperar(() => p.evaluate(() => treino.tocando)));
+  await tocar(d);
+  await tocar(d);
+  assert.match(await d.locator('.kf-dlg-sub').textContent(), /2 de 4/, 'recomeça no mesmo treino');
+  await tocar(d);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -452,7 +503,7 @@ test('favoritos: a estrela marca o treino, que aparece no Início e na lista de 
   await pronto(p);
   await p.evaluate(() => abrirTreino('solos:shred:3:longo:0'));
   const d = dlg(p);
-  await d.waitFor();
+  await d.waitFor(); await palco(dlg(p));
   await d.locator('#tr-fav').click();
   assert.equal(await d.locator('#tr-fav').getAttribute('aria-pressed'), 'true');
   assert.ok(await d.locator('.tab-n').count() > 20);
@@ -473,7 +524,7 @@ test('treino 0.7: trecho em laço, porcentagem da meta, bateria e segunda guitar
   await pronto(p);
   await p.evaluate(() => abrirTreino('riffs:metalcore:2:longo:0'));
   const d = dlg(p);
-  await d.waitFor();
+  await d.waitFor(); await palco(dlg(p));
   assert.equal(await d.locator('[data-comp]').count(), 8, 'linha longa: oito compassos para escolher');
   const notasInteiro = await d.locator('.tab-n').count();
   await d.locator('[data-comp="2"]').click(); await d.locator('[data-comp="4"]').click();
@@ -486,7 +537,7 @@ test('treino 0.7: trecho em laço, porcentagem da meta, bateria e segunda guitar
   assert.match(await d.locator('#tr-trecho .kf-rotulo').textContent(), /compassos 3 a 3/, 'outro toque recomeça o trecho');
   await d.locator('[data-comp="3"]').click();
   assert.match(await d.locator('#tr-trecho .kf-rotulo').textContent(), /toque nos compassos/, 'tocar no único escolhido volta à linha inteira');
-  await d.locator('#tr-aj').click();
+  await ajustes(d);
   await d.locator('[data-pct="50"]').click();
   await d.locator('[data-acomp="bateria"]').click();
   assert.equal(await d.locator('#tr-bat-campo').isVisible(), true);
@@ -499,9 +550,9 @@ test('treino 0.7: trecho em laço, porcentagem da meta, bateria e segunda guitar
   const h = await p.evaluate(() => { const ex = { escala: 'menor', raiz: 4 }; return [harmonizar(52, ex, 'tercas'), harmonizar(52, ex, 'quintas'), harmonizar(54, ex, 'tercas'), harmonizar(53, ex, 'tercas'), harmonizar(52, ex, 'oitava')]; });
   assert.deepEqual(h, [55, 59, 57, 57, 64], 'terças e quintas dentro da escala; fora dela, intervalo paralelo');
   await p.evaluate(() => { window.__pecas = { b: 0, c: 0 }; const o = peca; peca = (a, tipo, q, dest) => { window.__pecas[tipo] = (window.__pecas[tipo] || 0) + 1; return o(a, tipo, q, dest); }; });
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => p.evaluate(() => window.__pecas.b > 4 && window.__pecas.c > 4), 4000), 'a bateria toca junto com o treino');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -516,28 +567,28 @@ test('microfone no treino: só gravar e comparar, sem nota automática; sem perm
   await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('negado', 'NotAllowedError'); }; });
   await p.evaluate(() => abrirTreino('tecnica:galope:1:curto:0', { bpm: 260 }));
   const d = dlg(p);
-  await d.waitFor();
-  await d.locator('#tr-aj').click();
+  await d.waitFor(); await palco(dlg(p));
+  await ajustes(d);
   assert.equal(await d.locator('#tr-ritmo').count(), 0, 'sem a opção de conferir o ritmo');
   await d.locator('[data-tr-pronto]').click();
   await d.locator('#tr-rec').click();
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => p.evaluate(() => /Sem permissão para o microfone/.test(document.querySelector('.kf-toast')?.textContent || ''))), 'aviso sem permissão');
   assert.ok(await esperar(() => p.evaluate(() => treino.tocando)), 'o treino segue sem o microfone');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   await p.keyboard.press('Escape');
   // com microfone (um som gerado no lugar da guitarra): grava, mostra para ouvir e apaga
   await p.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { const ac = audio(), o = ac.createOscillator(), dst = ac.createMediaStreamDestination(); o.frequency.value = 110; o.connect(dst); o.start(); return dst.stream; }; });
   await p.evaluate(() => abrirTreino('tecnica:galope:1:curto:0', { bpm: 260 }));
-  await d.waitFor();
+  await d.waitFor(); await palco(dlg(p));
   await d.locator('#tr-rec').click();
   assert.equal(await d.locator('#tr-rec').getAttribute('aria-pressed'), 'true');
   assert.equal(await d.locator('#tr-rec span').textContent(), 'Vai gravar');
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => d.locator('#tr-rec span').textContent().then(t => t === 'Gravando')), 'mostra que está gravando');
   assert.ok(await esperar(() => d.locator('#tr-status').textContent().then(x => /Volta 3/.test(x)), 8000), 'duas voltas inteiras');
   await p.evaluate(() => { const r = Date.now; Date.now = () => r() + 20000; });
-  await d.locator('#tr-ir').click();
+  await tocar(d);
   assert.ok(await esperar(() => d.locator('[data-grav="ouvir"]').isVisible()), 'a gravação aparece no fim, com o exemplo para comparar');
   assert.equal(await d.locator('[data-grav="exemplo"]').count(), 1);
   assert.match(await d.locator('.tr-limpo-bloco').textContent(), /Quem decide é você/);
@@ -570,7 +621,7 @@ test('plano de 4 semanas: técnica, nível e meta; quatro semanas de treinos; te
   assert.deepEqual(bpms, [pl.ini + 10, pl.ini + 20, pl.ini + 30, pl.ini + 40]);
   await p.click('[data-plano-treino] >> nth=0');
   const d = dlg(p);
-  await d.waitFor();
+  await d.waitFor(); await palco(dlg(p));
   assert.equal(await d.locator('#tr-bpm').textContent(), String(pl.ini + 10), 'abre no andamento da semana');
   await p.keyboard.press('Escape');
   await p.evaluate(() => { const S = semanasDoPlano(DB.cfg.plano); S.slice(0, 3).forEach(s => s.treinos.forEach(id => DB.treinos.push({ id: uid(), ex: id, cfg: {}, voltas: 4, bpm: s.bpm, min: 1, limpo: true, em: Date.now() }))); commit(); render(); });
@@ -657,7 +708,7 @@ test('Explorar: cálculos musicais certos, harmonia e treino de escala no mesmo 
   await irPelaNav(p, 'Explorar');
   await p.click('[data-lab-modo="escala"]');
   await p.click('[data-lab-treinar]');
-  await dlg(p).waitFor();
+  await dlg(p).waitFor(); await palco(dlg(p));
   assert.match(await dlg(p).locator('.kf-dlg-sub').textContent(), /Lá/);
   await p.keyboard.press('Escape');
   await p.click('.explorar-abas button:has-text("Harmonia")');
@@ -707,7 +758,7 @@ test('início e progresso: sequência de dias, continuar, abas de progresso e co
   assert.match(await p.textContent('.continuar'), /#\d{4} · Aplicar ritmo, acordes e articulações em um riff/);
   assert.ok(await p.evaluate(() => ['primeiro', 'meta', 'dias3', 'avancado', 'limpo140'].every(id => temConquista(id))));
   await p.click('.continuar');
-  await dlg(p).waitFor();
+  await dlg(p).waitFor(); await palco(dlg(p));
   assert.equal(await dlg(p).locator('#tr-bpm').textContent(), '140');
   await p.keyboard.press('Escape');
   await irPelaNav(p, 'Progresso');
@@ -784,11 +835,14 @@ test('direção de arte: transporte sempre visível e demonstração controláve
   for (const [viewport, nome] of TELAS) {
     const a = await aparelho(amb, { viewport }), p = a.page; await pronto(p);
     await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
-    const d = dlg(p); await d.waitFor();
+    const d = dlg(p); await d.waitFor(); await palco(dlg(p));
     await p.waitForTimeout(300); // mede depois da entrada do diálogo, não durante o deslocamento da animação
     const telaCheia = await d.evaluate(x => { const r = x.getBoundingClientRect(); return Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1 && r.left === 0 && r.top === 0; });
     assert.ok(telaCheia, nome + ': o treino ocupa o viewport inteiro');
     assert.match(await d.locator('.kf-dlg-cab h2').textContent(), /^#\d{4} · Praticar /);
+    const comecar = await d.locator('#tr-comecar').evaluate(b => { const r = b.getBoundingClientRect(); return r.bottom <= innerHeight && r.top >= 0; });
+    assert.ok(comecar, nome + ': o Começar do preview fica à vista');
+    await palco(d);
     await d.locator('#tr-demonstrar').scrollIntoViewIfNeeded();
     const dentro = await d.locator('#tr-ir').evaluate(b => { const r = b.getBoundingClientRect(), pe = b.closest('.kf-dlg-pe').getBoundingClientRect(); return r.top >= pe.top && r.bottom <= pe.bottom && r.bottom <= innerHeight; });
     assert.ok(dentro, nome + ': tocar não fica encoberto');
@@ -811,7 +865,7 @@ test('direção de arte: movimento reduzido usa etapas estáticas e mantém o co
   const a = await aparelho(amb), p = a.page; await pronto(p);
   await p.emulateMedia({ reducedMotion: 'reduce' });
   await p.evaluate(() => abrirTreino('tecnica:tapping:1:curto:0'));
-  const d = dlg(p); await d.locator('#tr-demonstrar').click();
+  const d = dlg(p); await d.waitFor(); await palco(d); await d.locator('#tr-demonstrar').click();
   assert.ok(await d.locator('.gesto-reduzido').isVisible());
   await d.locator('[data-gesto-play]').click();
   assert.equal(await d.locator('.gesto-transporte input').inputValue(), '50');

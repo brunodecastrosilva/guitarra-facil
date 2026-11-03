@@ -297,19 +297,46 @@ const TECNICAS_TREINO = [
 ];
 const PERMS = (() => { const r = [], p = (resto, s) => { if (!resto.length) r.push(s); resto.forEach((x, i) => p(resto.filter((_, j) => j !== i), s + x)); }; p(['1', '2', '3', '4'], ''); return r; })();
 const permTexto = p => p.split('').join('-');
-// dedos: cromático, aranha e cruzado, mudando a ordem e a casa a cada compasso
+/* dedos (1-2-3-4): previsível. O treino é feito de partes; cada parte tem UMA ordem dos dedos, UM desenho e UMA casa, e
+   percorre as cordas por inteiro, subindo e descendo (ida com a ordem, volta com a ordem ao contrário). O tamanho de
+   cada parte fecha em compassos inteiros. A janela do treino mostra as partes no preview antes de tocar.
+   Iniciante: cromático, ordens que começam no dedo 1, a mesma casa o treino todo.
+   Intermediário: cromático e aranha; a mão sobe uma casa a cada parte (deslocamento pelo braço).
+   Avançado: aranha, aranha cruzada e salto de cordas; a mão sobe duas casas a cada parte.
+   Nos dois últimos, ao chegar na casa 21 a mão volta descendo. */
+const MODOS_DEDOS = {
+  crom: { nome: 'Cromático', max: 6, passo: (i, perm) => perm.map(d => [i, d]) },
+  aranha: { nome: 'Aranha', max: 5, passo: i => [[i, 1], [i + 1, 2], [i, 3], [i + 1, 4]] },
+  cruzada: { nome: 'Aranha cruzada', max: 5, passo: i => [[i, 1], [i + 1, 3], [i, 2], [i + 1, 4]] },
+  pulo: { nome: 'Salto de cordas', max: 4, passo: (i, perm) => [[i, perm[0]], [i + 2, perm[1]], [i, perm[2]], [i + 2, perm[3]]] },
+};
+const FIG_DEDOS = { 1: .5, 2: .25, 3: 1 / 6 };
+// quantas cordas (passos) por sentido cabem numa parte de compassos inteiros, e quantos compassos a parte ocupa
+function tamanhoParte(nivel, modo, compassos) {
+  const porComp = 4 / FIG_DEDOS[nivel], max = MODOS_DEDOS[modo].max, ops = [];
+  for (let S = 1; S <= max; S++) { const notas = 8 * S; if (notas % porComp === 0) { const c = notas / porComp; if (compassos % c === 0) ops.push([S, c]); } }
+  return ops.length ? ops[ops.length - 1] : null;
+}
 function gerarDedos(o) {
-  const { r, nivel, compassos } = o, evs = [], partes = [];
-  const fig = { 1: .5, 2: .25, 3: 1 / 6 }[nivel], porCompasso = Math.round(4 / fig);
-  for (let b = 0; b < compassos; b++) {
-    const perm = nivel === 1 ? r.um(PERMS.filter(p => p[0] === '1')) : r.um(PERMS), casa = 1 + r.i(nivel === 1 ? 5 : 9), modo = nivel === 1 ? 'crom' : r.um(nivel === 2 ? ['crom', 'aranha'] : ['aranha', 'cruzada', 'pulo', 'crom']);
-    partes.push({ i: evs.length, nome: `${modo === 'crom' ? 'Cromático' : modo === 'aranha' ? 'Aranha' : modo === 'cruzada' ? 'Aranha cruzada' : 'Pulando cordas'} ${permTexto(perm)}` });
-    const seq = [];
-    if (modo === 'crom') for (let s = 0; s < 6; s++) perm.split('').forEach(d => seq.push([[s, casa + +d - 1, +d]]));
-    if (modo === 'aranha') for (let s = 0; s < 5; s++) [[s, 1], [s + 1, 2], [s, 3], [s + 1, 4]].forEach(([x, d]) => seq.push([[x, casa + d - 1, d]]));
-    if (modo === 'cruzada') for (let s = 0; s < 5; s++) [[s, 1], [s + 1, 3], [s, 2], [s + 1, 4]].forEach(([x, d]) => seq.push([[x, casa + d - 1, d]]));
-    if (modo === 'pulo') for (let s = 0; s < 4; s++) { perm.split('').forEach(d => seq.push([[s, casa + +d - 1, +d]])); perm.split('').reverse().forEach(d => seq.push([[s + 2, casa + +d - 1, +d]])); }
-    for (let i = 0; i < porCompasso; i++) evs.push(ev(fig, seq[i % seq.length]));
+  const { r, nivel, compassos } = o, fig = FIG_DEDOS[nivel], evs = [], partes = [];
+  const modos = nivel === 1 ? ['crom'] : nivel === 2 ? ['crom', 'aranha'] : ['aranha', 'cruzada', 'pulo', 'crom'];
+  const sobe = nivel === 1 ? 0 : nivel === 2 ? 1 : 2;
+  let comp = 0, k = 0, casa0 = null;
+  while (comp < compassos) {
+    let modo = r.um(modos), tam = tamanhoParte(nivel, modo, compassos - comp);
+    if (!tam) { modo = modos.find(x => tamanhoParte(nivel, x, compassos - comp)) || 'crom'; tam = tamanhoParte(nivel, modo, compassos - comp); }
+    const [S, c] = tam, sorteada = (nivel === 1 ? r.um(PERMS.filter(p => p[0] === '1')) : r.um(PERMS)).split('').map(Number), M = MODOS_DEDOS[modo];
+    const perm = modo === 'aranha' ? [1, 2, 3, 4] : modo === 'cruzada' ? [1, 3, 2, 4] : sorteada; // a aranha tem desenho fixo
+    if (casa0 == null) casa0 = 1 + r.i(nivel === 1 ? 5 : 9);
+    // a mão sobe pelo braço a cada parte e, ao chegar na casa 21, volta descendo (vai e vem previsível)
+    const vai = sobe * k, faixa = 21 - casa0, casa = faixa > 0 ? casa0 + (Math.floor(vai / faixa) % 2 ? faixa - vai % faixa : vai % faixa) : casa0, ida = [], volta = [];
+    for (let i = 0; i < S; i++) M.passo(i, perm).forEach(([cd, d]) => ida.push([cd, casa + d - 1, d]));
+    for (let i = S - 1; i >= 0; i--) M.passo(i, [...perm].reverse()).reverse().forEach(([cd, d]) => volta.push([cd, casa + d - 1, d]));
+    const ultima = Math.max(...ida.map(n => n[0]));
+    partes.push({ i: evs.length, nome: `${M.nome} ${perm.join('-')}`, casa, modo, ordem: perm.join('-'), cordas: ultima + 1,
+      desc: `${modo === 'pulo' ? 'Pulando uma corda' : modo === 'crom' ? 'Uma corda por vez' : 'Duas cordas vizinhas'}, da ${ultima + 1 === 1 ? '6ª corda' : `6ª à ${6 - ultima}ª corda`} e de volta, a partir da casa ${casa}.` });
+    [...ida, ...volta].forEach(n => evs.push(ev(fig, [n])));
+    comp += c; k++;
   }
   return { evs, partes, compasso: M44 };
 }
@@ -366,6 +393,7 @@ function criarModelo({ cat, sub, nivel, tam, i }) {
     gerar, cfg0,
     resumo: () => resumoDe(gerar(cfg0()), compassos) };
   if (m.raizPadrao != null && est && ['hard-rock', 'punk', 'grunge', 'doom'].includes(est.id) && afin === 'padrao') m.raizPadrao = 9; // solo em Lá no rock clássico
+  if (tec && tec.tipo === 'dedos') { m.bpm = { 1: 60, 2: 60, 3: 60 }[nivel]; m.alvo = { 1: 100, 2: 100, 3: 110 }[nivel]; } // um dedo por vez, devagar
   return m;
 }
 // o resumo diz o que o treino tem: técnicas, escala, compasso e tamanho

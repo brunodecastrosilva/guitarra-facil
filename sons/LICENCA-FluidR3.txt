@@ -8,7 +8,7 @@ Os sons desta pasta vêm do banco Fluid (R3), sob a licença MIT reproduzida aba
 - sons/baixo: baixo de dedo (programa 34, "Electric Bass (finger)") do FluidR3_GM, na mesma conversão para web,
   uma nota por arquivo (MIDI 21 a 52).
 - sons/fundo: cordas (programa 49, "String Ensemble 1") do FluidR3_GM, na mesma conversão, MIDI 45 a 71.
-- sons/bateria: peças do kit padrão e o clique de metrônomo do FluidR3Mono_GM (conversão mono de Michael Cowgill,
+- sons/bateria: peças do kit padrão e, no metrônomo, os blocos de madeira alto e baixo (notas 76 e 77) do FluidR3Mono_GM (conversão mono de Michael Cowgill,
   distribuída com o MuseScore 3), tocadas uma a uma e gravadas em MP3.
 
 Fluid (R3) SoundFont

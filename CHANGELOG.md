@@ -2,6 +2,17 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.19.0 · 2026-11-03
+
+- Preview antes de tocar: todo treino abre num roteiro com cada parte desenhada no braço (onde começa, a ordem das notas com setas e o número do dedo), um botão para ouvir só aquela parte, a duração e o andamento. O Começar fica preso no rodapé. No palco, o botão Roteiro volta ao preview.
+- Pausa entre treinos: na sessão e no treino do dia, o som para no fim de cada treino. Você diz se saiu limpo, vê o que vem a seguir, com o desenho, e só segue ao tocar em "Ver o próximo", que abre o preview dele.
+- 1-2-3-4 previsível: cada parte tem uma ordem dos dedos, um desenho e uma casa, e percorre as cordas inteiras, subindo e descendo. No iniciante, a casa não muda e as ordens começam no dedo 1. No intermediário, a mão sobe uma casa a cada parte; no avançado, duas casas, com aranha, aranha cruzada e salto de cordas. Tudo aparece no preview antes de tocar.
+- O 1-2-3-4 começa em 60 bpm em todos os níveis (antes herdava o andamento dos riffs, até 105 bpm no iniciante).
+- Sessão de hoje mais curta: cada etapa vira uma linha, que abre para ver, trocar, tirar e mudar a ordem dos treinos. O Começar fica preso embaixo da tela, sem precisar rolar.
+- Metrônomo com bloco de madeira gravado (alto no 1º tempo, baixo nos outros), no lugar do sino.
+- Correção: quem parava no meio de uma sessão e apertava ▶ de novo voltava ao primeiro treino. Agora recomeça no mesmo treino.
+- Correção: a aranha mostrava uma ordem de dedos sorteada no nome, mas tocava sempre 1-2-3-4.
+
 ## 0.18.0 · 2026-11-03
 
 - Os treinos agora ocupam a tela inteira: o app não aparece atrás do player e braço, tablatura, orientação e controles formam um ambiente único de foco.

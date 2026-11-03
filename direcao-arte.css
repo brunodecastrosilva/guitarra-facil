@@ -149,3 +149,40 @@
 }
 @media(max-height:550px) and (orientation:landscape){.gf-player .tr-ctrl{flex-direction:row}.gf-player .kf-dlg-pe{padding:6px 12px}.gf-player .kf-dlg-cab{padding:4px 12px}.gf-player .play-grande{width:44px;height:44px}}
 @media(prefers-reduced-motion:reduce){.braco-tr .nt[class*="an-"],.braco-tr .nt[class*="an-"] > *{animation:none}}
+
+/* preview do treino: o roteiro antes de tocar (0.19.0) */
+.tr-prev[hidden],.tr-pe-prev[hidden],#tr-transporte[hidden],.tr-acoes[hidden]{display:none!important}
+.tr-prev{display:grid;gap:12px}
+.tr-prev-sup{margin:0;font:800 12px var(--kf-font);letter-spacing:.06em;text-transform:uppercase;color:var(--kf-muted)}
+.tr-prev-t{margin:0;font:800 24px/1.15 var(--kf-font-display)}
+.tr-prev-res{margin:0;color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+.tr-prev-dica{margin:0;padding:12px 14px;border-radius:var(--kf-r-md);background:var(--kf-surface-2);font-size:var(--kf-t-corpo)}
+.tr-prev-partes{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tr-prev-parte{display:grid;gap:8px;padding:12px;border-radius:var(--kf-r-md);background:var(--kf-surface);box-shadow:inset 0 0 0 1px var(--kf-line)}
+.tr-prev-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.tr-prev-cab .ld-tx{flex:1 1 160px;min-width:0}.tr-prev-cab small{display:block;color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+.tr-prev-ouvir{min-height:44px}.tr-prev-ouvir.on{box-shadow:inset 0 0 0 2px var(--gf-vermelho)}
+.mini-parte{display:block;width:100%;max-width:520px;height:auto;overflow:visible;border-radius:10px;background:var(--kf-surface-2)}
+.mini-parte .mp-corda{stroke:var(--kf-line-2);stroke-width:1}.mini-parte .mp-traste{stroke:var(--kf-line);stroke-width:1.5}
+.mini-parte .mp-caminho{fill:none;stroke:var(--gf-vermelho);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;opacity:.85}
+.mini-parte .mp-seta{fill:var(--gf-vermelho)}
+.mini-parte .mp-nota circle{fill:var(--kf-surface);stroke:var(--kf-ink);stroke-width:1.5}.mini-parte .mp-nota text{font:800 11px var(--kf-font);fill:var(--kf-ink)}
+.mini-parte .mp-nota.ini circle{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}.mini-parte .mp-nota.ini text{fill:#fff}
+.mini-parte .mp-lado{stroke-width:2}.mini-parte .mp-volta{stroke-dasharray:4 3}
+.mp-ini-leg{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--gf-vermelho);vertical-align:-1px}
+.tr-pe-prev{display:flex;gap:10px}.tr-pe-prev .kf-btn{flex:1 1 0;min-height:52px}.tr-comecar{font-size:17px}
+/* pausa entre treinos: o que vem a seguir */
+.tr-seguir{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--kf-line)}
+.tr-seguir-it{display:flex;gap:12px;align-items:center}.tr-seguir-it small{display:block;color:var(--kf-muted)}
+
+/* sessão de hoje: etapas em linhas que abrem, Começar preso embaixo (0.19.0) */
+.ses-etapas{grid-template-columns:minmax(0,1fr)}.ses-etapa{list-style:none;min-width:0}.ses-etapa > details{padding:0;min-width:0}.ses-etapa summary{min-width:0}
+.ses-etapa summary.ses-cab{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:56px;cursor:pointer;list-style:none}
+.ses-etapa summary.ses-cab::-webkit-details-marker{display:none}
+.ses-etapa summary .ld-tx{flex:1;min-width:0}.ses-etapa summary small{display:block;color:var(--kf-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ses-min{font-weight:600;color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+.ses-corpo{display:grid;gap:8px;padding:0 14px 14px}.ses-corpo > .apoio{margin:0}
+.ses-etapa-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.ses-dica{margin:0}
+.ses-pe{position:sticky;bottom:calc(var(--kf-nav-h,64px) + env(safe-area-inset-bottom,0px) + 10px);z-index:6;padding-top:6px}
+.ses-pe .ses-comecar{width:100%;min-height:56px;font-size:17px;box-shadow:var(--kf-shadow)}
+@media (min-width:1024px){.ses-pe{bottom:16px}}

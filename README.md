@@ -2,7 +2,7 @@
 
 Ambiente visual e interativo para aprender, explorar e criar na guitarra, do primeiro contato ao estudo avançado. O braço virtual, a tablatura e o som trabalham juntos; a interface usa uma identidade escura, premium e direta, com vermelho como acento.
 
-**Fase de testes** · versão 0.18.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.19.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 O app faz parte do Projeto Fácil. As regras globais e o padrão técnico em `comum/PADRAO.md` têm precedência.
 
@@ -21,13 +21,20 @@ Em **Mais** ficam Afinador, Metrônomo, Bateria, Biblioteca, Acordes, Progresso 
 
 - **Exercícios identificados por número e objetivo:** por exemplo, `#0001 · Praticar palhetada alternada`. Nomes fantasiosos e rótulos públicos de gênero não fazem parte da escolha.
 - **Treino em tela cheia:** braço, tablatura, orientação, andamento e reprodução formam um ambiente único de foco. A tablatura pode rolar horizontalmente quando a linha exigir.
+- **Preview antes de tocar:** todo treino abre num roteiro com cada parte desenhada no braço (onde começa, a ordem
+  com setas, o dedo), um botão para ouvir só a parte e o Começar preso no rodapé. O botão Roteiro volta a ele.
+- **Pausa entre treinos:** na sessão e no treino do dia, o som para no fim de cada treino; a pessoa marca se saiu
+  limpo, vê o próximo e segue com "Ver o próximo", que abre o preview dele. Parar e recomeçar fica no mesmo treino.
+- **1-2-3-4 previsível:** uma ordem, um desenho e uma casa por parte, subindo e descendo as cordas inteiras.
+  Iniciante sem mudar de casa; intermediário sobe uma casa por parte; avançado sobe duas, com aranha e salto de
+  cordas. 60 bpm de partida.
 - **Técnicas animadas:** bends, slides, hammer-ons, pull-offs, tapping e vibrato têm demonstrações lentas, etapas e instruções visuais.
-- **Sessões adaptáveis:** preparação, aquecimento, treino principal, aplicação musical e encerramento dentro do tempo escolhido.
+- **Sessões adaptáveis:** preparação, aquecimento, treino principal, aplicação musical e encerramento dentro do tempo escolhido. Na tela, cada etapa é uma linha que abre para editar, e o Começar fica preso embaixo.
 - **Caminho do iniciante:** progressão visual do primeiro toque ao primeiro solo, sem impedir a exploração livre.
 - **Biblioteca unificada:** trechos para praticar, repertório pessoal e referências organizadas pelo que se pode aprender. Substitui as antigas telas separadas de Biblioteca e Músicas.
 - **Acordes:** mais de 100 formas abertas e móveis, busca por nome ou cifra, famílias, diagramas para destros e canhotos, notas, fórmula, instruções, som e integração com o braço e os treinos.
 - **Progresso:** histórico, metas, competências, andamentos e conquistas. O app diferencia prática registrada de habilidade efetivamente avaliada.
-- **Áudio local:** guitarra, baixo, cordas de fundo, bateria e metrônomo usam gravações FluidR3 sob licença MIT e funcionam sem internet depois de armazenados.
+- **Áudio local:** guitarra, baixo, cordas de fundo, bateria e metrônomo (bloco de madeira) usam gravações FluidR3 sob licença MIT e funcionam sem internet depois de armazenados.
 
 ## Privacidade e dados
 
