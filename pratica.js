@@ -114,7 +114,8 @@ function tabSVG(ex) {
       const suf = T.filter(k => !(ligados && par && ['h', 'p', 's'].includes(k))).map(k => TEC_TAB[k] || '').join('');
       if (ligados && par) { const ant = ex.evs[i-1], x0 = x - ant.d * PX + 3, x1 = x + 3, yy = y(e.n[0][0]) - 12;
         s += T.includes('s') ? `<path d="M${x0 + 9} ${yy + (par.de < par.ate ? 4 : -4)}L${x1 - 5} ${yy + (par.de < par.ate ? -4 : 4)}" class="tab-art"/>` : `<path d="M${x0} ${yy}Q${(x0+x1)/2} ${yy-18} ${x1} ${yy}" class="tab-art"/><text x="${(x0+x1)/2}" y="${yy-12}" text-anchor="middle" class="tab-tec">${T.includes('h') ? 'H' : 'P'}</text>`; }
-      s += `<g class="tab-n" data-i="${i}"><title>${esc(e.n.map(([c,k]) => `${N-c}ª corda, casa ${k}`).join('; '))}${T.length ? ': ' + esc(T.map(k => TEC_NOMES[k] || k).join(', ')) : ''}</title>` + e.n.map(([c, k]) => { const rot = T.includes('x') ? 'x' : T.includes('harm') ? `<${k}>` : k + suf; return `<rect x="${x - 2}" y="${y(c) - 8}" width="${String(rot).length * 7.4 + 6}" height="16" rx="4"/><text x="${x + 1}" y="${y(c) + 4.5}">${esc(String(rot))}</text>`; }).join('') + '</g>';
+      const ys = e.n.map(([c]) => y(c)), centroY = (Math.min(...ys) + Math.max(...ys)) / 2, hitH = Math.max(32, Math.max(...ys) - Math.min(...ys) + 22);
+      s += `<g class="tab-n" data-i="${i}"><rect class="tab-alvo" x="${x-4}" y="${centroY-hitH/2}" width="${Math.max(22, String(e.n[0][1] + suf).length * 7.4 + 10)}" height="${hitH}"/><title>${esc(e.n.map(([c,k]) => `${N-c}ª corda, casa ${k}`).join('; '))}${T.length ? ': ' + esc(T.map(k => TEC_NOMES[k] || k).join(', ')) : ''}</title>` + e.n.map(([c, k]) => { const rot = T.includes('x') ? 'x' : T.includes('harm') ? `<${k}>` : k + suf; return `<rect x="${x - 2}" y="${y(c) - 8}" width="${String(rot).length * 7.4 + 6}" height="16" rx="4"/><text x="${x + 1}" y="${y(c) + 4.5}">${esc(String(rot))}</text>`; }).join('') + '</g>';
     }
     t += e.d;
   });

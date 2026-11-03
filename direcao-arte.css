@@ -50,6 +50,7 @@
 .tab-n.agora rect{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}
 .tab-n.agora text{fill:#fff}
 .tab-n rect{stroke-width:1}
+.tab-n .tab-alvo{fill:transparent!important;stroke:none!important;pointer-events:all}
 .tr-criterios{text-align:left;margin:0;padding-left:20px;font-size:14px;line-height:1.6}
 /* Diagramas de gesto: a mão da escala tem contorno; a mão da palheta tem hachura e a letra T. */
 .gesto-aula{display:flex;flex-direction:column;gap:16px;min-width:0}

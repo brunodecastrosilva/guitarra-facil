@@ -762,9 +762,9 @@ test('direção de arte: slide respeita pares reais e não atravessa pausas ou c
   const a = await aparelho(amb), p = a.page; await pronto(p);
   const r = await p.evaluate(() => {
     const ex = { nome: 'Teste', afin: MIDI_SOLTAS, evs: [{ d: 1, n: [[2, 9]] }, { d: 1, n: [[2, 5]], t: 's' }, { d: 1, n: [] }, { d: 1, n: [[2, 7]], t: 's' }, { d: 1, n: [[3, 8]], t: 'h' }] };
-    return { par: ligacaoTecnica(ex, 1, 2), pausa: ligacaoTecnica(ex, 3, 2), corda: ligacaoTecnica(ex, 4, 3), demo: demonstracoesDe(ex), arcos: tabSVG(ex) };
+    return { par: ligacaoTecnica(ex, 1, 2), pausa: ligacaoTecnica(ex, 3, 2), corda: ligacaoTecnica(ex, 4, 3), solta: ligacaoTecnica({ evs: [{ n: [[2,0]] }, { n: [[2,7]], t: 's' }] }, 1, 2), demo: demonstracoesDe(ex), arcos: tabSVG(ex) };
   });
-  assert.deepEqual(r.par, { de: 9, ate: 5, corda: 2 }); assert.equal(r.pausa, null); assert.equal(r.corda, null);
+  assert.deepEqual(r.par, { de: 9, ate: 5, corda: 2 }); assert.equal(r.pausa, null); assert.equal(r.corda, null); assert.equal(r.solta, null, 'slide não começa na corda solta');
   assert.equal(r.demo.find(x => x.k === 's').exemplo, false);
   assert.equal(r.demo.find(x => x.k === 'h').exemplo, true, 'origem ausente é identificada como exemplo de base');
   assert.match(r.arcos, /class="tab-art"/);

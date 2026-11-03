@@ -14,6 +14,8 @@ const GESTOS = {
 function ligacaoTecnica(ex, i, c) {
   const atual = ex.evs[i]?.n.find(n => n[0] === c), anterior = ex.evs[i - 1]?.n.find(n => n[0] === c);
   if (!atual || !anterior || anterior[1] === atual[1]) return null;
+  const T = tecs(ex.evs[i]);
+  if (T.includes('s') && (!anterior[1] || !atual[1]) || T.includes('h') && atual[1] <= anterior[1] || T.includes('p') && atual[1] >= anterior[1]) return null;
   return { de: anterior[1], ate: atual[1], corda: c };
 }
 function demonstracoesDe(ex) {
@@ -45,7 +47,7 @@ function cenaTecnica(q, progresso) {
   let s = `<svg viewBox="0 0 520 270" role="img" aria-label="${esc(GESTOS[k].nome)}: ${esc(GESTOS[k].passos[Math.min(2, Math.floor(p * 3))])}. Vista esquemática dos dedos e de uma corda."><rect x="40" y="80" width="440" height="116" rx="12" class="gesto-madeira"/>`;
   for (let casa = a; casa <= b + 1; casa++) s += `<path d="M${65 + (casa - a) * passo} 80v116" class="gesto-traste"/>${casa <= b ? `<text x="${x(casa)}" y="218" text-anchor="middle" class="gesto-casa">${casa}</text>` : ''}`;
   [105, 171].forEach(yy => s += `<path d="M40 ${yy}H480" class="gesto-outra"/>`);
-  s += `<path d="M40 ${y}L${fx} ${y - desloc}L480 ${y}" class="gesto-corda"/>`;
+  s += `<path d="M40 ${y}L${bend ? x(de-2) : fx} ${y - desloc}L${fx} ${y - desloc}L480 ${y}" class="gesto-corda"/>`;
   // Cada dedo é desenhado como silhueta com articulação e unha; o apoio não desaparece no ligado.
   const dedo = (cx, cy, numero, outra = false, apoio = false) => `<g class="gesto-dedo${outra ? ' outra-mao' : ''}${apoio ? ' apoio' : ''}" transform="translate(${cx} ${cy})${outra ? ' rotate(180)' : ''}"><path d="M-15 85v-65C-15-4 15-4 15 20v65"/><path d="M-10 40h20M-8 15q8-7 16 0v11H-8Z" class="gesto-unha"/><text y="65" text-anchor="middle"${outra ? ' transform="rotate(180 0 61)"' : ''}>${numero}</text></g>`;
   if (bend) { s += dedo(x(de - 2), y - desloc - 4, '1', false, true) + dedo(x(de - 1), y - desloc - 4, '2', false, true); }
