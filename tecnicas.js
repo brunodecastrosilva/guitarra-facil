@@ -20,19 +20,21 @@ function demonstracoesDe(ex) {
   const vistas = new Map();
   ex.evs.forEach((e, i) => tecs(e).forEach(k => {
     if (!GESTOS[k] || vistas.has(k) || !e.n.length) return;
-    const [c, casa] = e.n[0], par = ligacaoTecnica(ex, i, c);
-    const valido = par && (k === 'h' ? par.ate > par.de && par.de > 0 : k === 'p' ? par.ate < par.de && par.ate > 0 : k === 's' ? par.de > 0 && par.ate > 0 : true);
-    const exemplo = ['h', 'p', 's', 't'].includes(k) && !valido || casa === 0;
+    const [c, casa] = e.n[0]; let par = ligacaoTecnica(ex, i, c);
+    const baseTap = ex.evs[i+1]?.n.find(n => n[0] === c && n[1] > 0 && n[1] < casa);
+    if (k === 't' && !par && baseTap) par = { de: baseTap[1], ate: casa, corda: c };
+    const valido = par && (k === 'h' ? par.ate > par.de && par.de > 0 : k === 'p' ? par.ate < par.de && par.ate > 0 : k === 's' ? par.de > 0 && par.ate > 0 : k === 't' ? par.ate > par.de && par.de > 0 : true);
+    const exemplo = ['h', 'p', 's', 't'].includes(k) && !valido || casa === 0 || ['b', 'b2'].includes(k) && casa < 3;
     let de = par?.de ?? casa, ate = casa;
     if (exemplo) { de = k === 'p' ? 7 : 5; ate = k === 'p' ? 5 : k === 't' ? 12 : 7; }
-    if (k === 'b' || k === 'b2' || k === 'v') de = ate = casa || 7;
+    if (k === 'b' || k === 'b2' || k === 'v') de = ate = exemplo ? 7 : casa;
     vistas.set(k, { k, c, de, ate, exemplo, base: ex.afin[c] + de, afin: ex.afin[c], cordas: ex.afin.length });
   }));
   return [...vistas.values()];
 }
 function cenaTecnica(q, progresso) {
   const { k, de, ate } = q, p = progresso, suave = t => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
-  const a = Math.max(1, Math.min(de, ate) - 1), b = Math.max(de, ate) + 1, passo = 390 / (b - a + 1);
+  const a = Math.max(1, Math.min(de, ate) - (['b', 'b2'].includes(k) ? 2 : 1)), b = Math.max(de, ate) + 1, passo = 390 / (b - a + 1);
   const x = casa => 65 + (casa - a + .76) * passo;
   const orig = x(de), dest = x(ate), y = 138;
   const subir = suave((p - .2) / .28), voltar = suave((p - .78) / .22);
@@ -46,7 +48,7 @@ function cenaTecnica(q, progresso) {
   s += `<path d="M40 ${y}L${fx} ${y - desloc}L480 ${y}" class="gesto-corda"/>`;
   // Cada dedo é desenhado como silhueta com articulação e unha; o apoio não desaparece no ligado.
   const dedo = (cx, cy, numero, outra = false, apoio = false) => `<g class="gesto-dedo${outra ? ' outra-mao' : ''}${apoio ? ' apoio' : ''}" transform="translate(${cx} ${cy})${outra ? ' rotate(180)' : ''}"><path d="M-15 85v-65C-15-4 15-4 15 20v65"/><path d="M-10 40h20M-8 15q8-7 16 0v11H-8Z" class="gesto-unha"/><text y="65" text-anchor="middle"${outra ? ' transform="rotate(180 0 61)"' : ''}>${numero}</text></g>`;
-  if (bend) { s += dedo(orig - 48, y - desloc - 4, '1', false, true) + dedo(orig - 24, y - desloc - 4, '2', false, true); }
+  if (bend) { s += dedo(x(de - 2), y - desloc - 4, '1', false, true) + dedo(x(de - 1), y - desloc - 4, '2', false, true); }
   if (h || pull || tap) s += dedo(x(Math.min(de, ate)), y - 4, '1', false, true);
   s += dedo(fx, y - desloc - 4 + (tap ? -levantar : levantar), tap ? 'T' : h || pull || bend ? '3' : '1', tap);
   if (slide) s += `<path d="M${orig} 57H${dest}" class="gesto-trajeto"/><text x="${(orig + dest) / 2}" y="43" text-anchor="middle" class="gesto-anotacao">${ate > de ? 'Deslize →' : '← Deslize'}</text>`;
@@ -60,9 +62,9 @@ function montarDemonstracao(el, ex) {
   const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
   el.innerHTML = `<div class="gesto-cab"><span class="gesto-sobretitulo">Observe o movimento</span><h3 tabindex="-1">Entenda antes de tocar</h3><p>Vista esquemática para destros. Em posição canhota, inverta as mãos.</p></div>
     <div class="gesto-escolhas" role="group" aria-label="Técnica para demonstrar">${lista.map((d, i) => `<button type="button" class="kf-btn kf-sec" data-gesto="${d.k}" aria-pressed="${i === 0}">${esc(GESTOS[d.k].nome)}</button>`).join('')}</div>
-    <p class="gesto-contexto"></p><div class="gesto-cena"></div>
+    <p class="gesto-contexto"></p><div class="gesto-layout"><div class="gesto-cena"></div><div class="gesto-explicacao">
     <ol class="gesto-etapas">${[0, 1, 2].map(i => `<li><button type="button" data-etapa="${i}"><span>${i + 1}</span><b></b></button></li>`).join('')}</ol>
-    <p class="gesto-instrucao" aria-live="polite"></p>
+    <p class="gesto-instrucao" aria-live="polite"></p></div></div>
     <div class="gesto-transporte"><button type="button" class="kf-btn kf-pri" data-gesto-play>Ver devagar</button><label>Movimento<input type="range" min="0" max="100" value="0" step="1" aria-label="Posição da demonstração"></label></div>
     <p class="apoio gesto-reduzido"${reduzido.matches ? '' : ' hidden'}>Movimento reduzido: use as três etapas ou a barra para observar cada posição.</p><p class="gesto-criterio"></p>`;
   const range = $('input', el), play = $('[data-gesto-play]', el);

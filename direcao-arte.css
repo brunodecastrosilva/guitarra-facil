@@ -4,6 +4,7 @@
 .gf-player .kf-dlg-cab h2{font:800 21px/1.25 var(--kf-font)}
 .gf-player .kf-dlg-corpo{padding:4px 24px 20px}
 .gf-player .kf-dlg-pe{display:flex;flex-direction:column;flex-shrink:0;gap:10px;padding:12px 24px 16px;background:var(--kf-surface)}
+.gf-player .kf-dlg-pe > .kf-btn{flex:0 0 auto;min-height:44px}
 .gf-player .kf-dlg-pe [hidden],.tr-aprender[hidden],.gesto-aula[hidden]{display:none!important}
 .gf-player .tr-ctrl{display:flex;flex-direction:row;justify-content:space-between;gap:20px;margin:0}
 .gf-player .tr-bpm{gap:6px}
@@ -59,8 +60,10 @@
 .gesto-escolhas .kf-btn{font-size:14px}
 .gesto-escolhas [aria-pressed="true"]{background:var(--kf-ink);color:var(--kf-bg);border-color:var(--kf-ink)}
 .gesto-contexto{margin:0;font:500 13px/1.5 var(--kf-font);color:var(--kf-muted)}
+.gesto-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+.gesto-explicacao{display:flex;flex-direction:column;gap:16px}
 .gesto-cena{background:var(--kf-surface);border:1px solid var(--kf-line);border-radius:18px;overflow:hidden}
-.gesto-cena svg{display:block;width:100%;height:auto;max-height:320px}
+.gesto-cena svg{display:block;width:100%;height:auto;max-height:290px}
 .gesto-madeira{fill:var(--kf-surface-2)}
 .gesto-traste{stroke:var(--kf-line-2);stroke-width:3}
 .gesto-outra{stroke:var(--kf-muted);stroke-width:1;opacity:.4}
@@ -73,8 +76,8 @@
 .gesto-dedo text{font:800 14px var(--kf-font);fill:var(--kf-ink)}
 .gesto-trajeto{stroke:var(--gf-vermelho-tx);stroke-width:2;stroke-dasharray:5 4;fill:none}
 .gesto-anotacao{font:700 14px var(--kf-font);fill:var(--kf-ink)}
-.gesto-etapas{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0;margin:0}
-.gesto-etapas button{width:100%;min-height:64px;padding:10px;border:1px solid var(--kf-line);border-radius:12px;background:var(--kf-surface);color:var(--kf-muted);font:600 14px/1.3 var(--kf-font);cursor:pointer;text-align:left}
+.gesto-etapas{list-style:none;display:grid;grid-template-columns:1fr;gap:8px;padding:0;margin:0}
+.gesto-etapas button{width:100%;min-height:48px;padding:10px;border:1px solid var(--kf-line);border-radius:12px;background:var(--kf-surface);color:var(--kf-muted);font:600 14px/1.3 var(--kf-font);cursor:pointer;text-align:left}
 .gesto-etapas span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;margin-right:8px;background:var(--kf-surface-2);color:var(--kf-ink)}
 .gesto-etapas [aria-current="step"]{border-color:var(--gf-vermelho-tx);box-shadow:inset 0 -3px 0 var(--gf-vermelho);color:var(--kf-ink)}
 .gesto-instrucao{margin:0;min-height:3em;line-height:1.5}
@@ -85,6 +88,10 @@
 .gesto-etapas button:focus-visible,.gesto-transporte input:focus-visible{outline:3px solid var(--kf-focus);outline-offset:3px}
 /* Nomes longos nos diagramas de acordes preservam a leitura. */
 .acordes b{font:700 16px/1.3 var(--kf-font)}
+@media(max-width:719px){
+ .gesto-layout{grid-template-columns:1fr;gap:16px}
+ .gesto-etapas{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 @media(max-width:600px){
  .gf-player .kf-dlg-cab{padding:12px 8px 10px 16px}
  .gf-player .kf-dlg-cab h2{font-size:18px}

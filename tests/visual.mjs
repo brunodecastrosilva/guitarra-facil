@@ -25,6 +25,7 @@ try {
     await p.locator('.seq').waitFor();
     await p.evaluate(id => abrirTreino(id), id);
     await p.click('#tr-demonstrar'); await p.click('[data-etapa="1"]');
+    await p.locator('.kf-dlg-corpo').evaluate(e => e.scrollTop = 0);
     await p.screenshot({ path: `revisao-visual/desktop-${nome}.png` });
     if (a.erros.length) throw new Error(a.erros.join('\n'));
     await a.fechar();
