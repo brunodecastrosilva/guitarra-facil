@@ -1,7 +1,8 @@
 /* Guitarra Fácil · sessões por duração e rotinas próprias (Documento Mestre, seção 5).
    A pessoa escolhe quanto tempo tem; o app monta a sessão com as etapas da seção 5.2 (preparo, aquecimento, treino
    principal, aplicação musical e encerramento), repartindo o tempo entre elas em vez de cortar no fim. Cada treino
-   escolhido sai do modelo único de exercício (exercicios.js) e respeita o perfil (experiência, objetivos e gosto) e a
+   escolhido sai do modelo único de exercício (exercicios.js) e respeita experiência, objetivos e histórico, sem
+   classificar a prática por gênero musical, e a
    competência menos treinada. Tudo pode ser trocado, tirado, acrescentado e reordenado, e a sessão pode virar uma rotina
    guardada (DB.rotinas, sincronizada). Os treinos tocam em fila na janela do treino, cada um com as suas voltas. */
 'use strict';
@@ -9,7 +10,7 @@ const ETAPAS_SESSAO = [
   ['preparo', 'Preparo', 'Pulsos, mãos e ombros soltos antes de tocar.', .1],
   ['aquecimento', 'Aquecimento', 'Dedos e palhetada devagar.', .15],
   ['principal', 'Treino principal', 'A competência que mais precisa de você agora.', .4],
-  ['aplicacao', 'Aplicação musical', 'Um riff ou um solo do seu estilo.', .25],
+  ['aplicacao', 'Aplicação musical', 'Um riff ou solo para aplicar a técnica.', .25],
   ['encerramento', 'Encerramento', 'Uma escala calma para fechar.', .1],
 ];
 const DURACOES = [10, 20, 30, 45, 60];
@@ -47,7 +48,7 @@ const segundosDaVolta = id => { const m = modelo(id), v = volta(m, cfgPadrao(m))
 const voltasPara = (id, min) => Math.max(2, Math.min(24, Math.round(min * 60 / Math.max(2, segundosDaVolta(id)))));
 // candidatos de cada etapa (sem repetir o que já está na sessão)
 function candidatos(etapa, n, usados) {
-  const p = perfil(), gostos = p.gostos && p.gostos.length ? p.gostos : null, objs = p.objetivos || [];
+  const p = perfil(), objs = p.objetivos || [];
   const livre = m => !usados.has(m.id);
   if (etapa === 'aquecimento') return MODELOS.filter(m => m.cat === 'tecnica' && ['dedos', 'alternada', 'legato', 'economia'].includes(m.sub) && m.nivel === n && m.tamanho === 'moderado' && livre(m));
   if (etapa === 'principal') {
@@ -58,7 +59,7 @@ function candidatos(etapa, n, usados) {
   }
   if (etapa === 'aplicacao') {
     const cats = objs.includes('solos') && !objs.includes('riffs') ? ['solos'] : objs.includes('riffs') && !objs.includes('solos') ? ['riffs'] : ['riffs', 'solos'];
-    const L = MODELOS.filter(m => cats.includes(m.cat) && m.nivel === n && m.tamanho === 'moderado' && (!gostos || gostos.includes(m.estilo)) && livre(m));
+    const L = MODELOS.filter(m => cats.includes(m.cat) && m.nivel === n && m.tamanho === 'moderado' && livre(m));
     return L.length ? L : MODELOS.filter(m => cats.includes(m.cat) && m.nivel === n && m.tamanho === 'moderado' && livre(m));
   }
   if (etapa === 'encerramento') return MODELOS.filter(m => m.cat === 'escalas' && m.grupo === 'Escala' && m.nivel === Math.min(n, 2) && livre(m));
@@ -91,8 +92,8 @@ VIEWS.sessao = () => {
       <div class="ses-cab"><span class="cam-n" aria-hidden="true">${ei + 1}</span><span class="ld-tx"><b>${esc(nomeEtapa(e.tipo))}</b><small>${esc((ETAPAS_SESSAO.find(x => x[0] === e.tipo) || [, , ''])[2])} · ${e.tipo === 'preparo' ? e.min : e.itens.reduce((x, i) => x + i.min, 0)} min</small></span>
         <span class="ses-acoes"><button type="button" class="kf-btn kf-sec ses-mini" data-ses-etapa-subir="${ei}" aria-label="Subir a etapa ${esc(nomeEtapa(e.tipo))}"${ei === 0 ? ' disabled' : ''}>↑</button><button type="button" class="kf-btn kf-sec ses-mini" data-ses-etapa-tirar="${ei}" aria-label="Tirar a etapa ${esc(nomeEtapa(e.tipo))}">×</button></span></div>
       ${e.tipo === 'preparo' ? `<div class="ses-preparo">${PREPARO.map(([n, d, il]) => `<div class="ses-mov"><span class="ld-ilu">${il}</span><small><b>${esc(n)}</b>${esc(d)}</small></div>`).join('')}</div>`
-        : `<ul class="tr-lista ses-itens">${e.itens.map((it, ii) => { const m = modelo(it.id); if (!m) return ''; const v = volta(m, cfgPadrao(m)); return `<li class="ses-item">${miniDesenho(v)}<span class="ld-tx"><b>${esc(m.nome)}</b><small>${esc(tituloDe(m).split(' · ').slice(1).join(' · ') || m.grupo || '')} · ${voltasPara(it.id, it.min)} voltas · ${it.min} min</small></span>
-          <span class="ses-acoes"><button type="button" class="kf-btn kf-sec ses-mini" data-ses-subir="${ei}:${ii}" aria-label="Subir ${esc(m.nome)}"${ii === 0 ? ' disabled' : ''}>↑</button><button type="button" class="kf-btn kf-sec ses-mini" data-ses-trocar="${ei}:${ii}" aria-label="Trocar ${esc(m.nome)}">${I.sortear}</button><button type="button" class="kf-btn kf-sec ses-mini" data-ses-tirar="${ei}:${ii}" aria-label="Tirar ${esc(m.nome)}">×</button></span></li>`; }).join('')}</ul>
+        : `<ul class="tr-lista ses-itens">${e.itens.map((it, ii) => { const m = modelo(it.id); if (!m) return ''; const v = volta(m, cfgPadrao(m)), titulo = tituloDe(m); return `<li class="ses-item">${miniDesenho(v)}<span class="ld-tx"><b>${esc(titulo)}</b><small>${esc(m.grupo || nomeCategoria(m.cat))} · ${voltasPara(it.id, it.min)} voltas · ${it.min} min</small></span>
+          <span class="ses-acoes"><button type="button" class="kf-btn kf-sec ses-mini" data-ses-subir="${ei}:${ii}" aria-label="Subir ${esc(titulo)}"${ii === 0 ? ' disabled' : ''}>↑</button><button type="button" class="kf-btn kf-sec ses-mini" data-ses-trocar="${ei}:${ii}" aria-label="Trocar ${esc(titulo)}">${I.sortear}</button><button type="button" class="kf-btn kf-sec ses-mini" data-ses-tirar="${ei}:${ii}" aria-label="Tirar ${esc(titulo)}">×</button></span></li>`; }).join('')}</ul>
         <button type="button" class="kf-btn kf-sec ses-mais" data-ses-mais="${ei}">${I.mais || '+'}Mais um treino nesta etapa</button>`}</li>`).join('')}</ol>
     ${S.etapas.length < ETAPAS_SESSAO.length ? `<div class="ses-volta">${ETAPAS_SESSAO.filter(([t]) => !S.etapas.some(e => e.tipo === t)).map(([t, nome]) => `<button type="button" class="kf-btn kf-sec" data-ses-etapa-por="${t}">${I.mais || '+'}${esc(nome)}</button>`).join('')}</div>` : ''}
     <div class="ses-fim"><button type="button" class="kf-btn kf-pri" data-ses-comecar${S.etapas.some(e => e.itens.length) ? '' : ' disabled'}>${I.play}Começar a sessão</button>

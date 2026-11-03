@@ -2,9 +2,9 @@
   "id": "/guitarra-facil/",
   "name": "Guitarra Fácil",
   "short_name": "Guitarra Fácil",
-  "description": "Treinos de guitarra elétrica no seu andamento, com o braço desenhado, teoria, metrônomo e afinador",
+  "description": "Ambiente visual e interativo para aprender, explorar e criar na guitarra",
   "lang": "pt-BR",
-  "start_url": "/guitarra-facil/#/hoje",
+  "start_url": "/guitarra-facil/#/inicio",
   "scope": "/guitarra-facil/",
   "display": "standalone",
   "orientation": "any",
@@ -16,7 +16,7 @@
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Trilha", "url": "./#/trilha", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Metrônomo", "url": "./#/ferramentas", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Treinos", "url": "./#/treinos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Explorar o braço", "url": "./#/explorar", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

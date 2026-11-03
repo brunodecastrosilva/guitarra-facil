@@ -1,7 +1,7 @@
 /* Guitarra Fácil · base comum das telas: versão, atalhos do DOM, ícones, ilustrações e peças de tela (migalhas e botão grande).
    Carrega antes de todos os outros arquivos do app */
 'use strict';
-const VERSAO = '0.17.0';
+const VERSAO = '0.18.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -66,6 +66,27 @@ const ILU = {
   'te-ritmo': ilu('<ellipse cx="14" cy="36" rx="6" ry="4.4" class="il-n"/><path d="M19.5 35V10" class="il-l il-g"/><ellipse cx="34" cy="36" rx="6" ry="4.4" class="il-n"/><ellipse cx="50" cy="32" rx="6" ry="4.4" class="il-a"/><path d="M39.5 35V12h16v19" class="il-l il-g"/><path d="M39.5 12h16" class="il-l il-g"/>'),
 };
 ILU.solos = ILU.licks; ILU.escalas = ILU.escalas || ILU['te-escalas'];
+/* Ilustrações editoriais: cenas maiores e próprias do produto. Mantêm o vocabulário do braço, do sinal elétrico e
+   do equipamento sem recorrer aos clichês literais do metal. São SVGs nativos, leves e nítidos em qualquer tela. */
+function arteDestaque(tipo) {
+  const moldura = '<path d="M20 192 90 28h700l70 164Z" class="ag-fundo"/><path d="M20 192h840M90 28h700" class="ag-linha"/>';
+  const cenas = {
+    explorar: moldura + `<g class="ag-braco">${Array.from({ length: 6 }, (_, i) => `<path d="M66 ${58 + i * 22}H814"/>`).join('')}${Array.from({ length: 15 }, (_, i) => `<path d="M${106 + i * 49} 42v136"/>`).join('')}</g>
+      <path d="M120 146C225 54 310 164 410 86S612 144 760 62" class="ag-sinal"/>
+      ${[[145,124],[244,80],[344,146],[442,90],[540,124],[638,68],[736,102]].map(([x,y],i)=>`<g class="ag-nota${i===3?' ag-nota-a':''}"><circle cx="${x}" cy="${y}" r="${i===3?16:12}"/><circle cx="${x}" cy="${y}" r="3"/></g>`).join('')}
+      <path d="m754 156 30-52 24 44-18-7-8 25Z" class="ag-palheta"/>`,
+    biblioteca: `<rect x="36" y="30" width="808" height="162" rx="22" class="ag-fundo"/><path d="M58 78h764M58 144h764" class="ag-linha"/>
+      <g class="ag-disco"><circle cx="174" cy="110" r="62"/><circle cx="174" cy="110" r="39"/><circle cx="174" cy="110" r="9"/><path d="M174 48a62 62 0 0 1 54 92"/></g>
+      <g class="ag-estante">${Array.from({length:9},(_,i)=>`<rect x="${282+i*42}" y="${52+(i%3)*7}" width="28" height="${112-(i%2?12:0)}" rx="5" transform="rotate(${i%2?3:-2} ${296+i*42} 110)"/>`).join('')}</g>
+      <path d="M274 167c38-32 72 32 110 0s72 32 110 0 72 32 110 0 72 32 110 0" class="ag-sinal"/>
+      <g class="ag-selo"><path d="m750 48 18 12 22-2-4 22 10 19-21 8-13 18-15-17-22-6 8-20-2-22 22 1Z"/><circle cx="761" cy="85" r="16"/></g>`,
+    acordes: `<rect x="38" y="26" width="804" height="168" rx="22" class="ag-fundo"/><g class="ag-braco">${Array.from({length:6},(_,i)=>`<path d="M72 ${54+i*23}H808"/>`).join('')}${Array.from({length:12},(_,i)=>`<path d="M${104+i*62} 42v138"/>`).join('')}</g>
+      ${[[135,77],[197,123],[321,100],[445,146],[569,77],[693,123]].map(([x,y],i)=>`<g class="ag-nota${i===3?' ag-nota-a':''}"><circle cx="${x}" cy="${y}" r="14"/><text x="${x}" y="${y+5}">${(i%4)+1}</text></g>`).join('')}
+      <path d="M128 77C224 20 286 168 382 100s158-56 238 0 118 42 180-20" class="ag-sinal"/>`,
+  };
+  const rotulos = { explorar: 'Braço de guitarra atravessado por notas e uma trajetória sonora', biblioteca: 'Disco, coleção musical e forma de onda', acordes: 'Diagrama amplo do braço com dedos e conexões harmônicas' };
+  return `<figure class="arte-destaque"><svg viewBox="0 0 880 220" role="img" aria-label="${rotulos[tipo] || ''}">${cenas[tipo] || cenas.explorar}</svg></figure>`;
+}
 ILU.dia = ilu('<rect x="10" y="8" width="44" height="34" rx="4" class="il-f il-l"/><path d="M10 17h44M20 4v8M44 4v8" class="il-l il-g"/><path d="M32 22c1 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 2.5-6 1 1.6 1.6 2.4 2.8 2.5-.2-2.8-.4-4.3.7-6.5z" class="il-a"/>');
 ILU.plano = ilu('<rect x="8" y="8" width="48" height="34" rx="4" class="il-f il-l"/><path d="M8 17h48" class="il-l il-g"/>' + [0, 1, 2, 3].map(i => `<rect x="${13 + i * 11}" y="${37 - (i + 1) * 4.5}" width="7" height="${(i + 1) * 4.5}" rx="1.5" class="${i === 3 ? 'il-a' : 'il-n'}"/>`).join(''));
 ILU.favoritos = ilu('<path d="M32 6l7.6 15.4 17 2.5-12.3 12 2.9 16.9L32 44.8l-15.2 8 2.9-16.9-12.3-12 17-2.5z" class="il-a" transform="scale(.85) translate(5.6 0)"/>');

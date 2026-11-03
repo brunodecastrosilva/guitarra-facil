@@ -29,7 +29,7 @@ function abrirTreino(id, op = {}) {
     ${fila && op.voltas ? '' : seg('voltas', [[2, '2 voltas'], [4, '4 voltas'], [8, '8 voltas']], voltasEtapa(), fila ? 'Voltas de cada treino' : 'Tamanho da etapa')}
     ${sel('tr-sobe', SUBIDAS, DB.cfg.trSobe || 0, 'Subir o andamento')}
     ${seg('acomp', [['metronomo', 'Metrônomo'], ['bateria', 'Bateria'], ['nenhum', 'Nada']], acomp(), 'Acompanhamento')}
-    <div id="tr-bat-campo"${acomp() === 'bateria' ? '' : ' hidden'}>${sel('tr-bat', ESTILOS_TREINO.map(k => [k, ESTILOS_BATERIA.find(e => e[0] === k)[1]]), DB.cfg.trBateria || 'metal', 'Estilo da bateria')}</div>
+    <div id="tr-bat-campo"${acomp() === 'bateria' ? '' : ' hidden'}>${sel('tr-bat', ESTILOS_TREINO.map(k => [k, ESTILOS_BATERIA.find(e => e[0] === k)[1]]), DB.cfg.trBateria || 'metal', 'Batida da bateria')}</div>
     ${ex.evs.some(e => e.n.length === 1) ? seg('harm', [['', 'Nenhuma'], ['tercas', 'Terças'], ['quintas', 'Quintas'], ['oitava', 'Oitava']], DB.cfg.trHarmonia || '', 'Segunda guitarra (harmonia)') : ''}
     ${seg('pct', [[50, '50%'], [70, '70%'], [85, '85%'], [100, '100%']], '', 'Ir para uma parte da meta de andamento')}
     ${seg('rot', [['dedo', 'Dedos'], ['nota', 'Notas'], ...(ex.raiz != null ? [['grau', 'Graus']] : [])], cfg.rotulo || m.rotulo || 'nota', 'No braço, mostrar')}

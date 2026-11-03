@@ -261,18 +261,18 @@ function micApagarGravacao() { if (mic.url) URL.revokeObjectURL(mic.url); mic.ur
 /* ================= bateria de acompanhamento ================= */
 /* cada estilo: passos por batida e os passos (no compasso de 4 batidas) do bumbo, da caixa e do chimbal */
 const ESTILOS_BATERIA = [
-  ['rock', 'Rock', 2, { b: [0, 4], c: [2, 6], h: [0, 1, 2, 3, 4, 5, 6, 7] }],
-  ['pop', 'Pop', 4, { b: [0, 6, 8], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
-  ['balada', 'Balada', 2, { b: [0, 5], c: [4], h: [0, 1, 2, 3, 4, 5, 6, 7] }],
-  ['shuffle', 'Blues shuffle', 3, { b: [0, 6], c: [3, 9], h: [0, 2, 3, 5, 6, 8, 9, 11] }],
-  ['funk', 'Funk', 4, { b: [0, 3, 7, 10], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
-  ['metal', 'Metal', 4, { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [4, 12], h: [0, 4, 8, 12] }],
+  ['rock', 'Pulso reto', 2, { b: [0, 4], c: [2, 6], h: [0, 1, 2, 3, 4, 5, 6, 7] }],
+  ['pop', 'Pulso em semicolcheias', 4, { b: [0, 6, 8], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['balada', 'Pulso lento', 2, { b: [0, 5], c: [4], h: [0, 1, 2, 3, 4, 5, 6, 7] }],
+  ['shuffle', 'Shuffle', 3, { b: [0, 6], c: [3, 9], h: [0, 2, 3, 5, 6, 8, 9, 11] }],
+  ['funk', 'Síncope', 4, { b: [0, 3, 7, 10], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['metal', 'Bumbo alternado', 4, { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [4, 12], h: [0, 4, 8, 12] }],
   ['duplo', 'Bumbo duplo', 4, { b: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], c: [4, 12], h: [0, 4, 8, 12] }],
   ['blast', 'Blast beat', 4, { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [1, 3, 5, 7, 9, 11, 13, 15], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
   ['dbeat', 'D-beat', 4, { b: [0, 3, 8, 11], c: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
-  ['skank', 'Thrash (skank)', 4, { b: [0, 4, 8, 12], c: [2, 6, 10, 14], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
+  ['skank', 'Caixa alternada', 4, { b: [0, 4, 8, 12], c: [2, 6, 10, 14], h: [0, 2, 4, 6, 8, 10, 12, 14] }],
   ['galope', 'Galope', 4, { b: [0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], c: [4, 12], h: [0, 4, 8, 12] }],
-  ['meio', 'Meio tempo (breakdown)', 4, { b: [0, 3, 6, 10], c: [8], h: [0, 4, 8, 12] }],
+  ['meio', 'Meio tempo', 4, { b: [0, 3, 6, 10], c: [8], h: [0, 4, 8, 12] }],
 ];
 const ESTILOS_TREINO = ['metal', 'duplo', 'blast', 'dbeat', 'skank', 'galope', 'meio', 'rock', 'shuffle', 'funk']; // os que acompanham o treino
 const bateria = { ligada: false, t: null, prox: 0, passo: 0 };

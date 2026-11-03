@@ -2,6 +2,16 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.18.0 · 2026-11-03
+
+- Os treinos agora ocupam a tela inteira: o app não aparece atrás do player e braço, tablatura, orientação e controles formam um ambiente único de foco.
+- **Explorar** reúne o antigo Braço e a Teoria aplicada; notas, escalas, acordes, intervalos, modo livre, harmonia e ritmo ficam em um só destino.
+- **Biblioteca** reúne trechos para praticar, repertório pessoal e inspirações. As referências agora são agrupadas pelo que ensinam, não por gênero.
+- **Acordes** foi ampliado de 10 exemplos para mais de 100 formas abertas e móveis, com busca, famílias, diagramas para destros e canhotos, fórmula, notas, instruções, som e integração com Explorar e Treinos.
+- Todo exercício aparece por número e objetivo (`#0001 · …`). Nomes fantasiosos e a escolha pública por gênero saíram do catálogo, da busca, das sessões e da primeira experiência.
+- A navegação principal foi reduzida a Início, Treinos, Explorar e Estúdio; Afinador, Metrônomo, Bateria, Biblioteca, Acordes e Progresso continuam em Mais.
+- Explorar, Biblioteca e Acordes ganharam ilustrações editoriais próprias, mais detalhadas, mantendo a paleta escura e o vermelho como acento.
+
 ## 0.17.0 · 2026-11-02
 
 - Demonstrações lentas de bends, slides, ligados, tapping e vibrato, com etapas, pausa e controle do movimento.

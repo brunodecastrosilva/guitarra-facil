@@ -83,12 +83,12 @@ function infoExercicio(m) {
 }
 // texto sem acento e em minúsculas, para a busca
 const semAcento = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-// tudo o que a busca encontra num exercício: nome, resumo, estilo, técnica, categoria, competências e técnicas
+// tudo o que a busca encontra: objetivo, resumo, técnica, categoria e competências (sem gênero musical)
 function textoDeBusca(m) {
   if (m._busca) return m._busca;
-  const est = m.estilo && typeof estiloDe === 'function' ? estiloDe(m.estilo) : null, tec = m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub) : null;
+  const tec = m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub) : null;
   const inf = infoCache.get(m.id);
-  m._busca = semAcento([m.nome, inf ? inf.tecnicas.map(t => TECNICAS_NOTAS[t]).join(' ') : '', inf ? inf.competencias.map(c => (COMPETENCIAS.find(x => x[0] === c) || [])[1]).join(' ') : '', typeof m.resumo === 'string' ? m.resumo : '', est && est.nome, tec && tec.nome, m.grupo, (CATEGORIAS.find(c => c[0] === m.cat) || [])[1], m.cat === 'caminho' ? 'caminho iniciante' : '', m.cat === 'biblioteca' ? 'biblioteca repertorio' : '', m.autor || '', m.obra || ''].filter(Boolean).join(' '));
+  m._busca = semAcento([typeof tituloDe === 'function' ? tituloDe(m) : m.nome, inf ? inf.tecnicas.map(t => TECNICAS_NOTAS[t]).join(' ') : '', inf ? inf.competencias.map(c => (COMPETENCIAS.find(x => x[0] === c) || [])[1]).join(' ') : '', typeof m.resumo === 'string' ? m.resumo : '', tec && tec.nome, m.grupo, (CATEGORIAS.find(c => c[0] === m.cat) || [])[1], m.cat === 'caminho' ? 'caminho iniciante' : '', m.cat === 'biblioteca' ? 'biblioteca repertorio' : '', m.autor || '', m.obra || ''].filter(Boolean).join(' '));
   return m._busca;
 }
 /* índice: as dimensões de todo o catálogo, calculadas em segundo plano, aos poucos, e guardadas neste aparelho até

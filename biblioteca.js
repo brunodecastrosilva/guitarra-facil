@@ -60,25 +60,25 @@ const OBRAS = (() => {
         n(2, 4, 0), n(1, 3, 1), n(3, 2, 2, 'v')] },
     // ===== riffs originais do app =====
     { id: 'riff-ferro', nome: 'Ferro e brasa', autor: 'Original do app', origem: 'original', estilo: 'heavy', nivel: 2, bpm: 110, alvo: 160, compasso: [4, 1],
-      sobre: 'Galope em Mi com power chords subindo: o motor do heavy metal clássico.',
+      sobre: 'Galope em Mi com power chords ascendentes para trabalhar pulso, abafamento e troca de forma.',
       evs: [...gal(), ...gal(), ac(.5, PC.G5), ac(.5, PC.A5), ac(1, PC.B5), ...gal(), ...gal(), ac(.5, PC.C5), ac(.5, PC.B5), ac(.5, PC.A5), ac(.5, PC.G5)] },
     { id: 'riff-motosserra', nome: 'Motosserra', autor: 'Original do app', origem: 'original', estilo: 'thrash', nivel: 2, bpm: 120, alvo: 180, compasso: [4, 1],
-      sobre: 'Palhetada alternada em semicolcheias na corda solta, com notas cromáticas no meio. Thrash puro.',
+      sobre: 'Palhetada alternada em semicolcheias na corda solta, com notas cromáticas entre os ataques.',
       evs: [E(), E(), E(), n(.25, 0, 1), E(), E(), E(), n(.25, 0, 2), E(), E(), E(), n(.25, 0, 3), E(), E(), n(.25, 0, 2), n(.25, 0, 1),
         ac(.5, PC.A5), ac(.5, PC.G5), E(), E(), E(), E(), ac(.5, PC.A5), ac(.5, PC.Bb5), ac(.5, PC.A5), E(), E()] },
     { id: 'riff-lama', nome: 'Lama', autor: 'Original do app', origem: 'original', estilo: 'doom', nivel: 1, bpm: 60, alvo: 80, compasso: [4, 1],
-      sobre: 'Lento e pesado: power chords longos e vibrato largo. O peso vem de deixar soar.',
+      sobre: 'Power chords longos e vibrato largo: controle a duração e deixe cada ataque respirar.',
       evs: [ac(2, PC.E5, 'v'), ac(1, PC.G5), ac(1, [[0, 2, 1], [1, 4, 3]]), ac(2, PC.Bb5, 'v'), ac(2, PC.A5, 'v')] },
     { id: 'riff-estrada', nome: 'Estrada', autor: 'Original do app', origem: 'original', estilo: 'hard-rock', nivel: 1, bpm: 100, alvo: 140, compasso: [4, 1],
-      sobre: 'O vaivém de duas cordas do rock de estrada: quinta e sexta alternando, em Lá e em Ré.',
+      sobre: 'Alternância constante entre duas cordas, em Lá e Ré, para coordenar palheta e mão do braço.',
       evs: [...rep(2, () => [ac(.5, [[1, 0, 0], [2, 2, 1]]), ac(.5, [[1, 0, 0], [2, 2, 1]]), ac(.5, [[1, 0, 0], [2, 4, 3]]), ac(.5, [[1, 0, 0], [2, 4, 3]])]),
         ...rep(2, () => [ac(.5, [[2, 0, 0], [3, 2, 1]]), ac(.5, [[2, 0, 0], [3, 2, 1]]), ac(.5, [[2, 0, 0], [3, 4, 3]]), ac(.5, [[2, 0, 0], [3, 4, 3]])])] },
     { id: 'riff-escada', nome: 'Escada', autor: 'Original do app', origem: 'original', estilo: 'hard-rock', nivel: 2, bpm: 80, alvo: 120, raiz: 9, escala: 'penta-menor', compasso: [4, 1], melodia: true,
-      sobre: 'Frase de solo na pentatônica de Lá menor, descendo com um bend no meio e subindo até o vibrato.',
+      sobre: 'Pentatônica de Lá menor: desça, afine o bend e retorne até uma nota sustentada com vibrato.',
       evs: [n(.5, 5, 8), n(.5, 5, 5), n(.5, 4, 8), n(.5, 4, 5), n(1, 3, 7, 'b'), n(.5, 3, 5), n(.5, 2, 7),
         n(.5, 2, 5), n(.5, 2, 7, 'h'), n(.5, 3, 5), n(.5, 3, 7), n(2, 2, 7, 'v')] },
     { id: 'riff-concreto', nome: 'Concreto', autor: 'Original do app', origem: 'original', estilo: 'metalcore', nivel: 3, bpm: 100, alvo: 140, compasso: [4, 1],
-      sobre: 'Breakdown com pausas no contratempo: o silêncio no lugar certo é o que pesa.',
+      sobre: 'Golpes graves e pausas no contratempo: pratique precisão, silêncio e retomada do pulso.',
       evs: [E(.5), z(.5), E(), E(), z(.5), E(.5), z(.25), E(), ac(1, PC.F5),
         E(), E(), z(.5), ac(.5, PC.Bb5), z(.5), E(.5), ac(1, PC.A5), z(.5)] },
   ];
@@ -95,10 +95,14 @@ OBRAS.forEach(o => {
 const BIB = { origem: '', nivel: '' };
 I.biblioteca = svg('<path d="M5 4h4v16H5zM10 4h4v16h-4z"/><path d="M15.5 5l3.6-1 3 15.5-3.6 1z"/>');
 VIEWS.biblioteca = () => {
+  const aba = ['minhas', 'inspiracoes'].includes(subRota()) ? subRota() : 'praticar';
+  const abas = `<nav class="biblioteca-abas" aria-label="Biblioteca"><button type="button" data-ir="biblioteca" aria-current="${aba === 'praticar' ? 'page' : 'false'}">Praticar</button><button type="button" data-ir="biblioteca/minhas" aria-current="${aba === 'minhas' ? 'page' : 'false'}">Minhas músicas</button><button type="button" data-ir="biblioteca/inspiracoes" aria-current="${aba === 'inspiracoes' ? 'page' : 'false'}">Inspirações</button></nav>`;
+  if (aba === 'minhas') return arteDestaque('biblioteca') + KitFacil.ui.cabecalho({ titulo: 'Biblioteca', sub: 'Músicas que você quer aprender, está estudando ou já toca.', criar: { rotulo: 'Nova música', attrs: 'data-musica-nova' } }) + abas + musicasMinhasHTML();
+  if (aba === 'inspiracoes') return arteDestaque('biblioteca') + KitFacil.ui.cabecalho({ titulo: 'Biblioteca', sub: 'Referências organizadas pelo que você pode aprender, não por gênero.' }) + abas + musicasInspiracoesHTML();
   const L = MODELOS.filter(m => m.cat === 'biblioteca' && (!BIB.origem || m.sub === BIB.origem) && (!BIB.nivel || m.nivel === +BIB.nivel));
   const comp = competenciaDaVez(), rec = MODELOS.filter(m => m.cat === 'biblioteca' && m.nivel <= nivelDaPessoa() + 1).filter(m => infoExercicio(m).competencias.includes(comp)).slice(0, 2);
   const grupo = (titulo, X) => X.length ? `<section aria-label="${titulo}"><h2 class="sec-h">${titulo}</h2><ul class="tr-lista">${X.map(m => itemTreino(m)).join('')}</ul></section>` : '';
-  return KitFacil.ui.cabecalho({ titulo: 'Biblioteca', sub: 'Trechos para aplicar a técnica: obras em domínio público e riffs originais do app. Nenhuma música protegida.' })
+  return arteDestaque('biblioteca') + KitFacil.ui.cabecalho({ titulo: 'Biblioteca', sub: 'Trechos para praticar, repertório pessoal e referências reunidos no mesmo lugar.' }) + abas
     + `<div class="pilha">${rec.length ? `<section class="cartao bib-rec"><span class="meta-prazo">Para você agora</span><p class="apoio">Para treinar ${esc((COMPETENCIAS.find(c => c[0] === comp) || [, ''])[1].toLowerCase())}, a sua competência menos treinada:</p><ul class="tr-lista">${rec.map(m => itemTreino(m)).join('')}</ul></section>` : ''}
     <div class="kf-seg bib-f" role="group" aria-label="Origem">${[['', 'Tudo'], ['dominio', 'Domínio público'], ['original', 'Riffs originais']].map(([k, n2]) => `<button type="button" data-bib-origem="${k}" aria-pressed="${BIB.origem === k}">${n2}</button>`).join('')}</div>
     <div class="kf-seg bib-f" role="group" aria-label="Dificuldade">${[['', 'Todas'], ...NIVEIS.map(x => [String(x[0]), x[2]])].map(([k, n2]) => `<button type="button" data-bib-nivel="${k}" aria-pressed="${BIB.nivel === k}">${n2}</button>`).join('')}</div>

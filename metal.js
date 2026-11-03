@@ -278,7 +278,7 @@ function gerarFrase(o) {
    cada técnica leva o gerador para uma só coisa (ou poucas), do básico ao extremo */
 const TECNICAS_TREINO = [
   { id: 'alternada', nome: 'Palhetada alternada', d: 'Baixo e cima sem parar, da corda única às seis cordas.', tipo: 'frase', so: [['run'], ['run', 'grupo', 'trem'], ['grupo', 'run', 'quint', 'sept', 'trem']] },
-  { id: 'downpicking', nome: 'Palhetada para baixo', d: 'Resistência do thrash: só palhetada para baixo, trocando de corda.', tipo: 'riff', est: 'thrash', cel: [['x-', 'x---', 'x-x-'], ['x-', 'xx', 'x-x', 'xxxx'], ['xxxx', 'xx', 'xxx', 'x.xx']], tex: { chug: 6, pc: 3, nota: 3 } },
+  { id: 'downpicking', nome: 'Palhetada para baixo', d: 'Resistência e precisão: só palhetada para baixo, trocando de corda.', tipo: 'riff', est: 'thrash', cel: [['x-', 'x---', 'x-x-'], ['x-', 'xx', 'x-x', 'xxxx'], ['xxxx', 'xx', 'xxx', 'x.xx']], tex: { chug: 6, pc: 3, nota: 3 } },
   { id: 'palm-mute', nome: 'Palm mute e chugs', d: 'O chug: abafar com a palma e soltar nos acentos.', tipo: 'riff', est: 'metalcore', cel: [['x-', 'x.', 'x-x-', 'x...'], ['x.xx', 'xx-x', '.xx-', 'xxxx', 'x..x'], ['x..xx', 'xxx', 'x.x', 'xxxxx', 'S', 'x....']], tex: { chug: 9, pc: 2, pinch: 1 } },
   { id: 'galope', nome: 'Galope', d: 'Colcheia e duas semicolcheias, e o galope ao contrário.', tipo: 'riff', est: 'heavy', cel: [['x-xx', 'x---'], ['x-xx', 'xx-x', 'x-'], ['x-xx', 'xx-x', 'T', 'Q', 'xS']], tex: { chug: 5, pc: 4, nota: 2 } },
   { id: 'tremolo', nome: 'Tremolo picking', d: 'Palhetada rapidíssima numa nota só, de melodia a acordes.', tipo: 'frase', so: [['trem', 'run'], ['trem'], ['trem', 'run']] },

@@ -12,17 +12,15 @@ VIEWS.metronomo = () => KitFacil.ui.cabecalho({ titulo: 'Metrônomo', sub: 'O te
   </div>`;
 /* Bateria: estilos ilustrados pelo próprio desenho do ritmo */
 const iluRitmo = ([, , ppb, P]) => { const n = ppb * 4, w = 56 / n; return ilu(['h', 'c', 'b'].map((k, r) => Array.from({ length: n }, (_, i) => P[k].includes(i) ? `<rect x="${4 + i * w + .6}" y="${8 + r * 12}" width="${w - 1.2}" height="9" rx="1.5" class="${k === 'b' ? 'il-a' : 'il-n'}"/>` : '').join('')).join('') + '<path d="M4 44h56" class="il-l"/>'); };
-VIEWS.bateria = () => KitFacil.ui.cabecalho({ titulo: 'Bateria', sub: 'Escolha o estilo e toque junto, no andamento do metrônomo.' })
+VIEWS.bateria = () => KitFacil.ui.cabecalho({ titulo: 'Bateria', sub: 'Escolha a batida e toque junto, no andamento do metrônomo.' })
   + `<div class="pilha palco-ferr">
-    <div class="ladrilhos estilos" role="group" aria-label="Estilo">${ESTILOS_BATERIA.map(e => ladrilho({ attrs: `data-estilo="${e[0]}" aria-pressed="${DB.cfg.estilo === e[0]}"`, ilu: iluRitmo(e), nome: e[1], classe: 'peq' })).join('')}</div>
+    <div class="ladrilhos estilos" role="group" aria-label="Batida">${ESTILOS_BATERIA.map(e => ladrilho({ attrs: `data-estilo="${e[0]}" aria-pressed="${DB.cfg.estilo === e[0]}"`, ilu: iluRitmo(e), nome: e[1], classe: 'peq' })).join('')}</div>
     <div class="batidas grande" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <div class="metro-bpm"><button type="button" class="kf-btn kf-sec" data-bpm="-5" aria-label="5 batidas a menos">−5</button><output id="bpm" aria-live="polite">${DB.cfg.bpm}</output><button type="button" class="kf-btn kf-sec" data-bpm="5" aria-label="5 batidas a mais">+5</button></div>
     <button type="button" class="play-grande${bateria.ligada ? ' on' : ''}" id="bat-ligar" aria-label="${bateria.ligada ? 'Parar a bateria' : 'Tocar a bateria'}">${bateria.ligada ? I.stop : I.play}</button>
   </div>`;
-// VIEWS.braco: o laboratório do braço mora em laboratorio.js
-VIEWS.acordes = () => KitFacil.ui.cabecalho({ titulo: 'Acordes', sub: 'Toque num acorde para ouvir. Os números são os dedos.' })
-  + `<div class="acordes">${ACORDES.map(([nome, casas, dedos], i) => `<button type="button" class="acorde" data-acorde="${i}" aria-label="Ouvir ${esc(nome)}">${diagrama(casas, dedos, nome)}<b>${esc(nome)}</b></button>`).join('')}</div>
-  <p class="apoio" style="margin-top:12px">X: não toque a corda. O: corda solta. A barra é a pestana.</p>`;
+// VIEWS.explorar mora em laboratorio.js; Acordes é a biblioteca aplicada de formas do instrumento.
+VIEWS.acordes = () => acordesHTML();
 
 
 /* ================= ferramentas: som ================= */
@@ -72,22 +70,75 @@ const ACORDES = [['Mi menor', [0, 2, 2, 0, 0, 0], [0, 2, 3, 0, 0, 0]], ['Lá men
   ['Mi maior', [0, 2, 2, 1, 0, 0], [0, 2, 3, 1, 0, 0]], ['Lá maior', [-1, 0, 2, 2, 2, 0], [0, 0, 1, 2, 3, 0]], ['Ré maior', [-1, -1, 0, 2, 3, 2], [0, 0, 0, 1, 3, 2]],
   ['Dó maior', [-1, 3, 2, 0, 1, 0], [0, 3, 2, 0, 1, 0]], ['Sol maior', [3, 2, 0, 0, 0, 3], [2, 1, 0, 0, 0, 3]], ['Mi 5 (power chord)', [0, 2, -1, -1, -1, -1], [0, 1, 0, 0, 0, 0]],
   ['Fá maior (pestana)', [1, 3, 3, 2, 1, 1], [1, 3, 4, 2, 1, 1], 1]];
-function tocarAcorde(casas) { const a = audio(); if (!a) return; const t = a.currentTime + .03; casas.forEach((k, s) => { if (k >= 0) tocarCorda(midiDe(s, k), t + s * .035, 1.8, .35); }); }
-function diagrama(casas, dedos, nome, pestana) {
+const ACORDES_ABERTOS = [
+  ['em', 4, 'm', ACORDES[0]], ['am', 9, 'm', ACORDES[1]], ['dm', 2, 'm', ACORDES[2]], ['e', 4, '', ACORDES[3]], ['a', 9, '', ACORDES[4]], ['d', 2, '', ACORDES[5]], ['c', 0, '', ACORDES[6]], ['g', 7, '', ACORDES[7]], ['e5', 4, '5', ACORDES[8]], ['f', 5, '', ACORDES[9]],
+  ['c7', 0, '7', ['Dó com sétima', [-1,3,2,3,1,0], [0,3,2,4,1,0]]], ['c7m', 0, '7M', ['Dó com sétima maior', [-1,3,2,0,0,0], [0,3,2,0,0,0]]],
+  ['d7', 2, '7', ['Ré com sétima', [-1,-1,0,2,1,2], [0,0,0,2,1,3]]], ['d7m', 2, '7M', ['Ré com sétima maior', [-1,-1,0,2,2,2], [0,0,0,1,2,3]]],
+  ['e7', 4, '7', ['Mi com sétima', [0,2,0,1,0,0], [0,2,0,1,0,0]]], ['em7', 4, 'm7', ['Mi menor com sétima', [0,2,0,0,0,0], [0,2,0,0,0,0]]],
+  ['a7', 9, '7', ['Lá com sétima', [-1,0,2,0,2,0], [0,0,2,0,3,0]]], ['am7', 9, 'm7', ['Lá menor com sétima', [-1,0,2,0,1,0], [0,0,2,0,1,0]]],
+  ['g7', 7, '7', ['Sol com sétima', [3,2,0,0,0,1], [3,2,0,0,0,1]]], ['asus2', 9, 'sus2', ['Lá suspenso com 2ª', [-1,0,2,2,0,0], [0,0,1,2,0,0]]],
+  ['asus4', 9, 'sus4', ['Lá suspenso com 4ª', [-1,0,2,2,3,0], [0,0,1,2,3,0]]], ['dsus2', 2, 'sus2', ['Ré suspenso com 2ª', [-1,-1,0,2,3,0], [0,0,0,1,3,0]]],
+  ['dsus4', 2, 'sus4', ['Ré suspenso com 4ª', [-1,-1,0,2,3,3], [0,0,0,1,3,4]]],
+].map(([id, raiz, tipo, a]) => ({ id: 'ab-' + id, raiz, tipo, nome: a[0], cifra: CIFRA[raiz] + tipo, casas: a[1], dedos: a[2], pestana: a[3] || 0, inicio: 1, forma: 'Aberto', nivel: tipo === '' || tipo === 'm' || tipo === '5' ? 1 : 2, essencial: true }));
+const FORMAS_MOVEIS = {
+  '': { e: [[0,2,2,1,0,0],[1,3,4,2,1,1]], a: [[-1,0,2,2,2,0],[0,1,3,3,3,1]] },
+  m: { e: [[0,2,2,0,0,0],[1,3,4,1,1,1]], a: [[-1,0,2,2,1,0],[0,1,3,4,2,1]] },
+  '7': { e: [[0,2,0,1,0,0],[1,3,1,2,1,1]], a: [[-1,0,2,0,2,0],[0,1,3,1,4,1]] },
+  '7M': { e: [[0,2,1,1,0,0],[1,4,2,3,1,1]], a: [[-1,0,2,1,2,0],[0,1,4,2,3,1]] },
+  m7: { e: [[0,2,0,0,0,0],[1,3,1,1,1,1]], a: [[-1,0,2,0,1,0],[0,1,3,1,2,1]] },
+  '5': { e: [[0,2,2,-1,-1,-1],[1,3,4,0,0,0]], a: [[-1,0,2,2,-1,-1],[0,1,3,4,0,0]] },
+};
+const CATALOGO_ACORDES = (() => {
+  const r = [...ACORDES_ABERTOS];
+  Object.entries(FORMAS_MOVEIS).forEach(([tipo, formas]) => Array.from({ length: 12 }, (_, raiz) => raiz).forEach(raiz => Object.entries(formas).forEach(([forma, [rel, dedos]]) => {
+    const aberta = forma === 'e' ? 4 : 9, casa = pc(raiz - aberta) || 12, casas = rel.map(k => k < 0 ? -1 : k + casa), t = TIPOS_ACORDE.find(x => x[0] === tipo);
+    r.push({ id: `mov-${forma}-${raiz}-${tipo || 'M'}`, raiz, tipo, nome: `${NOTAS[raiz]} ${t[1].toLowerCase()}`, cifra: CIFRA[raiz] + tipo, casas, dedos, pestana: casa, inicio: casa, forma: `Forma de ${forma.toUpperCase()}`, nivel: tipo === '5' ? 1 : tipo === '' || tipo === 'm' ? 2 : 3, essencial: false });
+  })));
+  return r;
+})();
+const ACORDE_UI = { busca: '', familia: 'essenciais', nivel: '', mao: 'direita', sel: 'ab-em' };
+function tocarAcorde(casas, arpejo = false) { const a = audio(); if (!a) return; const t = a.currentTime + .03; casas.forEach((k, s) => { if (k >= 0) tocarCorda(midiDe(s, k), t + (arpejo ? s * .28 : s * .035), 1.8, .35); }); }
+function diagrama(casas, dedos, nome, pestana, op = {}) {
   pestana = pestana || (ACORDES.find(a => a[0] === nome) || [])[3];
-  const x = i => 14 + i * 18, y = c => 26 + c * 22;
-  let s = `<svg viewBox="0 0 118 124" role="img" aria-label="Acorde de ${esc(nome)}"><g stroke="currentColor" fill="none">`;
+  const inicio = Math.max(1, op.inicio || (Math.max(...casas) > 4 ? Math.min(...casas.filter(k => k > 0)) : 1)), x = i => 14 + i * 18, y = c => 26 + (c - inicio + 1) * 22, fonte = i => op.esquerda ? 5 - i : i;
+  let s = `<svg viewBox="0 0 118 132" role="img" aria-label="Acorde de ${esc(nome)}${inicio > 1 ? ', a partir da casa ' + inicio : ''}"><g stroke="currentColor" fill="none">`;
   if (pestana) s += `</g><rect x="${x(0) - 6}" y="${y(pestana) - 18}" width="${x(5) - x(0) + 12}" height="14" rx="7" fill="currentColor"/><g stroke="currentColor" fill="none">`;
-  s += `<line x1="${x(0)}" y1="${y(0)}" x2="${x(5)}" y2="${y(0)}" stroke-width="4"/>`;
-  for (let c = 1; c <= 4; c++) s += `<line x1="${x(0)}" y1="${y(c)}" x2="${x(5)}" y2="${y(c)}" stroke-width="1" opacity=".5"/>`;
-  for (let i = 0; i < 6; i++) s += `<line x1="${x(i)}" y1="${y(0)}" x2="${x(i)}" y2="${y(4)}" stroke-width="1.2"/>`;
+  s += `<line x1="${x(0)}" y1="${y(inicio - 1)}" x2="${x(5)}" y2="${y(inicio - 1)}" stroke-width="${inicio === 1 ? 4 : 1}"/>`;
+  for (let f = 0; f < 4; f++) s += `<line x1="${x(0)}" y1="${y(inicio + f)}" x2="${x(5)}" y2="${y(inicio + f)}" stroke-width="1" opacity=".5"/>`;
+  for (let i = 0; i < 6; i++) s += `<line x1="${x(i)}" y1="${y(inicio - 1)}" x2="${x(i)}" y2="${y(inicio + 3)}" stroke-width="1.2"/>`;
   s += '</g>';
-  casas.forEach((c, i) => {
+  if (inicio > 1) s += `<text x="2" y="${y(inicio) - 7}" font-size="10" fill="currentColor">${inicio}</text>`;
+  for (let i = 0; i < 6; i++) { const j = fonte(i), c = casas[j];
     if (c < 0) s += `<text x="${x(i)}" y="16" text-anchor="middle" font-size="12" fill="currentColor">X</text>`;
     else if (c === 0) s += `<circle cx="${x(i)}" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>`;
-    else s += `<circle cx="${x(i)}" cy="${y(c) - 11}" r="7.5" fill="currentColor"/><text x="${x(i)}" y="${y(c) - 7}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--kf-surface)">${dedos[i]}</text>`;
-  });
+    else s += `<circle cx="${x(i)}" cy="${y(c) - 11}" r="7.5" fill="currentColor"/><text x="${x(i)}" y="${y(c) - 7}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--kf-surface)">${dedos[j] || 1}</text>`;
+  }
   return s + '</svg>';
+}
+
+function acordesFiltrados() {
+  const q = semAcento(ACORDE_UI.busca), tipo = a => ACORDE_UI.familia === 'essenciais' ? a.essencial : ACORDE_UI.familia === 'maiores' ? a.tipo === '' : ACORDE_UI.familia === 'menores' ? a.tipo === 'm' : ACORDE_UI.familia === 'setimas' ? a.tipo.includes('7') : ACORDE_UI.familia === 'power' ? a.tipo === '5' : true;
+  return CATALOGO_ACORDES.filter(a => tipo(a) && (!ACORDE_UI.nivel || a.nivel === +ACORDE_UI.nivel) && (!q || semAcento(`${a.nome} ${a.cifra} ${a.forma}`).includes(q)));
+}
+function acordesHTML() {
+  const L = acordesFiltrados(), atual = CATALOGO_ACORDES.find(a => a.id === ACORDE_UI.sel) || L[0] || CATALOGO_ACORDES[0], t = TIPOS_ACORDE.find(x => x[0] === atual.tipo), notas = notasAcorde(atual.raiz, atual.tipo), esquerda = ACORDE_UI.mao === 'esquerda';
+  const familias = [['essenciais','Essenciais'],['maiores','Maiores'],['menores','Menores'],['setimas','Com sétima'],['power','Power chords'],['todos','Todos']];
+  return arteDestaque('acordes') + KitFacil.ui.cabecalho({ titulo: 'Acordes', sub: 'Encontre uma forma, entenda sua construção, ouça e leve para o braço.' }) + `<div class="pilha acordes-app">
+    <form class="ac-busca" data-ac-busca role="search"><label class="kf-rotulo" for="ac-q">Buscar por nome ou cifra</label><div class="busca-linha"><input id="ac-q" class="kf-entrada" type="search" value="${esc(ACORDE_UI.busca)}" placeholder="Ex.: Am7, Dó maior, power chord"><button class="kf-btn kf-pri" type="submit">Buscar</button></div></form>
+    <div class="ac-filtros"><div class="kf-seg" role="group" aria-label="Família">${familias.map(([k,n])=>`<button type="button" data-ac-familia="${k}" aria-pressed="${ACORDE_UI.familia===k}">${n}</button>`).join('')}</div><div class="kf-seg" role="group" aria-label="Mão"><button type="button" data-ac-mao="direita" aria-pressed="${!esquerda}">Destro</button><button type="button" data-ac-mao="esquerda" aria-pressed="${esquerda}">Canhoto</button></div></div>
+    <section class="ac-detalhe cartao" aria-labelledby="ac-atual"><div class="ac-diagrama-grande">${diagrama(atual.casas, atual.dedos, atual.nome, atual.pestana, { inicio: atual.inicio, esquerda })}</div><div class="ac-explica"><span class="meta-prazo">${esc(atual.forma)} · nível ${atual.nivel}</span><h2 id="ac-atual">${esc(atual.nome)} <span>${esc(atual.cifra)}</span></h2><p><b>Notas:</b> ${notas.map(n=>NOTAS[n]).join(', ')} · <b>fórmula:</b> ${t[2].map(i=>i===14?'9':GRAUS[i%12]).join(' · ')}</p><ol><li>Localize a fundamental e a casa inicial.</li><li>Coloque os dedos indicados sem encostar nas cordas vizinhas.</li><li>Toque corda por corda; ajuste qualquer nota abafada antes de tocar o acorde inteiro.</li></ol><p class="apoio">X significa não tocar. O significa corda solta. A barra contínua é uma pestana.</p><div class="ac-acoes"><button type="button" class="kf-btn kf-pri" data-ac-ouvir="junto">${I.ouvir}Ouvir junto</button><button type="button" class="kf-btn kf-sec" data-ac-ouvir="cordas">Ouvir corda por corda</button><button type="button" class="kf-btn kf-sec" data-ac-braco>Mostrar no braço</button><button type="button" class="kf-btn kf-sec" data-ac-treinar>Treinar acordes</button></div></div></section>
+    <p class="apoio ac-contagem"><b>${L.length}</b> ${L.length===1?'forma encontrada':'formas encontradas'}</p><div class="acordes ac-grade">${L.map(a=>`<button type="button" class="acorde${a.id===atual.id?' on':''}" data-ac-selecionar="${a.id}">${diagrama(a.casas,a.dedos,a.nome,a.pestana,{inicio:a.inicio,esquerda})}<b>${esc(a.cifra)}</b><small>${esc(a.nome)} · ${esc(a.forma)}</small></button>`).join('')}</div>
+  </div>`;
+}
+function ligarAcordes(m) {
+  $('[data-ac-busca]', m)?.addEventListener('submit', e => { e.preventDefault(); ACORDE_UI.busca = $('#ac-q', m).value.trim(); redesenhar(); });
+  $$('[data-ac-familia]', m).forEach(b => b.onclick = () => { ACORDE_UI.familia = b.dataset.acFamilia; ACORDE_UI.busca = ''; redesenhar(); });
+  $$('[data-ac-mao]', m).forEach(b => b.onclick = () => { ACORDE_UI.mao = b.dataset.acMao; redesenhar(); });
+  $$('[data-ac-selecionar]', m).forEach(b => b.onclick = () => { ACORDE_UI.sel = b.dataset.acSelecionar; redesenhar(); requestAnimationFrame(() => $('#ac-atual')?.scrollIntoView({ block: 'center' })); });
+  const atual = () => CATALOGO_ACORDES.find(a => a.id === ACORDE_UI.sel) || acordesFiltrados()[0] || CATALOGO_ACORDES[0];
+  $$('[data-ac-ouvir]', m).forEach(b => b.onclick = () => tocarAcorde(atual().casas, b.dataset.acOuvir === 'cordas'));
+  $('[data-ac-braco]', m)?.addEventListener('click', () => { const a = atual(); Object.assign(LAB, { modo: 'acorde', raiz: a.raiz, acorde: a.tipo, rotulo: 'grau', base: null, sel: [] }); ir('explorar/acorde'); });
+  $('[data-ac-treinar]', m)?.addEventListener('click', () => { BUSCA.competencia = 'acordes'; BUSCA.busca = ''; ir('treinos/buscar'); });
 }
 
 /* ================= mapa do braço ================= */

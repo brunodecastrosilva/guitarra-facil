@@ -42,7 +42,7 @@ const CAMINHO = [
       dica: 'Na pausa, encoste a mão da palheta nas cordas para o som parar. O silêncio também tem tempo: continue contando.',
       evs: rep(2, () => [pn(.5, 0, 0, 0, 'pm'), pn(.5, 0, 0, 0, 'pm'), pz(1), pn(.5, 0, 0, 0, 'pm'), pn(.5, 0, 0, 0, 'pm'), pn(.5, 0, 0, 0, 'pm'), pz(.5)]) },
   ] },
-  { id: 'power', nome: 'Power chords', resumo: 'O acorde de duas notas que dá peso ao rock', bpm: 60, alvo: 90, passos: [
+  { id: 'power', nome: 'Power chords', resumo: 'O acorde de duas notas que cria uma base firme', bpm: 60, alvo: 90, passos: [
     { nome: 'O primeiro power chord', resumo: 'Mi 5: corda solta e casa 2',
       dica: 'Duas cordas de uma vez: a mais grossa solta e o indicador na casa 2 da corda de baixo. Toque só essas duas, com uma palhetada para baixo.',
       evs: rep(8, () => [pa(1, E5)]) },
@@ -75,9 +75,9 @@ const CAMINHO = [
         pn(.5, 0, 0, 0, 'pm'), pn(.5, 1, 3, 2), pn(.5, 0, 0, 0, 'pm'), pn(.5, 1, 2, 1), pn(.5, 0, 0, 0, 'pm'), pn(.5, 1, 0, 0), pn(.5, 0, 0, 0, 'pm'), pn(.5, 1, 2, 1),
         pa(4, E5)] },
   ] },
-  { id: 'solos', nome: 'Primeiros solos', resumo: 'A escala do rock, o bend, o slide e o vibrato', bpm: 60, alvo: 90, passos: [
+  { id: 'solos', nome: 'Primeiros solos', resumo: 'Pentatônica, bend, slide e vibrato', bpm: 60, alvo: 90, passos: [
     { nome: 'A escala do solo', resumo: 'Pentatônica de Mi menor, subindo',
-      dica: 'Esta é a pentatônica menor, a escala de quase todo solo de rock. Toque uma nota por clique e use o dedo que aparece no círculo.',
+      dica: 'Esta é a pentatônica menor, uma escala muito usada para criar solos. Toque uma nota por clique e use o dedo que aparece no círculo.',
       evs: PENTA_E.map(([c, k, f]) => pn(1, c, k, f)) },
     { nome: 'Subindo e descendo', resumo: 'A escala inteira, duas notas por clique',
       dica: 'Agora duas notas por clique, subindo e voltando. Palhetada alternada: para baixo e para cima.',

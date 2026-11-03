@@ -15,22 +15,19 @@ const listaCaminho = (est, atual) => `<ol class="cam-lista">${est.map(({ e, i, f
 const ATALHOS = [['favoritos', 'Favoritos', 'favoritos', () => DB.favoritos.length ? `${DB.favoritos.length} ${DB.favoritos.length === 1 ? 'treino' : 'treinos'}` : 'Marque com a estrela'],
   ['estudio', 'Estúdio', 'estudio', () => DB.ideias.length ? `${DB.ideias.length} ${DB.ideias.length === 1 ? 'ideia' : 'ideias'}` : 'Crie seus riffs'],
   ['plano', 'Plano de 4 semanas', 'plano', () => { const p = planoAtual(); return p && !p.fim ? `Semana ${semanaDoPlano(p)} de 4 · ${progressoPlano(p)[0]}/16` : 'Uma meta, quatro semanas'; }]];
-/* primeira experiência (Documento Mestre, seção 16), na própria tela inicial: experiência, objetivos, gosto
-   musical, tempo por dia e uma apresentação do app em desenhos. Dá para pular; nada é obrigatório além da primeira
+/* primeira experiência (Documento Mestre, seção 16): experiência, objetivos, tempo e uma apresentação visual.
+   Gêneros não determinam mais o percurso. Dá para pular; nada é obrigatório além da primeira
    pergunta, que diz onde o caminho começa. */
 const OBJETIVOS_PERFIL = [['zero', 'Aprender do zero'], ['tecnica', 'Técnica e velocidade'], ['riffs', 'Tocar riffs'], ['solos', 'Fazer solos'], ['teoria', 'Entender o braço'], ['criar', 'Criar meus riffs']];
-const GOSTOS = [['rock', 'Rock e hard rock', ['hard-rock', 'punk', 'grunge']], ['heavy', 'Heavy e power', ['heavy', 'power']], ['thrash', 'Thrash e groove', ['thrash', 'groove']],
-  ['extremo', 'Death e black', ['death', 'melodeath', 'black']], ['moderno', 'Metal moderno', ['metalcore', 'deathcore', 'nu', 'djent']], ['doom', 'Doom e stoner', ['doom']], ['virtuose', 'Shred e progressivo', ['shred', 'prog']]];
-const PASSOS_1A = ['exp', 'objetivos', 'gostos', 'tempo', 'conheca'];
+const PASSOS_1A = ['exp', 'objetivos', 'tempo', 'conheca'];
 let ONB = null;
 const primeiraVez = () => !DB.cfg.perfil && !DB.treinos.length && DB.cfg.caminhoDe == null;
 function primeiraVezHTML() {
-  if (!ONB) ONB = { i: 0, exp: null, objetivos: [], gostos: [], min: DB.cfg.meta || 20 };
+  if (!ONB) ONB = { i: 0, exp: null, objetivos: [], min: DB.cfg.meta || 20 };
   const k = PASSOS_1A[ONB.i], chip = (attr, v, nome, on) => `<button type="button" class="chip-1a" data-${attr}="${v}" aria-pressed="${on}">${on ? I.check : ''}${esc(nome)}</button>`;
   const corpo = {
     exp: `<h2 id="pv-t">Você já toca guitarra?</h2><p class="apoio">O app começa no ponto certo. Dá para mudar depois.</p><div class="ladrilhos l1 pv-op">${[[0, 1, 'Nunca toquei', 'Começa do primeiro toque'], [1, 2, 'Sei alguns acordes', 'Começa nos primeiros riffs'], [2, 3, 'Já toco músicas', 'Vai direto às sessões']].map(([v, n, nome, sub]) => ladrilho({ attrs: `data-pv-exp="${v}" aria-pressed="${ONB.exp === v}"`, ilu: iluNivel(n), nome, sub, classe: 'largo' + (ONB.exp === v ? ' on' : '') })).join('')}</div>`,
     objetivos: `<h2 id="pv-t">O que você quer agora?</h2><p class="apoio">Escolha quantos quiser. As sessões seguem isso.</p><div class="chips-1a">${OBJETIVOS_PERFIL.map(([v, n]) => chip('pv-obj', v, n, ONB.objetivos.includes(v))).join('')}</div>`,
-    gostos: `<h2 id="pv-t">Que som você curte?</h2><p class="apoio">Os riffs e solos das sessões vêm desses estilos. Pode deixar em branco.</p><div class="chips-1a">${GOSTOS.map(([v, n]) => chip('pv-gosto', v, n, ONB.gostos.includes(v))).join('')}</div>`,
     tempo: `<h2 id="pv-t">Quanto tempo por dia?</h2><p class="apoio">A sessão de hoje se monta nesse tempo. Pouco todo dia vale mais que muito de vez em quando.</p><div class="kf-seg" role="group" aria-labelledby="pv-t">${DURACOES.map(d => `<button type="button" data-pv-min="${d}" aria-pressed="${ONB.min === d}">${d} min</button>`).join('')}</div>`,
     conheca: `<h2 id="pv-t">Como o app ensina</h2><div class="pv-tour">${[
       [ilu('<rect x="4" y="12" width="56" height="26" rx="3" class="il-f"/><path d="M4 17h56M4 23h56M4 29h56M4 35h56M18 12v26M32 12v26M46 12v26" class="il-l"/><circle cx="25" cy="23" r="5" class="il-a"/><circle cx="39" cy="29" r="4" class="il-o"/>'), 'O braço mostra onde tocar', 'A nota acesa é a da vez; a tracejada, a próxima. O número é o dedo.'],
@@ -48,13 +45,12 @@ function ligarPrimeiraVez(m) {
   const de = () => { cx.outerHTML = primeiraVezHTML(); ligarPrimeiraVez(m); };
   $$('[data-pv-exp]', cx).forEach(b => b.onclick = () => { ONB.exp = +b.dataset.pvExp; de(); });
   $$('[data-pv-obj]', cx).forEach(b => b.onclick = () => { const v = b.dataset.pvObj; ONB.objetivos = ONB.objetivos.includes(v) ? ONB.objetivos.filter(x => x !== v) : [...ONB.objetivos, v]; de(); });
-  $$('[data-pv-gosto]', cx).forEach(b => b.onclick = () => { const v = b.dataset.pvGosto; ONB.gostos = ONB.gostos.includes(v) ? ONB.gostos.filter(x => x !== v) : [...ONB.gostos, v]; de(); });
   $$('[data-pv-min]', cx).forEach(b => b.onclick = () => { ONB.min = +b.dataset.pvMin; de(); });
   const voltar = $('[data-pv-voltar]', cx); if (voltar) voltar.onclick = () => { ONB.i--; de(); };
   $('[data-pv-seguir]', cx).onclick = () => {
     if (PASSOS_1A[ONB.i] === 'exp' && ONB.exp == null) { $('#pv-erro', cx).textContent = 'Escolha uma opção para continuar.'; return; }
     if (ONB.i < PASSOS_1A.length - 1) { ONB.i++; de(); return; }
-    DB.cfg.perfil = { exp: ONB.exp, objetivos: ONB.objetivos, gostos: ONB.gostos.flatMap(g => (GOSTOS.find(x => x[0] === g) || [, , []])[2]), min: ONB.min, em: Date.now() };
+    DB.cfg.perfil = { exp: ONB.exp, objetivos: ONB.objetivos, min: ONB.min, em: Date.now() };
     DB.cfg.meta = ONB.min; DB.cfg.sessaoMin = ONB.min; DB.cfg.caminhoDe = ONB.exp === 0 ? 0 : ONB.exp === 1 ? 3 : CAMINHO.length;
     ONB = null; SESSAO = null; commit(); render(); KitFacil.avisar('Pronto: o Início já mostra o seu próximo passo.');
   };
@@ -73,7 +69,7 @@ VIEWS.inicio = () => {
   if (px) {
     const mp = modelo(px.id), vp = volta(mp, cfgPadrao(mp));
     return `<div class="pilha">${pv}${seqHTML}
-    <button type="button" class="continuar passo-hero" data-tr-modelo="${px.id}"><span class="ct-ilu">${miniDesenho(vp)}</span><span class="ld-tx"><small>Seu próximo passo · ${px.n} de ${px.e.ids.length} · ${esc(px.e.nome)}</small><b>${esc(mp.nome)}</b><small>${esc(mp.resumo)}</small></span><span class="ct-play">${I.play}</span></button>
+    <button type="button" class="continuar passo-hero" data-tr-modelo="${px.id}"><span class="ct-ilu">${miniDesenho(vp)}</span><span class="ld-tx"><small>Seu próximo passo · ${px.n} de ${px.e.ids.length} · ${esc(px.e.nome)}</small><b>${esc(tituloDe(mp))}</b><small>${esc(mp.resumo)}</small></span><span class="ct-play">${I.play}</span></button>
     ${metasHTML}
     <section class="cartao caminho" aria-labelledby="cam-t"><h2 id="cam-t">Seu caminho</h2>${listaCaminho(caminhoEstado(), px.i)}
       <button type="button" class="kf-btn kf-sec cam-pular" data-caminho-pular>Já toco: escolher onde começar</button></section>

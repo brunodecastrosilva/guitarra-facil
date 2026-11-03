@@ -1,19 +1,33 @@
-/* Guitarra Fácil · Músicas: playlists de inspiração e a sua lista */
+/* Músicas vivem dentro da Biblioteca. As antigas playlists por gênero foram substituídas por coleções de intenção
+   pedagógica; os dados originais permanecem apenas como fonte e para manter links salvos compatíveis. */
 'use strict';
-VIEWS.musicas = () => {
-  const sub = subRota(), aba = sub === 'playlists' || PLAYLISTS.some(p => p.id === sub) ? 'playlists' : 'minhas';
-  const minhas = DB.musicas.length
+function musicasMinhasHTML() {
+  return DB.musicas.length
     ? `<div class="pilha">${ESTADOS_MUSICA.map(([k, l]) => { const M = DB.musicas.filter(m => m.estado === k); return M.length ? `<section class="pilha" style="gap:8px"><h3 class="sub-h">${l}</h3><ul class="musicas">${M.map(m => `<li><button type="button" class="musica" data-musica="${m.id}"><span><b>${esc(m.titulo)}</b>${m.artista ? `<span class="apoio"> · ${esc(m.artista)}</span>` : ''}</span>${I.seta}</button></li>`).join('')}</ul></section>` : ''; }).join('')}</div>`
     : KitFacil.ui.vazio({ titulo: 'Nenhuma música ainda', texto: 'Anote as músicas que você quer aprender ou adicione das playlists. Quando conseguir tocar, marque como <b>Já toco</b>.' });
+}
+function colecoesDeInspiracao() {
+  const vistos = new Set(), faixas = PLAYLISTS.flatMap(pl => pl.musicas.map((m, i) => ({ pid: pl.id, i, t: m[0], a: m[1], por: m[2] }))).filter(x => { const k = x.t + '|' + x.a; if (vistos.has(k)) return false; vistos.add(k); return true; });
+  const regras = [
+    ['Primeiros repertórios', 'Formas e movimentos claros para começar.', /simples|primeira|duas notas|cordas soltas|lento|espaço|power chord/i],
+    ['Ritmo e base', 'Acordes, abafamentos, pausas, acentos e riffs.', /riff|acorde|palm|chug|galope|síncope|pausa|drop|afinação baixa/i],
+    ['Expressão e melodia', 'Bends, vibrato, slides e construção de frases.', /bend|vibrato|slide|melodia|solo|frase|harmoniz/i],
+    ['Precisão e velocidade', 'Palhetada, ligados, arpejos, tapping e varredura.', /rápid|palhet|tremolo|arpejo|tapping|varredura|sweep|ligado|salto/i],
+    ['Ritmo avançado e criação', 'Compassos, grupos rítmicos e ideias para compor.', /compasso|polirrit|grupo ímpar|mudança|disson|contratempo/i],
+  ];
+  const usados = new Set();
+  const C = regras.map(([nome, resumo, re]) => ({ nome, resumo, faixas: faixas.filter((x, i) => !usados.has(i) && re.test(x.por) && (usados.add(i), true)) }));
+  const resto = faixas.filter((_, i) => !usados.has(i)); if (resto.length) C.push({ nome: 'Exploração musical', resumo: 'Referências variadas para ouvir, escolher e estudar.', faixas: resto });
+  return C.filter(c => c.faixas.length);
+}
+function musicasInspiracoesHTML() {
   const tem = (t, a) => DB.musicas.some(m => m.titulo === t && m.artista === a);
-  const abas = `<div class="kf-seg abas" role="group" aria-label="Mostrar"><button type="button" data-ir="musicas" aria-pressed="${aba === 'minhas'}">Minhas músicas</button><button type="button" data-ir="musicas/playlists" aria-pressed="${aba === 'playlists'}">Playlists</button></div>`;
-  if (aba === 'minhas') return KitFacil.ui.cabecalho({ titulo: 'Músicas', sub: 'As músicas que você quer aprender e as que já toca.', criar: { rotulo: 'Nova música', attrs: 'data-musica-nova' } }) + abas + minhas;
-  return KitFacil.ui.cabecalho({ titulo: 'Músicas', sub: 'Playlists recomendadas, da mais fácil à mais difícil.' }) + abas
-    + `<div class="pilha">
-    ${PLAYLISTS.map(pl => `<details class="cartao playlist" data-kf-secao id="${pl.id}"${sub === pl.id ? ' open' : ''}><summary><span class="pl-capa n${pl.nivel}" aria-hidden="true">${I.musicas}</span><span class="nivel-tt"><h2 style="font-size:18px">${esc(pl.nome)}</h2><span class="apoio" data-kf-secao-resumo>${pl.musicas.length} músicas · ${esc(pl.resumo)}</span></span></summary>
-      <ol class="faixas">${pl.musicas.map(([t, a, por], i) => `<li><span class="fx-n">${i + 1}</span><span class="fx-t"><b>${esc(t)}</b><span class="apoio">${esc(a)} · ${esc(por)}</span></span><span class="fx-a"><a class="kf-btn kf-sec fx-l" href="${linkYoutube(t, a)}" target="_blank" rel="noopener" aria-label="Ver ${esc(t)} no YouTube">YouTube</a><a class="kf-btn kf-sec fx-l" href="${linkSpotify(t, a)}" target="_blank" rel="noopener" aria-label="Ouvir ${esc(t)} no Spotify">Spotify</a><button type="button" class="kf-btn ${tem(t, a) ? 'kf-sec' : 'kf-pri'} fx-l" data-pl-add="${esc(pl.id)}|${i}" ${tem(t, a) ? 'disabled' : ''}>${tem(t, a) ? 'Na lista' : 'Quero aprender'}</button></span></li>`).join('')}</ol></details>`).join('')}
+  return `<div class="pilha">${colecoesDeInspiracao().map((c, ci) => `<details class="cartao playlist" data-kf-secao id="colecao-${ci}"><summary><span class="pl-capa n${ci % 5 + 1}" aria-hidden="true">${I.musicas}</span><span class="nivel-tt"><h2 style="font-size:18px">${esc(c.nome)}</h2><span class="apoio" data-kf-secao-resumo>${c.faixas.length} músicas · ${esc(c.resumo)}</span></span></summary>
+      <ol class="faixas">${c.faixas.map(({ pid, i, t, a, por }, j) => `<li><span class="fx-n">${j + 1}</span><span class="fx-t"><b>${esc(t)}</b><span class="apoio">${esc(a)} · ${esc(por)}</span></span><span class="fx-a"><a class="kf-btn kf-sec fx-l" href="${linkYoutube(t, a)}" target="_blank" rel="noopener" aria-label="Ver ${esc(t)} no YouTube">YouTube</a><a class="kf-btn kf-sec fx-l" href="${linkSpotify(t, a)}" target="_blank" rel="noopener" aria-label="Ouvir ${esc(t)} no Spotify">Spotify</a><button type="button" class="kf-btn ${tem(t, a) ? 'kf-sec' : 'kf-pri'} fx-l" data-pl-add="${esc(pid)}|${i}" ${tem(t, a) ? 'disabled' : ''}>${tem(t, a) ? 'Na lista' : 'Quero aprender'}</button></span></li>`).join('')}</ol></details>`).join('')}
     <p class="apoio">As músicas tocam no YouTube ou no Spotify: letras, cifras e gravações têm direitos autorais e não ficam dentro do app.</p></div>`;
-};
+}
+VIEWS.musicas = () => VIEWS.biblioteca ? VIEWS.biblioteca() : musicasMinhasHTML();
+function ligarMusicas() {}
 // minutos de cada um dos últimos 7 dias, com a linha da meta
 
 /* ================= janela de música ================= */

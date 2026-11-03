@@ -1,6 +1,7 @@
 /* Guitarra Fácil · Treinos: categorias, listas, treino do dia e favoritos */
 'use strict';
-/* Treinos: categoria › estilo ou técnica › nível › tamanho › lista, um toque por vez */
+/* Treinos: categoria › técnica (quando necessário) › nível › tamanho › lista.
+   Gênero musical não é mais uma etapa nem um filtro: o objetivo técnico conduz a escolha. */
 function miniDesenho(ex) {
   const P = ex.evs.flatMap(e => e.n), N = ex.afin ? ex.afin.length : 6; if (!P.length) return '<svg class="mini-braco" viewBox="0 0 92 64" aria-hidden="true"></svg>';
   const ks = P.map(n => n[1]), a = Math.min(...ks), b = Math.max(...ks), C = Math.max(4, Math.min(12, b - a + 1));
@@ -21,18 +22,20 @@ const NIVEL_TECNICA = {
 };
 const descricaoNivel = (cat, sub, n, padrao) => cat === 'tecnica' ? NIVEL_TECNICA[sub]?.[n-1] || `Foco: ${TECNICAS_TREINO.find(t => t.id === sub)?.nome.toLowerCase() || 'controle técnico'}. ${['Padrões de base, com atenção à clareza e ao pulso.', 'Frases mais extensas e maior coordenação entre as mãos.', 'Combine articulações e grupos rítmicos em contextos complexos.'][n-1]}` : padrao;
 const listaDe = (cat, sub, nivel, tam) => MODELOS.filter(m => m.cat === cat && (!sub || m.sub === sub) && m.nivel === nivel && (cat === 'escalas' || m.tamanho === tam));
-const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(m.nome)}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
+const itemTreino = (m, tam) => { const v = volta(m, { ...cfgPadrao(m), tam, ...((DB.cfg.trCfg || {})[m.id] || {}) }), b = melhorLimpo(m.id); return `<li><button type="button" class="tr-item" data-tr-modelo="${m.id}"${tam ? ` data-tam="${tam}"` : ''}>${miniDesenho(v)}<span class="ld-tx"><b>${favorito(m.id) ? '<span class="fav-ic" aria-label="favorito">★</span> ' : ''}${esc(tituloDe(m))}</b><small>${esc(typeof m.resumo === 'function' ? m.resumo() : m.resumo)}${b ? ` · seu melhor: ${b} bpm` : ''}</small></span>${I.seta}</button></li>`; };
 VIEWS.treinos = () => {
-  const [, cat, a, b, c] = caminho(), C = CATEGORIAS.find(x => x[0] === cat);
+  let [, cat, a, b, c] = caminho(); const C = CATEGORIAS.find(x => x[0] === cat);
+  // Compatibilidade com endereços antigos: ignora o antigo segmento de gênero.
+  if ((cat === 'riffs' || cat === 'solos') && ESTILOS.some(e => e.id === a)) { a = b; b = c; c = ''; }
   if (cat === 'buscar') return telaBusca();
-  if (!C) return KitFacil.ui.cabecalho({ titulo: 'Treinos', sub: `${MODELOS.length.toLocaleString('pt-BR')} treinos de rock e metal, em três níveis e quatro tamanhos.` })
-    + `<form class="busca-ini" data-busca-form role="search"><label class="kf-rotulo" for="busca-ini">Buscar treinos</label><div class="busca-linha"><input id="busca-ini" type="search" class="kf-entrada" placeholder="galope, thrash, bend, pentatônica…" value="${esc(BUSCA.busca)}"><button type="submit" class="kf-btn kf-pri">${I.busca || ''}Buscar</button></div>
+  if (!C) return KitFacil.ui.cabecalho({ titulo: 'Treinos', sub: `${MODELOS.length.toLocaleString('pt-BR')} exercícios organizados pelo que você quer desenvolver.` })
+    + `<form class="busca-ini" data-busca-form role="search"><label class="kf-rotulo" for="busca-ini">Buscar treinos</label><div class="busca-linha"><input id="busca-ini" type="search" class="kf-entrada" placeholder="bend, galope, acordes, pentatônica…" value="${esc(BUSCA.busca)}"><button type="submit" class="kf-btn kf-pri">${I.busca || ''}Buscar</button></div>
       <button type="button" class="kf-btn kf-sec busca-filtros" data-ir="treinos/buscar">${I.ajustes}Filtrar por técnica, competência, mão e mais</button></form>`
     + `<div class="ladrilhos">${CATEGORIAS.map(([id, nome, d]) => ladrilho({ ir: 'treinos/' + id, ilu: ILU[id], nome, sub: d, selo: MODELOS.filter(m => m.cat === id).length.toLocaleString('pt-BR') })).join('')}</div>`;
-  const base = 'treinos/' + C[0], temSub = C[0] !== 'escalas';
-  const SUBS = C[0] === 'tecnica' ? TECNICAS_TREINO.map(t => [t.id, t.nome, t.d]) : ESTILOS.map(e => [e.id, e.nome, `No estilo de ${e.inspira}.`]);
+  const base = 'treinos/' + C[0], temSub = C[0] === 'tecnica';
+  const SUBS = TECNICAS_TREINO.map(t => [t.id, t.nome, t.d]);
   const S = temSub ? SUBS.find(x => x[0] === a) : null;
-  if (temSub && !S) return migalhas([['treinos', 'Treinos'], [null, C[1]]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: C[0] === 'tecnica' ? 'Escolha a técnica.' : 'Escolha o estilo. Os riffs e solos são originais do app, inspirados nas bandas de cada estilo.' })
+  if (temSub && !S) return migalhas([['treinos', 'Treinos'], [null, C[1]]]) + KitFacil.ui.cabecalho({ titulo: C[1], sub: 'Escolha a habilidade que deseja desenvolver.' })
     + `<div class="ladrilhos">${SUBS.map(([id, nome, d]) => ladrilho({ ir: `${base}/${id}`, ilu: desenhoDe(`${C[0]}:${id}:2:curto:0`), nome, sub: d, classe: 'sub' })).join('')}</div>`;
   const bs = temSub ? `${base}/${S[0]}` : base, nv = temSub ? b : a, N = NIVEIS.find(n => n[1] === nv), cam = [['treinos', 'Treinos'], [base, C[1]], ...(temSub ? [[bs, S[1]]] : [])], titulo = temSub ? S[1] : C[1];
   if (!N) return migalhas([...cam.slice(0, -1), [null, cam[cam.length - 1][1]]]) + KitFacil.ui.cabecalho({ titulo, sub: 'Escolha o nível. Cada nível tem os seus treinos.' })
@@ -72,12 +75,11 @@ VIEWS.afinador = () => {
 };
 
 /* busca e filtros combinados (Documento Mestre, seção 6): os filtros ficam guardados enquanto o app está aberto */
-const BUSCA = { busca: '', categoria: '', estilo: '', tecnica: '', nivel: '', tamanho: '', mao: '', competencia: '', objetivo: '', n: 30 };
+const BUSCA = { busca: '', categoria: '', tecnica: '', nivel: '', tamanho: '', mao: '', competencia: '', objetivo: '', n: 30 };
 const FILTROS = () => [
   ['categoria', 'Categoria', [...CATEGORIAS.map(c => [c[0], c[1]]), ['caminho', 'Caminho do iniciante'], ...(typeof OBRAS !== 'undefined' ? [['biblioteca', 'Biblioteca']] : []), ['estudio', 'Suas criações']]],
   ['competencia', 'Competência', COMPETENCIAS.map(c => [c[0], c[1]])],
   ['tecnica', 'Técnica', Object.entries(TECNICAS_NOTAS)],
-  ['estilo', 'Estilo', ESTILOS.map(e => [e.id, e.nome])],
   ['nivel', 'Nível', NIVEIS.map(n => [n[0], n[2]])],
   ['tamanho', 'Tamanho', TAMANHOS.map(t => [t[0], t[1]])],
   ['mao', 'Mão trabalhada', MAOS],
@@ -85,8 +87,8 @@ const FILTROS = () => [
 ];
 const precisaIndice = () => !!(BUSCA.mao || BUSCA.competencia || BUSCA.tecnica);
 function telaBusca() {
-  return migalhas([['treinos', 'Treinos'], [null, 'Buscar e filtrar']]) + KitFacil.ui.cabecalho({ titulo: 'Buscar e filtrar', sub: 'Combine o que quiser: técnica, competência, estilo, nível, tamanho, mão e objetivo.' })
-    + `<div class="pilha"><section class="cartao filtros-cx"><div class="campo"><label class="kf-rotulo" for="busca-q">Buscar</label><input id="busca-q" type="search" class="kf-entrada" placeholder="galope, thrash, bend, pentatônica…" value="${esc(BUSCA.busca)}"></div>
+  return migalhas([['treinos', 'Treinos'], [null, 'Buscar e filtrar']]) + KitFacil.ui.cabecalho({ titulo: 'Buscar e filtrar', sub: 'Combine técnica, competência, nível, tamanho, mão e objetivo.' })
+    + `<div class="pilha"><section class="cartao filtros-cx"><div class="campo"><label class="kf-rotulo" for="busca-q">Buscar</label><input id="busca-q" type="search" class="kf-entrada" placeholder="galope, bend, acordes, pentatônica…" value="${esc(BUSCA.busca)}"></div>
       <div class="filtros">${FILTROS().map(([k, rot, ops]) => `<div class="campo"><label class="kf-rotulo" for="f-${k}">${rot}</label><select id="f-${k}" data-filtro="${k}"><option value="">Todos</option>${ops.map(([v, n]) => `<option value="${esc(String(v))}"${String(BUSCA[k]) === String(v) ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`).join('')}</div>
       <button type="button" class="kf-btn kf-sec" data-filtro-limpar>Limpar os filtros</button></section>
       <div id="busca-res" aria-live="polite"></div></div>`;

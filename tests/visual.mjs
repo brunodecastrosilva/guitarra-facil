@@ -30,4 +30,15 @@ try {
     if (a.erros.length) throw new Error(a.erros.join('\n'));
     await a.fechar();
   }
+  for (const [nome, rota] of [['explorar', 'explorar'], ['biblioteca', 'biblioteca'], ['acordes', 'acordes']]) {
+    for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['desktop', { width: 1440, height: 900 }]]) {
+      const a = await aparelho(amb, { viewport }), p = a.page;
+      await p.locator('.seq').waitFor();
+      await p.evaluate(r => ir(r), rota);
+      await p.waitForTimeout(250);
+      await p.screenshot({ path: `revisao-visual/${tela}-${nome}.png`, fullPage: true });
+      if (a.erros.length) throw new Error(a.erros.join('\n'));
+      await a.fechar();
+    }
+  }
 } finally { await amb.encerrar(); }

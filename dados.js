@@ -87,10 +87,26 @@ const quando = t => { const d = diaNum() - diaNum(t); return d <= 0 ? 'hoje' : d
 const fmtTempo = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const favorito = id => DB.favoritos.some(f => f.id === id);
 function alternarFavorito(id) { const k = DB.favoritos.findIndex(f => f.id === id); if (k >= 0) DB.favoritos.splice(k, 1); else DB.favoritos.push({ id, em: Date.now() }); commit(); conferirConquistas(); return k < 0; }
-// nome de um treino com o estilo ou a técnica: "Bigorna · Thrash metal"
-// o nome de cada categoria, inclusive as que não estão no catálogo (caminho, biblioteca e estúdio)
+// Identidade pública dos exercícios: o catálogo não usa mais nomes fantasiosos nem gêneros.
+// O número é a posição estável do modelo no catálogo desta versão e permite reencontrar o mesmo exercício.
+// O objetivo vem primeiro na linguagem pedagógica; ids, sementes e estilos continuam apenas como implementação.
 const nomeCategoria = cat => (CATEGORIAS.find(c => c[0] === cat) || [0, { caminho: 'Caminho do iniciante', biblioteca: 'Biblioteca', estudio: 'Estúdio' }[cat] || cat])[1];
-const tituloDe = m => m.cat === 'escalas' ? m.nome : m.cat === 'caminho' ? `${m.nome} · ${etapaDe(m.sub).nome}` : m.cat === 'estudio' ? `${m.nome} · Estúdio` : m.cat === 'biblioteca' ? `${m.nome} · ${m.autor || 'Biblioteca'}` : `${m.nome} · ${m.cat === 'tecnica' ? TECNICAS_TREINO.find(t => t.id === m.sub).nome : estiloDe(m.sub).nome}`;
+const numeroExercicio = m => String(Math.max(1, MODELOS.indexOf(m) + 1)).padStart(4, '0');
+function objetivoExercicio(m) {
+  if (!m) return 'Exercício';
+  if (m.cat === 'tecnica') {
+    const t = TECNICAS_TREINO.find(x => x.id === m.sub);
+    return `Praticar ${t ? t.nome.toLowerCase() : 'controle técnico'}`;
+  }
+  if (m.cat === 'riffs') return 'Aplicar ritmo, acordes e articulações em um riff';
+  if (m.cat === 'solos') return 'Construir uma frase de solo com articulações';
+  if (m.cat === 'escalas') return m.grupo === 'Arpejo' ? `Percorrer ${m.nome.toLowerCase()}` : m.grupo === 'Sequência' ? `Praticar ${m.nome.toLowerCase()}` : `Mapear ${m.nome.toLowerCase()} no braço`;
+  if (m.cat === 'caminho') return typeof m.resumo === 'string' ? m.resumo.replace(/[.]$/, '') : 'Desenvolver um fundamento';
+  if (m.cat === 'biblioteca') return 'Aplicar técnica em um trecho musical';
+  if (m.cat === 'estudio') return 'Praticar uma criação própria';
+  return typeof m.resumo === 'string' ? m.resumo.replace(/[.]$/, '') : 'Praticar guitarra';
+}
+const tituloDe = m => `#${numeroExercicio(m)} · ${objetivoExercicio(m)}`;
 
 /* ================= treino do dia ================= */
 // quatro treinos do nível escolhido, sorteados pelo dia: aquecimento de técnica, riff, solo e uma linha muito longa
@@ -101,7 +117,7 @@ function treinoDoDia(nivel) {
 
 /* ================= conquistas ================= */
 // [id, nome, como ganhar, condição]: conferidas depois de cada prática; ficam guardadas com a data em que vieram
-const estilosTreinados = () => new Set(T().map(t => modelo(t.id)).filter(m => m && (m.cat === 'riffs' || m.cat === 'solos')).map(m => m.sub));
+const aplicacoesTreinadas = () => new Set(T().map(t => modelo(t.id)).filter(m => m && (m.cat === 'riffs' || m.cat === 'solos')).map(m => m.id));
 const tecnicasTreinadas = () => new Set(T().map(t => modelo(t.id)).filter(m => m && m.cat === 'tecnica').map(m => m.sub));
 const CONQUISTAS = [
   ['primeiro', 'Primeiro treino', 'Termine um treino.', () => DB.treinos.length > 0],
@@ -112,8 +128,8 @@ const CONQUISTAS = [
   ['hora', 'Uma hora na semana', 'Some 60 minutos em sete dias.', () => minutosSemana() >= 60],
   ['horas10', 'Dez horas de guitarra', 'Some 600 minutos de prática.', () => DB.praticas.reduce((s, p) => s + p.min, 0) >= 600],
   ['dia', 'Treino do dia', 'Termine os quatro treinos de um treino do dia.', () => T().some(t => t.dia && t.diaFim)],
-  ['estilos5', 'Cinco estilos', 'Treine riffs ou solos de cinco estilos.', () => estilosTreinados().size >= 5],
-  ['estilos', 'Todos os estilos', `Treine os ${ESTILOS.length} estilos.`, () => estilosTreinados().size >= ESTILOS.length],
+  ['estilos5', 'Cinco aplicações', 'Treine cinco riffs ou solos diferentes.', () => aplicacoesTreinadas().size >= 5],
+  ['estilos', 'Explorador musical', 'Treine vinte riffs ou solos diferentes.', () => aplicacoesTreinadas().size >= 20],
   ['tecnicas10', 'Dez técnicas', 'Treine dez técnicas diferentes.', () => tecnicasTreinadas().size >= 10],
   ['muito-longo', 'Linha inteira', 'Toque uma volta inteira de um treino muito longo.', () => T().some(t => (modelo(t.id) || {}).tamanho === 'muito-longo' && t.voltas >= 1)],
   ['avancado', 'Nível avançado', 'Faça um treino avançado.', () => T().some(t => (modelo(t.id) || {}).nivel === 3)],

@@ -15,15 +15,15 @@ const TEORIA = [
   ['intervalos', 'Intervalos', 'A distância entre duas notas.'],
   ['ritmo', 'Ritmo e figuras', 'Quanto dura cada nota.'],
 ];
-VIEWS.teoria = () => {
-  const sec = parte(1), S = TEORIA.find(x => x[0] === sec);
+function teoriaHTML(sec = parte(1), raizRota = 'teoria', tituloRaiz = 'Teoria') {
+  const S = TEORIA.find(x => x[0] === sec), destino = id => raizRota === 'explorar' ? (id === 'circulo' ? 'harmonia' : id) : id;
   if (!S) return KitFacil.ui.cabecalho({ titulo: 'Teoria', sub: 'Escolha um assunto. Tudo desenhado no braço e pronto para ouvir.' })
-    + `<div class="ladrilhos">${TEORIA.map(([id, n, d]) => ladrilho({ ir: 'teoria/' + id, ilu: ILU['te-' + id], nome: n, sub: d })).join('')}</div>`;
+    + `<div class="ladrilhos">${TEORIA.map(([id, n, d]) => ladrilho({ ir: raizRota + '/' + destino(id), ilu: ILU['te-' + id], nome: n, sub: d })).join('')}</div>`;
   const E = ESCALAS.find(e => e[0] === TEO.escala), notas = notasEscala(TEO.raiz, TEO.escala), pentas = TEO.escala.startsWith('penta') || TEO.escala === 'blues';
   const des = pentas && TEO.desenho >= 0 ? desenhosPenta(TEO.escala === 'penta-maior' ? pc(TEO.raiz + 9) : TEO.raiz)[TEO.desenho] : null;
   const acN = notasAcorde(TEO.acRaiz, TEO.acTipo), acT = TIPOS_ACORDE.find(t => t[0] === TEO.acTipo), campo = campoHarmonico(TEO.tom, tomCirculo(TEO.tom));
   const optRaiz = (sel) => NOTAS.map((n, i) => `<option value="${i}"${sel === i ? ' selected' : ''}>${n} (${CIFRA[i]})</option>`).join('');
-  return migalhas([['teoria', 'Teoria'], [null, S[1]]]) + KitFacil.ui.cabecalho({ titulo: S[1], sub: S[2] })
+  return migalhas([[raizRota, tituloRaiz], [null, S[1]]]) + KitFacil.ui.cabecalho({ titulo: S[1], sub: S[2] })
   + `<div class="pilha">
     ${sec === 'escalas' ? `<section class="cartao te-sec" id="t-escalas">
       <div class="grade2"><div class="campo"><label class="kf-rotulo" for="te-raiz">Tônica</label><select id="te-raiz">${optRaiz(TEO.raiz)}</select></div>
@@ -52,7 +52,8 @@ VIEWS.teoria = () => {
       <div class="figuras">${FIGURAS.map(([n, t]) => `<button type="button" class="fig-it" data-te-fig="${t}">${figuraSVG(t)}<b>${n}</b><span class="apoio">${t >= 1 ? t + (t === 1 ? ' tempo' : ' tempos') : t === .5 ? 'meio tempo' : '1/4 de tempo'} · ${Math.round(60 / DB.cfg.bpm * t * 1000)} ms a ${DB.cfg.bpm} bpm</span></button>`).join('')}</div>
       <p class="apoio">Num compasso 4/4 cabem 4 semínimas, 8 colcheias ou 16 semicolcheias. Toque numa figura para ouvir quatro tempos dela.</p></section>` : ''}
   </div>`;
-};
+}
+VIEWS.teoria = () => teoriaHTML();
 
 
 

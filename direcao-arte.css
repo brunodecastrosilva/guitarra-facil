@@ -1,5 +1,7 @@
 /* Direção de arte do Guitarra Fácil. Componentes do app; o Kit da família permanece intacto. */
-.gf-player.kf-dlg{max-width:1000px}
+/* Atividades de foco usam todo o viewport: sem aplicativo aparecendo atrás, sem segunda moldura. */
+.kf-ov:has(.gf-player){align-items:stretch;padding:0}
+.gf-player.kf-dlg{width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0;padding-bottom:env(safe-area-inset-bottom,0px)}
 .gf-player .kf-dlg-cab{flex-shrink:0;padding:18px 16px 14px 24px}
 .gf-player .kf-dlg-cab h2{font:800 21px/1.25 var(--kf-font)}
 .gf-player .kf-dlg-corpo{padding:4px 24px 20px}
@@ -89,19 +91,48 @@
 .gesto-etapas button:focus-visible,.gesto-transporte input:focus-visible{outline:3px solid var(--kf-focus);outline-offset:3px}
 /* Nomes longos nos diagramas de acordes preservam a leitura. */
 .acordes b{font:700 16px/1.3 var(--kf-font)}
+/* Ilustrações editoriais maiores: contraste de gravura técnica, profundidade e um único acento vermelho. */
+.arte-destaque{margin:0 0 18px;border:1px solid var(--kf-line);border-radius:24px;overflow:hidden;background:linear-gradient(145deg,var(--kf-surface),var(--kf-surface-2));box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 12%,transparent)}
+.arte-destaque svg{display:block;width:100%;height:auto;max-height:220px}
+.ag-fundo{fill:color-mix(in srgb,var(--kf-surface) 72%,transparent);stroke:var(--kf-line-2);stroke-width:2}
+.ag-linha{fill:none;stroke:var(--kf-line-2);stroke-width:2}
+.ag-braco path{fill:none;stroke:var(--kf-muted);stroke-width:1.4;opacity:.72}
+.ag-braco path:nth-child(6n){stroke-width:2.5}
+.ag-sinal{fill:none;stroke:var(--gf-vermelho-tx);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9}
+.ag-nota circle:first-child{fill:var(--kf-surface);stroke:var(--kf-ink);stroke-width:3}.ag-nota circle:last-child{fill:var(--kf-ink)}
+.ag-nota-a circle:first-child{fill:var(--gf-vermelho);stroke:var(--gf-vermelho)}.ag-nota-a circle:last-child{fill:#fff}
+.ag-nota text{font:800 13px var(--kf-font);fill:var(--kf-ink);text-anchor:middle}.ag-nota-a text{fill:#fff}
+.ag-palheta{fill:var(--kf-ink);stroke:var(--kf-surface);stroke-width:2}
+.ag-disco circle,.ag-disco path{fill:none;stroke:var(--kf-ink);stroke-width:3}.ag-disco circle:nth-child(2){stroke:var(--gf-vermelho-tx);stroke-width:2}.ag-disco circle:nth-child(3){fill:var(--gf-vermelho);stroke:none}
+.ag-estante rect{fill:var(--kf-surface-2);stroke:var(--kf-line-2);stroke-width:2}.ag-estante rect:nth-child(3n){fill:var(--gf-vermelho)}
+.ag-selo path{fill:var(--gf-vermelho);opacity:.9}.ag-selo circle{fill:none;stroke:#fff;stroke-width:3}
+/* Navegação interna substitui destinos redundantes. */
+.explorar-abas,.biblioteca-abas{display:flex;gap:6px;margin:0 0 18px;padding:5px;border-radius:16px;background:var(--kf-surface);box-shadow:inset 0 0 0 1px var(--kf-line);overflow-x:auto}
+.explorar-abas button,.biblioteca-abas button{flex:1 0 auto;min-height:44px;padding:0 14px;border:0;border-radius:12px;background:transparent;color:var(--kf-muted);font:700 14px var(--kf-font);cursor:pointer}
+.explorar-abas [aria-current="page"],.biblioteca-abas [aria-current="page"]{background:var(--kf-ink);color:var(--kf-bg)}
+/* Biblioteca de acordes: busca progressiva, detalhe pedagógico e coleção compacta. */
+.ac-busca{display:grid;gap:7px}.ac-filtros{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}.ac-filtros .kf-seg{display:flex;flex-wrap:wrap;max-width:none}
+.ac-detalhe{display:grid;grid-template-columns:minmax(180px,280px) minmax(0,1fr);gap:24px;align-items:center;padding:24px}
+.ac-diagrama-grande{display:grid;place-items:center;align-self:stretch;border-radius:18px;background:var(--kf-surface-2)}.ac-diagrama-grande svg{width:min(100%,250px);height:auto}
+.ac-explica h2{margin:5px 0 10px;font:800 30px/1.1 var(--kf-font-display)}.ac-explica h2 span{font-family:var(--kf-font-mono);color:var(--gf-vermelho-tx)}
+.ac-explica p{margin:8px 0}.ac-explica ol{margin:12px 0;padding-left:22px}.ac-explica li+li{margin-top:6px}.ac-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.ac-contagem{margin:0}.ac-grade{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.ac-grade .acorde{padding:12px;gap:3px;min-width:0}.ac-grade .acorde svg{width:100%;max-width:132px}.ac-grade .acorde small{font-size:12px;color:var(--kf-muted);line-height:1.3}.ac-grade .acorde.on{box-shadow:inset 0 0 0 3px var(--gf-vermelho)}
 @media(max-width:719px){
  .gesto-layout{grid-template-columns:1fr;gap:16px}
  .gesto-etapas{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .arte-destaque{border-radius:18px;margin-bottom:14px}.arte-destaque svg{min-height:112px;object-fit:cover}
+ .ac-detalhe{grid-template-columns:1fr;padding:16px;gap:16px}.ac-diagrama-grande{max-height:280px}.ac-explica h2{font-size:26px}
 }
 @media(max-width:600px){
  .gf-player .kf-dlg-cab{padding:12px 8px 10px 16px}
  .gf-player .kf-dlg-cab h2{font-size:18px}
  .gf-player .kf-dlg-corpo{padding:4px 12px 16px}
  .gf-player .kf-dlg-pe{padding:10px 12px 12px;gap:8px}
- .gf-player .tr-ctrl{flex-direction:column;gap:8px}
+ .gf-player .tr-ctrl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
  .gf-player .tr-bpm-v{min-width:112px}
  .gf-player .tr-bpm-v output{font-size:30px}
  .gf-player .tr-bpm{gap:4px;width:100%}
+ .gf-player .tr-bpm [data-tr-bpm="-1"],.gf-player .tr-bpm [data-tr-bpm="1"]{display:none}
  .gf-player .tr-bpm .kf-btn{min-width:44px}
  .gf-player .tr-botoes{gap:20px}
  .gf-player .play-grande{width:48px;height:48px}
@@ -114,6 +145,7 @@
  .gesto-cab h3{font-size:22px}
  .gesto-transporte{gap:12px;align-items:stretch}
  .gesto-transporte .kf-btn{font-size:14px;padding:0 12px;max-width:145px}
+ .ac-grade{grid-template-columns:repeat(2,minmax(0,1fr))}.ac-filtros{flex-direction:column}.ac-filtros .kf-seg{width:100%}
 }
 @media(max-height:550px) and (orientation:landscape){.gf-player .tr-ctrl{flex-direction:row}.gf-player .kf-dlg-pe{padding:6px 12px}.gf-player .kf-dlg-cab{padding:4px 12px}.gf-player .play-grande{width:44px;height:44px}}
 @media(prefers-reduced-motion:reduce){.braco-tr .nt[class*="an-"],.braco-tr .nt[class*="an-"] > *{animation:none}}

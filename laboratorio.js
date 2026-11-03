@@ -45,10 +45,10 @@ function labLeitura(A) {
   if (LAB.modo === 'livre') return LAB.sel.length ? `<b>${LAB.sel.map(x => NOTAS[pc(midi(x))]).join(' · ')}</b>${LAB.sel.length > 1 ? ` — ${esc(nomeDoSom(LAB.sel.map(midi)))}` : ''}` : 'Toque nas notas para escolher (até seis). Depois ouça juntas ou em sequência.';
   return LAB.ultima ? `<b>${nomeNota(midi(LAB.ultima), LAB.ultima[0], LAB.ultima[1], N)}</b>` : 'Toque numa nota para ouvir.';
 }
-VIEWS.braco = () => {
+function laboratorioHTML(titulo = 'Braço', descricao = 'O laboratório: explore notas, escalas, acordes e intervalos, e monte suas combinações.') {
   const A = afinacaoDe(LAB.afin)[2], ex = { afin: A, evs: [], nome: 'laboratório do braço' };
   const sel = (id, rot, ops, v) => `<div class="campo"><label class="kf-rotulo" for="${id}">${rot}</label><select id="${id}">${ops.map(([k, n]) => `<option value="${esc(String(k))}"${String(v) === String(k) ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
-  return KitFacil.ui.cabecalho({ titulo: 'Braço', sub: 'O laboratório: explore notas, escalas, acordes e intervalos, e monte suas combinações.' })
+  return KitFacil.ui.cabecalho({ titulo, sub: descricao })
     + `<div class="pilha"><div class="kf-seg lab-modos" role="group" aria-label="Modo">${MODOS_LAB.map(([k, n]) => `<button type="button" data-lab-modo="${k}" aria-pressed="${LAB.modo === k}">${n}</button>`).join('')}</div>
     <div class="lab-campos">
       ${LAB.modo === 'escala' || LAB.modo === 'acorde' ? sel('lab-raiz', 'Tom', NOTAS.map((n, i) => [i, `${n} (${CIFRA[i]})`]), LAB.raiz) : ''}
@@ -66,7 +66,17 @@ VIEWS.braco = () => {
       ${LAB.modo === 'intervalos' && LAB.base ? `<button type="button" class="kf-btn kf-sec" data-lab-limpar>Trocar a base</button>` : ''}
       ${LAB.modo === 'livre' ? `<button type="button" class="kf-btn kf-pri" data-lab-junto${LAB.sel.length ? '' : ' disabled'}>${I.ouvir}Tocar junto</button><button type="button" class="kf-btn kf-sec" data-lab-seq${LAB.sel.length ? '' : ' disabled'}>Tocar em sequência</button><button type="button" class="kf-btn kf-sec" data-lab-limpar${LAB.sel.length ? '' : ' disabled'}>Limpar</button><button type="button" class="kf-btn kf-sec" data-lab-estudio${LAB.sel.length ? '' : ' disabled'}>${I.mais}Levar ao Estúdio</button>` : ''}
     </div></div>`;
+}
+VIEWS.braco = () => laboratorioHTML();
+VIEWS.explorar = () => {
+  const sec = subRota();
+  if (sec === 'harmonia') return arteDestaque('explorar') + explorarAbas(sec) + teoriaHTML('circulo', 'explorar', 'Explorar');
+  if (sec === 'ritmo') return arteDestaque('explorar') + explorarAbas(sec) + teoriaHTML('ritmo', 'explorar', 'Explorar');
+  if (['notas', 'escala', 'acorde', 'intervalos', 'livre'].includes(sec)) LAB.modo = sec;
+  return arteDestaque('explorar') + explorarAbas(sec) + laboratorioHTML('Explorar', 'Veja, ouça e experimente. O braço conecta notas, escalas, acordes e intervalos no mesmo lugar.');
 };
+function explorarAbas(sec) { return `<nav class="explorar-abas" aria-label="Áreas de exploração"><button type="button" data-ir="explorar" aria-current="${!['harmonia', 'ritmo'].includes(sec) ? 'page' : 'false'}">Braço interativo</button><button type="button" data-ir="explorar/harmonia" aria-current="${sec === 'harmonia' ? 'page' : 'false'}">Harmonia</button><button type="button" data-ir="explorar/ritmo" aria-current="${sec === 'ritmo' ? 'page' : 'false'}">Ritmo</button></nav>`; }
+function ligarExplorar(m) { const sec = subRota(); if (sec === 'harmonia' || sec === 'ritmo') ligarTeoria(m); else ligarLab(m); }
 function ligarLab(m) {
   const A = afinacaoDe(LAB.afin)[2], mexeu = () => { const x = $('.lab-vis', m).scrollLeft; redesenhar(); const v = $('.lab-vis'); if (v) v.scrollLeft = x; };
   $$('[data-lab-modo]', m).forEach(b => b.onclick = () => { LAB.modo = b.dataset.labModo; LAB.base = null; LAB.ultima = null; mexeu(); });
@@ -95,4 +105,4 @@ function ligarLab(m) {
   $$('[data-lab-estudio]', m).forEach(b => b.onclick = () => { if (typeof novaIdeiaCom === 'function') novaIdeiaCom(LAB.sel, LAB.afin); });
 }
 // a teoria dentro do exercício: abre o laboratório com a escala e o tom do treino
-function verNoBraco(ex) { Object.assign(LAB, { modo: 'escala', raiz: ex.raiz, escala: ex.escala, afin: ex.afinId || 'padrao', rotulo: 'grau', base: null, sel: [] }); KitFacil.dialogo.fechar(); setTimeout(() => ir('braco'), 300); }
+function verNoBraco(ex) { Object.assign(LAB, { modo: 'escala', raiz: ex.raiz, escala: ex.escala, afin: ex.afinId || 'padrao', rotulo: 'grau', base: null, sel: [] }); KitFacil.dialogo.fechar(); setTimeout(() => ir('explorar/escala'), 300); }
