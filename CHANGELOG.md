@@ -2,6 +2,11 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.20.1 · 2026-11-03
+
+- Menu em pilha de amplificadores: rack lateral no desktop, pilha na entrada do celular e amplificadores no menu Mais, com textura PNG própria e indicação luminosa da seção atual.
+- Referência anatômica e diagrama juntos na área didática; cabeçalho preservado ao ajustar as ferramentas.
+
 ## 0.20.0 · 2026-11-03
 
 - Edição Backstage: direção visual de palco, aço, couro, vermelho e âmbar; novas composições para todos os módulos.

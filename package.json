@@ -1,6 +1,6 @@
 {
   "name": "guitarra-facil",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "Guitarra Fácil: ambiente visual e interativo para aprender, explorar e criar na guitarra.",
   "private": true,
   "type": "module",
