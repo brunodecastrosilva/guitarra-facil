@@ -785,6 +785,7 @@ test('direção de arte: transporte sempre visível e demonstração controláve
     const a = await aparelho(amb, { viewport }), p = a.page; await pronto(p);
     await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
     const d = dlg(p); await d.waitFor();
+    await p.waitForTimeout(300); // mede depois da entrada do diálogo, não durante o deslocamento da animação
     const telaCheia = await d.evaluate(x => { const r = x.getBoundingClientRect(); return Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1 && r.left === 0 && r.top === 0; });
     assert.ok(telaCheia, nome + ': o treino ocupa o viewport inteiro');
     assert.match(await d.locator('.kf-dlg-cab h2').textContent(), /^#\d{4} · Praticar /);
