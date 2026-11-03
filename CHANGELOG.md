@@ -2,6 +2,13 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.20.0 · 2026-11-03
+
+- Edição Backstage: direção visual de palco, aço, couro, vermelho e âmbar; novas composições para todos os módulos.
+- Arte PNG original: guitarrista, estúdio e seis estudos anatômicos das técnicas substituem as ilustrações geométricas nos destaques e cartões.
+- Demonstrações com referência anatômica, pele com volume, sombra de contato e punho; mantidos o controle por etapas, a pausa, o movimento reduzido e as posições exatas do treino.
+- Preservadas as melhorias da 0.19: preview, pausa entre exercícios, sessões compactas e metrônomo de madeira.
+
 ## 0.19.0 · 2026-11-03
 
 - Preview antes de tocar: todo treino abre num roteiro com cada parte desenhada no braço (onde começa, a ordem das notas com setas e o número do dedo), um botão para ouvir só aquela parte, a duração e o andamento. O Começar fica preso no rodapé. No palco, o botão Roteiro volta ao preview.

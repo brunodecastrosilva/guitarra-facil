@@ -186,3 +186,35 @@
 .ses-pe{position:sticky;bottom:calc(var(--kf-nav-h,64px) + env(safe-area-inset-bottom,0px) + 10px);z-index:6;padding-top:6px}
 .ses-pe .ses-comecar{width:100%;min-height:56px;font-size:17px;box-shadow:var(--kf-shadow)}
 @media (min-width:1024px){.ses-pe{bottom:16px}}
+/* Edição Backstage: aço, couro, luz de palco e arte raster original. */
+:root{--kf-col:1120px;--kf-r-md:10px;--kf-r-lg:14px}
+:root[data-theme="dark"]{--kf-bg:#0c0b0c;--kf-surface:#191719;--kf-surface-2:#252124;--kf-line:#3b3234;--kf-line-2:#635356;--kf-ink:#fff4e8;--kf-muted:#c2b4b0;--kf-accent:#e83b2b;--kf-accent-ink:#fff;--kf-accent-soft:#391a18;--kf-accent-texto:#ff8b65;--kf-focus:#ffbc70;--gf-vermelho:#e53726;--gf-vermelho-tx:#ff8b65}
+body{background-image:radial-gradient(ellipse at 90% 0,rgba(148,34,17,.14),transparent 50%),repeating-linear-gradient(120deg,transparent 0 4px,rgba(127,110,100,.025) 4px 5px);background-attachment:fixed}
+.palco-cab{position:relative;isolation:isolate;min-height:300px;display:flex;align-items:end;overflow:hidden;border:1px solid #66504a;border-radius:14px;margin:12px 0 24px;background:#100b0b;color:#fff4e8;box-shadow:0 18px 50px #0005}
+.palco-cab>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 40%;z-index:-2}
+.palco-cab:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0d0909ed,#10090970 56%,transparent),linear-gradient(0deg,#100909a0,transparent);z-index:-1}
+.palco-cab>div{padding:32px;max-width:60%}.palco-kicker{font:700 11px var(--kf-font);letter-spacing:.2em;color:#ffc28e}
+.palco-cab h1{font:900 clamp(38px,5vw,64px)/.98 var(--kf-font-display);text-transform:uppercase;margin:14px 0;text-wrap:balance;letter-spacing:-.02em;text-shadow:0 3px 12px #000}
+.palco-cab p{font-size:15px;line-height:1.5;margin:0;color:#ead8cf;max-width:34ch}
+.arte-png{height:240px;border-radius:12px!important;border-color:#66504a!important}.arte-png img{width:100%;height:100%;object-fit:cover;object-position:70% 48%;display:block}
+.cartao,.dado,.primeira-vez,.musica,.ladrilho,.acorde{border-radius:10px!important;box-shadow:inset 0 1px 0 #fff1,0 5px 16px #0002!important;border:1px solid var(--kf-line)}
+.cartao,.dado{background:linear-gradient(135deg,var(--kf-surface-2),var(--kf-surface) 60%)}
+.kf-pri{background:linear-gradient(135deg,#f34a2b,#b92018)!important;color:#fff!important;border:1px solid #ff8560!important;box-shadow:0 4px 18px #e5372630,inset 0 1px #ffb09066!important}
+.kf-btn{border-radius:8px}.kf-trilho-it[aria-current="page"],.kf-nav-it[aria-current="page"]{color:var(--gf-vermelho-tx)}
+.ld-raster{overflow:hidden;border-radius:8px;background:#211515;min-width:64px;min-height:64px}.ld-raster img{width:100%;height:100%;min-height:64px;object-fit:cover;object-position:85% 45%;display:block}
+.kf-trilho-it[aria-current="page"]{box-shadow:inset 3px 0 var(--gf-vermelho);background:var(--kf-accent-soft)}
+h2{letter-spacing:.025em}.ladrilho:hover,.musica:hover,.acorde:hover{border-color:var(--gf-vermelho-tx);transform:translateY(-2px)}
+.ladrilho,.musica,.acorde{transition:transform .18s,border-color .18s}
+.gf-player .kf-dlg-cab{background:linear-gradient(100deg,#321714,#151214);color:#fff4e8;border-bottom:1px solid #6c3528}
+.gf-player .tr-palco{background:linear-gradient(135deg,var(--kf-surface-2),var(--kf-bg));border-color:var(--kf-line-2);border-radius:10px;box-shadow:inset 0 0 40px #0003}
+.gf-player .kf-dlg-pe{border-top:2px solid var(--gf-vermelho);box-shadow:0 -8px 30px #0003}
+.braco-tr .nt.agora circle{filter:drop-shadow(0 0 5px #f96327)}
+.gesto-referencia{position:relative;aspect-ratio:1.5;background-image:url('assets/tecnicas.png');background-size:300% 200%;background-position:var(--pos);border-bottom:1px solid #6b4939}
+.gesto-referencia span{position:absolute;bottom:10px;left:10px;padding:5px 9px;background:#100b0cdd;color:#ffcea7;font:700 11px var(--kf-font);letter-spacing:.05em;border:1px solid #80543c;border-radius:4px}
+.gesto-cena{background:#151012;border-color:#604539}.gesto-cena svg{background:linear-gradient(#21191a,#100e10);max-height:280px}
+.gesto-cena .gesto-madeira{fill:#32201e;stroke:#b37749;stroke-width:2}.gesto-cena .gesto-traste{stroke:#b8a79a}.gesto-cena .gesto-outra{stroke:#c7b8a5}
+.gesto-cena .gesto-dedo>path:first-child{fill:url(#pele-gesto);stroke:#582d26;stroke-width:1.5}.gesto-cena .gesto-dedo.apoio>path:first-child{fill:url(#pele-gesto)}
+.gesto-cena .gesto-unha{fill:#f0c1a6;stroke:#9e6451}.gesto-cena .gesto-dedo text{fill:#321c18}.gesto-cena .gesto-casa{fill:#e3c9b5}.gesto-cena .gesto-anotacao{fill:#ffe3c6}
+@media(min-width:1100px){main[data-tela="inicio"]>.pilha{gap:20px}.palco-cab{min-height:340px}.gesto-layout{grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr)}}
+@media(max-width:600px){.palco-cab{min-height:250px;margin-top:4px}.palco-cab>div{padding:22px;max-width:78%}.palco-cab h1{font-size:42px}.palco-cab:after{background:linear-gradient(90deg,#100909df,#10090960),linear-gradient(0deg,#10090990,transparent)}.arte-png{height:180px}.gesto-referencia{aspect-ratio:1.7}}
+@media(prefers-reduced-motion:reduce){.ladrilho,.musica,.acorde{transition:none}.ladrilho:hover,.musica:hover,.acorde:hover{transform:none}}
