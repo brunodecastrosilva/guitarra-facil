@@ -267,3 +267,33 @@ body{isolation:isolate;background:#10070e}
 .kf-nav-in>.kf-nav-it:not(.kf-nav-oculto){background:#211124;border-color:#7f517a;border-radius:8px 5px 9px 4px}
 @media(max-width:600px){.palco-desenhado{margin-top:-4px}.fogo-lado{opacity:.65}}
 @media(prefers-reduced-motion:reduce){.fogo-palco *{animation:none!important}.palco-desenhado .amp-menu-mobile button{transition:none}.palco-desenhado .amp-menu-mobile button:active{transform:none}}
+
+/* HQ em chamas — cada componente tem seu próprio movimento. */
+.fogo-lado{display:none}
+.fogo-palco{background:radial-gradient(ellipse at 50% 68%,#321525 0%,#190d1a 42%,#09070e 90%)}
+.fogo-palco[hidden]{display:none}
+.palco-desenhado{width:min(100%,500px);padding:10px 0;margin-bottom:16px}
+.palco-desenhado .amp-menu-mobile{gap:0}
+.palco-desenhado .amp-menu-mobile .amp-hq{isolation:isolate;transition:filter .15s;touch-action:manipulation}
+.amp-hq+.amp-hq{margin-top:-14px}
+.amp-corpo{display:block;position:relative;transform-origin:50% 86%;animation:amp-respira 4s ease-in-out infinite;animation-delay:var(--fase);filter:drop-shadow(0 10px 8px #09030bb3);pointer-events:none}
+.palco-desenhado .amp-menu-mobile .amp-falante{position:absolute;inset:0;width:100%;height:100%;clip-path:polygon(18% 45%,79% 45%,80% 86%,18% 86%);transform-origin:50% 65%;animation:amp-cone 1.2s ease-in-out infinite;animation-delay:var(--fase)}
+.amp-knob{position:absolute;top:33%;width:5.6%;aspect-ratio:1;border-radius:46% 51% 48% 45%;background:conic-gradient(from 20deg,#734479,#2a172d 24%,#71477b 28%,#392039 65%,#a877a8 82%,#49254c);border:2px solid #160d1c;box-shadow:inset 2px 2px 0 #ae87b5,2px 3px 0 #130e1a;animation:amp-controle 5s ease-in-out infinite;animation-delay:var(--fase);transform:translate(-50%,-50%)}
+.amp-knob:after{content:'';position:absolute;width:13%;height:50%;left:44%;top:6%;background:#ffe8aa;border:1px solid #392332;transform:rotate(12deg);transform-origin:50% 90%}
+.amp-knob:nth-of-type(2){animation-direction:reverse}.amp-knob:nth-of-type(3){animation-duration:7s}
+.amp-luz{position:absolute;left:24.7%;top:31.8%;height:5%;aspect-ratio:1;background:#ffe6a3;border-radius:40%;filter:blur(3px);mix-blend-mode:screen;box-shadow:0 0 18px 8px #ff411b;animation:amp-brilho 2.2s ease-in-out infinite;animation-delay:var(--fase)}
+.amp-escolhido{z-index:3}
+.amp-escolhido .amp-corpo{animation:amp-impacto .28s ease-out both}
+.amp-escolhido .amp-falante{animation:amp-pancada .28s ease-out both}
+.amp-escolhido .amp-luz{animation:none;opacity:1}
+.palco-desenhado .amp-menu-mobile .amp-hq:active{transform:none}
+.palco-preferencias{justify-content:flex-start}
+@keyframes amp-respira{0%,100%{transform:translateY(0) rotate(-.12deg)}50%{transform:translateY(-2px) rotate(.12deg)}}
+@keyframes amp-cone{0%,100%{transform:scale(1)}50%{transform:scale(1.003)}}
+@keyframes amp-controle{0%,100%{transform:translate(-50%,-50%) rotate(-4deg)}50%{transform:translate(-50%,-50%) rotate(4deg)}}
+@keyframes amp-brilho{0%,100%{opacity:.25}50%{opacity:.65}}
+@keyframes amp-impacto{0%{transform:scale(1)}25%{transform:translateY(-6px) rotate(-.9deg) scale(1.025)}55%{transform:translateY(2px) rotate(.5deg) scale(.99)}100%{transform:scale(1.012)}}
+@keyframes amp-pancada{0%,100%{transform:scale(1)}30%{transform:scale(1.025)}65%{transform:scale(.99)}}
+html[data-fogo-parado="true"] .amp-corpo,html[data-fogo-parado="true"] .amp-corpo *{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.amp-corpo,.amp-corpo *{animation:none!important}.amp-escolhido .amp-corpo{transform:none}}
+.palco-desenhado .amp-menu-mobile button .amp-corpo{background:transparent;padding:0;border-radius:0}

@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.22.0 · 2026-11-03
+
+- Direção HQ em chamas aprovada: quatro amplificadores transparentes, chamas independentes, controles e luzes animados.
+- Resposta elástica ao toque antes de navegar, com opção de movimento reduzido.
+- Controles de efeitos movidos para Ajustes → Menu e efeitos.
+
 ## 0.21.0 · 2026-11-03
 
 - Menu com a arte cartoon aprovada: quatro amplificadores com os nomes incorporados à ilustração, sem raios e sem o antigo banner de boas-vindas.

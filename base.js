@@ -1,7 +1,7 @@
 /* Guitarra Fácil · base comum das telas: versão, atalhos do DOM, ícones, ilustrações e peças de tela (migalhas e botão grande).
    Carrega antes de todos os outros arquivos do app */
 'use strict';
-const VERSAO = '0.21.0';
+const VERSAO = '0.22.0';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -72,8 +72,12 @@ function arteDestaque(tipo) {
   return `<figure class="arte-destaque arte-png"><img src="assets/${tipo === 'biblioteca' ? 'backstage' : 'palco'}.png" alt="${tipo === 'biblioteca' ? 'Estúdio ilustrado com amplificadores, guitarra e discos' : 'Guitarrista ilustrado sob luzes vermelhas e âmbar'}" width="1536" height="1024" decoding="async"></figure>`;
 }
 const AMPLIFICADORES = [['treinos', 'Treinos'], ['explorar', 'Explorar o braço'], ['estudio', 'Estúdio de criação'], ['biblioteca', 'Biblioteca']];
+function palcoAjustes() {
+  return `<div class="kf-bloco"><h3>Efeitos do menu</h3><p class="apoio">HQ em chamas. O som só começa quando você o ativa; a prática e o segundo plano pausam o ambiente.</p><div class="palco-preferencias" role="group" aria-label="Efeitos do palco"><button type="button" data-palco-som aria-pressed="false">Ouvir o fogo</button><button type="button" data-palco-fogo aria-pressed="true">Fogo: animado</button><label class="palco-volume">Volume do fogo<input type="range" min="0" max="50" value="20" step="1" data-palco-volume aria-label="Volume do fogo"></label></div></div>`;
+}
+
 function palcoCabecalho(tela) {
-  if (tela === 'inicio') return `<section class="palco-desenhado" aria-label="Escolha seu próximo passo"><h1 class="amp-leitor">Escolha seu próximo passo</h1><nav class="amp-menu-mobile" aria-label="Menu principal">${AMPLIFICADORES.map(([id, nome]) => `<button type="button" data-ir="${id}" aria-label="${nome}"><img src="assets/menu-${id}.png" alt="" decoding="async" width="941" height="${{treinos:410,explorar:338,estudio:306,biblioteca:376}[id]}"></button>`).join('')}</nav><div class="palco-preferencias" role="group" aria-label="Efeitos do palco"><button type="button" data-palco-som aria-pressed="false">Ouvir o fogo</button><button type="button" data-palco-fogo aria-pressed="true">Fogo: animado</button><label class="palco-volume">Volume do fogo<input type="range" min="0" max="50" value="20" step="1" data-palco-volume aria-label="Volume do fogo"></label></div></section>`;
+  if (tela === 'inicio') return `<section class="palco-desenhado" aria-label="Escolha seu próximo passo"><h1 class="amp-leitor">Escolha seu próximo passo</h1><nav class="amp-menu-mobile" aria-label="Menu principal">${AMPLIFICADORES.map(([id, nome], i) => `<button type="button" class="amp-hq" data-ir="${id}" aria-label="${nome}" style="--fase:${-i * .8}s"><span class="amp-corpo"><img class="amp-casca" src="assets/hq-${id}.webp" alt="" width="1200" height="546" decoding="async"><img class="amp-falante" src="assets/hq-${id}.webp" alt="" width="1200" height="546" decoding="async"><i class="amp-knob" style="left:37.5%" aria-hidden="true"></i><i class="amp-knob" style="left:50.6%" aria-hidden="true"></i><i class="amp-knob" style="left:63.7%" aria-hidden="true"></i><i class="amp-luz" aria-hidden="true"></i></span></button>`).join('')}</nav></section>`;
   if (['explorar', 'biblioteca', 'acordes', 'ajustes'].includes(tela)) return '';
   const textos = { treinos: ['Forje sua técnica', 'Um objetivo. Um movimento. Uma evolução de cada vez.'], estudio: ['Faça barulho. Crie.', 'Transforme uma ideia em seu próximo riff.'], progresso: ['Sua jornada no palco', 'Acompanhe a prática e escolha o próximo desafio.'], afinador: ['Encontre seu som', 'Afine antes de entrar em cena.'], metronomo: ['Domine o pulso', 'Precisão começa com uma batida de cada vez.'], bateria: ['Toque com a banda', 'Escolha a levada e entre no ritmo.'] };
   const t = textos[tela] || ['Hora de tocar', 'Seu próximo objetivo começa com uma nota.'];

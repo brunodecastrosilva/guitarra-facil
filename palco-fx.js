@@ -9,7 +9,7 @@ const PalcoFX = (() => {
   let ambiente = null, solicitado = false, pendente = false, erroSom = false;
   const fundo = document.createElement('div');
   fundo.className = 'fogo-palco'; fundo.setAttribute('aria-hidden', 'true');
-  fundo.innerHTML = '<span class="fogo-lado fogo-e"></span><span class="fogo-lado fogo-d"></span><canvas class="fogo-canvas"></canvas>';
+  fundo.innerHTML = '<canvas class="fogo-canvas"></canvas>';
   document.body.prepend(fundo);
   const animacao = typeof criarFogoPalco === 'function' ? criarFogoPalco(fundo.querySelector('canvas')) : { executar() {} };
   function guardar() { try { localStorage.setItem(chave, JSON.stringify(pref)); } catch {} }
@@ -49,7 +49,9 @@ const PalcoFX = (() => {
   function atualizar() {
     const quieto = document.hidden || emPratica(), parado = !pref.fogo || reduzido.matches || quieto;
     document.documentElement.dataset.fogoParado = String(parado);
-    animacao.executar(!parado);
+    const inicio = document.querySelector('#main')?.dataset.tela === 'inicio';
+    fundo.hidden = !inicio;
+    animacao.executar(!parado && inicio);
     sincronizarSom(quieto); botoes();
   }
   document.addEventListener('click', e => {
