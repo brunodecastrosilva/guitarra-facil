@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 const fonte = readFileSync(new URL('../palco-fx.js', import.meta.url), 'utf8');
-function ambiente({ salvo, reduzido = false, bloquearSom = false, armazenamentoBloqueado = false } = {}) {
-  const eventos = {}, memoria = new Map(salvo ? [['gf-palco-fx-v1', JSON.stringify(salvo)]] : []);
+function ambiente({ salvo, antigo, reduzido = false, bloquearSom = false, armazenamentoBloqueado = false } = {}) {
+  const eventos = {}, memoria = new Map([...(salvo ? [['guitarrafacil.palco-fx', JSON.stringify(salvo)]] : []), ...(antigo ? [['gf-palco-fx-v1', JSON.stringify(antigo)]] : [])]);
   const botao = () => ({ disabled: false, attrs: {}, setAttribute(k,v) { this.attrs[k] = v; } });
   const som = botao(), fogo = botao(), volume = { value: 20 };
   const main = { dataset: { tela: 'inicio' } }, media = { matches: reduzido, addEventListener(_, f) { this.mudar = f; } };
@@ -23,7 +23,8 @@ function ambiente({ salvo, reduzido = false, bloquearSom = false, armazenamentoB
   };
   const contexto = vm.createContext({ document: doc, Audio, matchMedia: () => media,
     criarFogoPalco: () => ({ executar(v) { metricas.animado = v; } }),
-    localStorage: { getItem: k => { if (armazenamentoBloqueado) throw Error(); return memoria.get(k); }, setItem: (k,v) => { if (armazenamentoBloqueado) throw Error(); memoria.set(k,v); } },
+    localStorage: { getItem: k => { if (armazenamentoBloqueado) throw Error(); return memoria.get(k); }, setItem: (k,v) => { if (armazenamentoBloqueado) throw Error(); memoria.set(k,v); }, removeItem: k => { memoria.delete(k); } },
+    KEY: 'guitarrafacil.',
     MutationObserver: class { constructor(f) { observador = f; } observe() {} },
     requestAnimationFrame: f => f(), metro: { ligado: false }, bateria: { ligada: false }, treino: { tocando: false },
   });
@@ -48,7 +49,7 @@ test('fogo sonoro só começa por comando explícito e silenciar para o áudio',
 });
 test('volume e pausa visual persistem; recarregar não reproduz áudio', () => {
   const a = ambiente(); a.volume(35); a.clicar('fogo');
-  const salvo = JSON.parse(a.memoria.get('gf-palco-fx-v1'));
+  const salvo = JSON.parse(a.memoria.get('guitarrafacil.palco-fx'));
   assert.equal(salvo.volume, .35); assert.equal(salvo.fogo, false);
   const b = ambiente({ salvo });
   assert.equal(b.metricas.audios, 0); assert.equal(b.metricas.animado, false);
@@ -79,4 +80,10 @@ test('bloqueio de áudio oferece nova tentativa e armazenamento bloqueado manté
 test('abrir treino durante carregamento impede início tardio de áudio', async () => {
   const a = ambiente(); a.clicar('som'); a.player(true); await resolver();
   assert.equal(a.audio.paused, true);
+});
+test('preferência do fogo usa o prefixo do app e traz a chave antiga uma vez', () => {
+  const a = ambiente({ antigo: { fogo: false, volume: .3 } });
+  assert.equal(a.memoria.has('gf-palco-fx-v1'), false);
+  assert.deepEqual(JSON.parse(a.memoria.get('guitarrafacil.palco-fx')), { fogo: false, volume: .3 });
+  assert.equal(a.metricas.animado, false);
 });

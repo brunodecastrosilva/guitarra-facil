@@ -2,6 +2,14 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.22.0 · 2026-11-03
+
+- **Restaurar padrões de fábrica** (Ajustes › Privacidade e segurança, Kit Fácil 2.9.0): o app volta como novo neste
+  aparelho — saem os dados, o tema, as preferências e os ajustes, e a boas-vindas aparece de novo. Substitui o antigo
+  "Apagar dados deste aparelho". A cópia na nuvem e os outros aparelhos não mudam.
+- A preferência do fogo (animação e volume) passa a ser guardada com o prefixo do app, para sair junto no restaurar.
+- O README voltou a mostrar a versão certa (estava em 0.19.0).
+
 ## 0.21.0 · 2026-11-03
 
 - Menu com a arte cartoon aprovada: quatro amplificadores com os nomes incorporados à ilustração, sem raios e sem o antigo banner de boas-vindas.

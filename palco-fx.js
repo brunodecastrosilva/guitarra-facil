@@ -1,9 +1,14 @@
 /* Ambiente do palco: fogo fluido e crepitação original, independentes da prática musical. */
 'use strict';
 const PalcoFX = (() => {
-  const chave = 'gf-palco-fx-v1';
+  // com o prefixo do app (lei 2), para sair junto no "Restaurar padrões de fábrica"; a chave antiga é trazida uma vez
+  const chave = KEY + 'palco-fx', antiga = 'gf-palco-fx-v1';
   let salvo = {};
-  try { salvo = JSON.parse(localStorage.getItem(chave) || '{}') || {}; } catch {}
+  try {
+    const velho = localStorage.getItem(antiga);
+    if (velho != null) { if (localStorage.getItem(chave) == null) localStorage.setItem(chave, velho); localStorage.removeItem(antiga); }
+    salvo = JSON.parse(localStorage.getItem(chave) || '{}') || {};
+  } catch {}
   const pref = { fogo: salvo.fogo !== false, volume: Number.isFinite(salvo.volume) ? Math.max(0, Math.min(.5, salvo.volume)) : .2 };
   const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
   let ambiente = null, solicitado = false, pendente = false, erroSom = false;
