@@ -779,7 +779,7 @@ test('Ajustes: guias comuns na ordem do padrão e a guia própria Prática', asy
   await abrirAjustesPelaNav(p);
   const g = await guiasAjustes(p);
   assert.deepEqual(g.comuns, GUIAS_COMUNS);
-  assert.deepEqual(g.produto, ['Prática']);
+  assert.deepEqual(g.produto, ['Menu e efeitos', 'Prática']);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
