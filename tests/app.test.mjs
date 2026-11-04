@@ -779,7 +779,7 @@ test('Ajustes: guias comuns na ordem do padrão e a guia própria Prática', asy
   await abrirAjustesPelaNav(p);
   const g = await guiasAjustes(p);
   assert.deepEqual(g.comuns, GUIAS_COMUNS);
-  assert.deepEqual(g.produto, ['Prática']);
+  assert.deepEqual(g.produto, ['Menu e efeitos', 'Prática']);
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
@@ -886,13 +886,18 @@ test('palco cartoon: nomes na arte, quatro destinos, pausa e som persistentes', 
   assert.equal(await menu.locator('button').count(), 4);
   assert.equal(await menu.locator('button img').evaluateAll(async ims => { await Promise.all(ims.map(im => im.decode())); return ims.every(im => im.naturalWidth > 0); }), true);
   assert.equal(await menu.locator('button').first().textContent(), '', 'nome desenhado, sem label sobreposta');
+  assert.equal(await p.locator('[data-palco-som]').count(), 0, 'início sem controles de efeitos');
+  await p.evaluate(() => ir('ajustes'));
+  await p.click('[data-kf-aj-ir=palco]');
   await p.click('[data-palco-som]');
   assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'true');
   await p.click('[data-palco-som]');
   assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'false');
   await p.click('[data-palco-fogo]');
   assert.equal(await p.getAttribute('html', 'data-fogo-parado'), 'true');
-  await p.reload(); await pronto(p);
+  await p.reload();
+  await p.locator('[data-kf-aj]').waitFor();
+  if (!await p.locator('[data-palco-som]').isVisible()) await p.click('[data-kf-aj-ir=palco]');
   assert.equal(await p.getAttribute('[data-palco-som]', 'aria-pressed'), 'false');
   assert.equal(await p.getAttribute('[data-palco-fogo]', 'aria-pressed'), 'false');
   await p.click('[data-palco-som]');
@@ -900,10 +905,13 @@ test('palco cartoon: nomes na arte, quatro destinos, pausa e som persistentes', 
   for (const [id, nome] of [['treinos','Treinos'],['explorar','Explorar o braço'],['estudio','Estúdio de criação'],['biblioteca','Biblioteca']]) {
     await p.evaluate(() => ir('inicio'));
     await p.locator('.amp-menu-mobile').getByRole('button', { name: nome, exact: true }).click();
-    assert.equal(await p.getAttribute('#main','data-tela'), id);
+    assert.equal(await esperar(async () => await p.getAttribute('#main','data-tela') === id), true);
   }
   await p.evaluate(() => ir('inicio'));
   await p.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await p.locator('.amp-corpo').first().evaluate(el => getComputedStyle(el).animationName), 'none');
+  await p.evaluate(() => ir('ajustes'));
+  await p.click('[data-kf-aj-ir=palco]');
   assert.equal(await esperar(() => p.locator('[data-palco-fogo]').isDisabled()), true);
   assert.equal(await p.getAttribute('html', 'data-fogo-parado'), 'true');
   await p.emulateMedia({ reducedMotion: 'no-preference' });
