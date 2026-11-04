@@ -297,3 +297,35 @@ body{isolation:isolate;background:#10070e}
 html[data-fogo-parado="true"] .amp-corpo,html[data-fogo-parado="true"] .amp-corpo *{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.amp-corpo,.amp-corpo *{animation:none!important}.amp-escolhido .amp-corpo{transform:none}}
 .palco-desenhado .amp-menu-mobile button .amp-corpo{background:transparent;padding:0;border-radius:0}
+
+/* Torre de palco — navegação própria aprovada para este aplicativo. */
+body.kf-casca{position:relative;--kf-trilho-w:0px;--kf-nav-h:0px;padding-bottom:env(safe-area-inset-bottom,0px)}
+body.kf-casca .kf-nav,body.kf-casca .kf-trilho{display:none!important}
+body.kf-casca .kf-barra .kf-marca{visibility:visible}
+body.kf-casca main{margin-left:auto;margin-right:auto;padding-bottom:max(24px,env(safe-area-inset-bottom,0px))}
+#main[data-tela="inicio"]{max-width:660px;padding-left:18px;padding-right:18px}
+.torre-palco{max-width:510px;width:100%;margin:0 auto;padding-top:10px;padding-bottom:24px;isolation:isolate}
+.torre-guia{text-align:center;color:#d7b7a3;font:500 12px/1.5 var(--kf-font);margin:0 0 48px;letter-spacing:.03em}
+.torre-palco .amp-menu-mobile{padding:0 8px}
+.torre-palco .amp-menu-mobile .torre-modulo{position:relative;scroll-margin-top:90px;filter:none}
+.torre-palco .amp-menu-mobile .torre-modulo+.torre-modulo{margin-top:-1.8%}
+.torre-palco .amp-menu-mobile .amp-corpo{animation:none;filter:drop-shadow(0 3px 1px #060309);transform:none}
+.torre-modulo:not(:first-child):before{content:'';position:absolute;top:3%;left:5%;right:5%;height:4%;background:linear-gradient(#050308c0,transparent);z-index:2;pointer-events:none}
+.torre-palco .amp-menu-mobile .torre-grade{display:block;position:absolute;left:15%;top:36%;width:70%;height:51%;padding:0;background:transparent;border:0;transform-origin:center;animation:torre-cone 2s ease-in-out infinite;animation-delay:var(--fase)}
+.torre-palco .amp-menu-mobile .torre-nome{display:block;width:100%;height:100%;object-fit:fill;mix-blend-mode:normal;filter:drop-shadow(0 1px 1px #150919);padding:0}
+.torre-palco .amp-knob{top:23.2%;width:5.1%;animation:amp-controle 7s ease-in-out infinite;animation-delay:var(--fase)}
+.torre-palco .amp-luz{left:16%;top:20%;height:6%}
+.torre-alca{position:absolute;left:0;right:0;bottom:97%;height:20%;background:url('assets/hq-treinos.webp') center top/100% auto no-repeat;z-index:-1}
+.torre-base{position:relative;height:20px;margin:-3px 6% 0;border-radius:0 0 7px 7px;background:linear-gradient(#553146,#231221 55%,#0c080e);border-top:2px solid #997f74;box-shadow:0 18px 24px #0009}
+.torre-base:before,.torre-base:after{content:'';position:absolute;top:100%;width:16%;height:8px;background:#0b090d;border-radius:0 0 5px 5px;left:10%}.torre-base:after{left:auto;right:10%}
+.torre-palco .amp-escolhido .amp-corpo{animation:torre-impacto .24s ease-out both}
+.torre-palco .amp-escolhido .torre-grade{animation:amp-pancada .24s ease-out both}
+.torre-palco .amp-menu-mobile .torre-modulo:hover{filter:brightness(1.08)}
+.torre-retorno{position:sticky;top:calc(var(--kf-barra-h) + env(safe-area-inset-top,0px));z-index:12;padding:8px 0;background:var(--kf-bg);margin-bottom:10px}
+.torre-voltar{min-height:44px}
+.fogo-palco{position:absolute;inset:0;contain:none;overflow:clip;background:repeating-linear-gradient(180deg,#100a16 0px,#241021 450px,#100a16 900px)}
+.fogo-canvas{position:sticky;top:0;display:block;width:100%;height:100vh;height:100svh}
+@keyframes torre-cone{0%,100%{transform:scale(1)}50%{transform:scale(1.004)}}
+@keyframes torre-impacto{0%,100%{transform:scale(1)}28%{transform:scale(.988,1.006)}65%{transform:scale(1.009,.995)}}
+@media(prefers-reduced-motion:reduce){.torre-palco .amp-corpo,.torre-palco .amp-corpo *{animation:none!important}}
+html[data-fogo-parado="true"] .torre-palco .amp-corpo *{animation-play-state:paused}

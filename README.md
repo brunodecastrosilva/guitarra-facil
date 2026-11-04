@@ -2,7 +2,7 @@
 
 Ambiente visual e interativo para aprender, explorar e criar na guitarra, do primeiro contato ao estudo avançado. O braço virtual, a tablatura e o som trabalham juntos; a interface usa uma identidade escura, premium e direta, com vermelho como acento.
 
-**Fase de testes** · versão 0.23.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.24.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 O app faz parte do Projeto Fácil. As regras globais e o padrão técnico em `comum/PADRAO.md` têm precedência.
 

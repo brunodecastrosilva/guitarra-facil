@@ -2,6 +2,13 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.24.0 · 2026-11-04
+
+- Torre de palco com 15 módulos: gabinetes alinhados, nomes pintados, alça apenas no topo e apoio entre equipamentos.
+- Navegação pela torre, sem barra inferior nem trilho lateral; retorno preserva rolagem e foco.
+- Cenário vertical acompanha a página, desenhando somente a região visível.
+- Perfil inicial, caminho e sequência disponíveis em Minha jornada.
+
 ## 0.23.0 · 2026-11-03
 
 - Direção HQ em chamas aprovada: quatro amplificadores transparentes, chamas independentes, controles e luzes animados.

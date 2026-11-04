@@ -6,7 +6,7 @@ await mkdir('revisao-visual', { recursive: true });
 try {
   for (const [nome, viewport] of [['celular', { width: 360, height: 740 }], ['tablet', { width: 820, height: 1180 }], ['desktop', { width: 1440, height: 900 }]]) {
     const a = await aparelho(amb, { viewport }), p = a.page;
-    await p.locator('.seq').waitFor();
+    await p.locator('.torre-palco').waitFor();
     await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
     await p.click('#tr-ver');
     await p.locator('#tr-demonstrar').waitFor();
@@ -23,7 +23,7 @@ try {
   }
   for (const [id, nome] of [['tecnica:tapping:1:curto:0', 'tapping'], ['tecnica:legato:1:curto:0', 'ligados'], ['tecnica:posicao:1:curto:0', 'slide']]) {
     const a = await aparelho(amb, { viewport: { width: 1440, height: 900 } }), p = a.page;
-    await p.locator('.seq').waitFor();
+    await p.locator('.torre-palco').waitFor();
     await p.evaluate(id => abrirTreino(id), id);
     await p.click('#tr-ver');
     await p.click('#tr-demonstrar'); await p.click('[data-etapa="1"]');
@@ -35,7 +35,7 @@ try {
   for (const [nome, rota] of ['inicio','treinos','explorar','estudio','afinador','metronomo','bateria','biblioteca','acordes','progresso','ajustes','sessao','plano'].map(x => [x,x])) {
     for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['desktop', { width: 1440, height: 900 }]]) {
       const a = await aparelho(amb, { viewport }), p = a.page;
-      await p.locator('.seq').waitFor();
+      await p.locator('.torre-palco').waitFor();
       await p.evaluate(r => ir(r), rota);
       await p.waitForTimeout(250);
       await p.evaluate(async () => { await Promise.all([...document.images].map(im => im.decode().catch(() => {}))); });

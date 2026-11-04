@@ -6,9 +6,9 @@ const caminhoEstado = () => { const de = DB.cfg.caminhoDe || 0; return CAMINHO.m
 const proximoPasso = () => { const de = DB.cfg.caminhoDe || 0; for (let i = de; i < CAMINHO.length; i++) { const e = CAMINHO[i], id = e.ids.find(x => !passoFeito(x)); if (id) return { e, i, id, n: e.ids.indexOf(id) + 1 }; } return null; };
 function escolherNivelCaminho() {
   const ops = [[0, 1, 'Nunca toquei', 'Começar do primeiro passo'], [3, 2, 'Sei alguns acordes', 'Começar nos primeiros riffs'], [CAMINHO.length, 3, 'Já toco músicas', 'Ir direto ao treino do dia']];
-  KitFacil.dialogo.abrir({ titulo: 'Onde você quer começar?', sub: 'Dá para mudar depois: o caminho continua no Início.', nome: 'caminho-nivel',
+  KitFacil.dialogo.abrir({ titulo: 'Onde você quer começar?', sub: 'Dá para mudar depois: o caminho continua em Minha jornada.', nome: 'caminho-nivel',
     corpo: `<div class="ladrilhos l1">${ops.map(([de, n, nome, sub]) => ladrilho({ attrs: `data-caminho-de="${de}"`, ilu: iluNivel(n), nome, sub, classe: 'largo' })).join('')}</div>`,
-    aoMontar: d => $$('[data-caminho-de]', d).forEach(b => b.onclick = () => { DB.cfg.caminhoDe = +b.dataset.caminhoDe; LS.set('visto', true); commit(); KitFacil.dialogo.fechar(); render(); KitFacil.avisar(+b.dataset.caminhoDe >= CAMINHO.length ? 'Pronto: o Início mostra o treino do dia.' : `Pronto: você começa em ${CAMINHO[+b.dataset.caminhoDe].nome}.`); }) });
+    aoMontar: d => $$('[data-caminho-de]', d).forEach(b => b.onclick = () => { DB.cfg.caminhoDe = +b.dataset.caminhoDe; LS.set('visto', true); commit(); KitFacil.dialogo.fechar(); render(); KitFacil.avisar(+b.dataset.caminhoDe >= CAMINHO.length ? 'Pronto: Minha jornada mostra o treino do dia.' : `Pronto: você começa em ${CAMINHO[+b.dataset.caminhoDe].nome}.`); }) });
 }
 const listaCaminho = (est, atual) => `<ol class="cam-lista">${est.map(({ e, i, feitos, total, feita, pulada }) => `<li class="${feita ? 'feita' : ''}${i === atual ? ' atual' : ''}"><button type="button" data-ir="caminho/${i + 1}"><span class="cam-n" aria-hidden="true">${feita ? I.check : i + 1}</span><span class="ld-tx"><b>${esc(e.nome)}</b><small>${pulada ? 'Pulada' : feita ? 'Feita' : i === atual ? `Você está aqui · ${feitos} de ${total} passos` : `${feitos} de ${total} passos`}</small></span>${I.seta}</button></li>`).join('')}</ol>`;
 // Início: a sequência numa linha e, em destaque, o que fazer agora: o próximo passo do caminho ou o treino do dia
@@ -52,11 +52,12 @@ function ligarPrimeiraVez(m) {
     if (ONB.i < PASSOS_1A.length - 1) { ONB.i++; de(); return; }
     DB.cfg.perfil = { exp: ONB.exp, objetivos: ONB.objetivos, min: ONB.min, em: Date.now() };
     DB.cfg.meta = ONB.min; DB.cfg.sessaoMin = ONB.min; DB.cfg.caminhoDe = ONB.exp === 0 ? 0 : ONB.exp === 1 ? 3 : CAMINHO.length;
-    ONB = null; SESSAO = null; commit(); render(); KitFacil.avisar('Pronto: o Início já mostra o seu próximo passo.');
+    ONB = null; SESSAO = null; commit(); render(); KitFacil.avisar('Pronto: Minha jornada já mostra o seu próximo passo.');
   };
   $('[data-pv-pular]', cx).onclick = () => { DB.cfg.perfil = { pulado: true, em: Date.now() }; ONB = null; commit(); render(); };
 }
-VIEWS.inicio = () => {
+VIEWS.inicio = () => '';
+VIEWS.jornada = () => {
   const meta = DB.cfg.meta, min = minutosHoje(), seg = diasSeguidos(), ul = ultimoTreino(), p = Math.min(100, Math.round(min / meta * 100));
   const m = ul && modelo(ul.id), v = m && volta(m, { ...cfgPadrao(m), ...ul.cfg }), px = proximoPasso();
   const seqHTML = `<section class="seq" aria-label="Sua sequência"><span class="seq-ic">${I.chama}</span>

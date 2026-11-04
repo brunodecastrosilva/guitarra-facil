@@ -2,14 +2,15 @@
    o GitHub (sincronização) e o Firestore (avaliações) são simulados por comum/testes/ambiente.mjs. */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { preparar, aparelho, githubFalso, semRolagemLateral, conferirTopo, conferirNavAjustes, abrirAjustesPelaNav, irPelaNav, guiasAjustes, GUIAS_COMUNS, TOKEN_TESTE } from '../comum/testes/ambiente.mjs';
+import { preparar, aparelho, githubFalso, semRolagemLateral, conferirTopo, guiasAjustes, GUIAS_COMUNS, TOKEN_TESTE } from '../comum/testes/ambiente.mjs';
+import { conferirNavAjustes, abrirAjustesPelaNav, irPelaNav } from './torre-helpers.mjs';
 
 let amb;
 before(async () => { amb = await preparar(); });
 after(async () => { await amb?.encerrar(); });
 const esperar = async (cond, ms = 8000) => { const fim = Date.now() + ms; while (Date.now() < fim) { if (await cond()) return true; await new Promise(r => setTimeout(r, 50)); } return false; };
 const TELAS = [[{ width: 360, height: 740 }, 'celular pequeno'], [{ width: 390, height: 844 }, 'celular'], [{ width: 820, height: 1180 }, 'tablet'], [{ width: 1440, height: 900 }, 'computador']];
-const pronto = p => p.locator('.seq').waitFor();
+const pronto = p => p.locator('.torre-palco').waitFor();
 
 const dlg = p => p.locator('.kf-dlg[data-kf-dialogo="treino"]');
 // o treino abre no preview (0.19.0): estes atalhos passam por ele como a pessoa faria
@@ -36,12 +37,13 @@ test('abre sem erros em celular, tablet e computador, com a moldura da família 
   }
 });
 
-test('barra de baixo enxuta: Início, Treinos, Explorar, Estúdio e Mais; destinos redundantes foram unidos', async () => {
+test('torre substitui barra e trilho: módulos acessíveis e destinos antigos preservados', async () => {
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  assert.deepEqual(await p.locator('.kf-nav .kf-nav-it:visible .kf-nav-l').allTextContents(), ['Início', 'Treinos', 'Explorar', 'Estúdio', 'Mais']);
-  assert.deepEqual(await p.locator('nav.ladrilhos .ladrilho b').allTextContents(), ['Sessão de hoje', 'Treino do dia', 'Favoritos', 'Estúdio', 'Plano de 4 semanas']);
+  assert.equal(await p.locator('.kf-nav').isVisible(), false);
+  assert.equal(await p.locator('.torre-modulo').count(), 15);
+  assert.equal(await p.locator('.torre-palco [data-ir=plano]').count(), 1);
   for (const [secao, titulo] of [['Metrônomo', 'Metrônomo'], ['Bateria', 'Bateria'], ['Biblioteca', 'Biblioteca'], ['Acordes', 'Acordes'], ['Progresso', 'Progresso']]) {
     await irPelaNav(p, secao);
     assert.equal(await p.textContent('.kf-titulo'), titulo);
@@ -199,6 +201,7 @@ test('caminho do iniciante: o Início mostra o próximo passo, um passo limpo av
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
+  await irPelaNav(p, 'Minha jornada');
   assert.match(await p.textContent('.passo-hero'), /Seu próximo passo · 1 de 4 · Primeiro contato[\s\S]*#\d{4} · A corda mais grossa, solta/);
   assert.equal(await p.locator('.cam-lista li').count(), 5);
   assert.match(await p.textContent('.cam-lista li.atual'), /Você está aqui/, 'a etapa atual diz em palavras, não só na cor');
@@ -234,6 +237,7 @@ test('fase 3: primeira experiência, sessão por duração editável, rotina, pr
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
+  await irPelaNav(p, 'Minha jornada');
   // primeira experiência na tela inicial
   assert.equal(await p.locator('.primeira-vez').count(), 1);
   await p.click('[data-pv-seguir]');
@@ -752,6 +756,7 @@ test('início e progresso: sequência de dias, continuar, abas de progresso e co
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
+  await irPelaNav(p, 'Minha jornada');
   assert.match(await p.textContent('.seq'), /Comece sua sequência hoje/);
   await p.evaluate(() => { DB.cfg.caminhoDe = CAMINHO.length; const d = 864e5, n = Date.now(); [0, 1, 2, 5].forEach(k => DB.praticas.push({ id: 'p' + k, em: n - k * d, min: 25 })); DB.treinos.push({ id: 't0', ex: 'ex-penta', bpm: 80, acerto: 95, em: n - 2 * d }, { id: 't1', ex: 'riffs:thrash:3:longo:2', cfg: {}, voltas: 2, bpm: 140, limpo: true, em: n - 3600e3 }); commit(); conferirConquistas(false); render(); });
   assert.match(await p.textContent('.seq'), /3 dias seguidos[\s\S]*25 de 20 min hoje · meta batida/);
@@ -878,12 +883,12 @@ test('direção de arte: movimento reduzido usa etapas estáticas e mantém o co
 });
 
 
-test('palco cartoon: nomes na arte, quatro destinos, pausa e som persistentes', async () => {
+test('torre: nomes na arte, destinos, pausa e som persistentes', async () => {
   const a = await aparelho(amb), p = a.page;
   await pronto(p);
   const menu = p.locator('.amp-menu-mobile');
   assert.equal(await p.locator('.palco-cab').count(), 0, 'sem banner de boas-vindas');
-  assert.equal(await menu.locator('button').count(), 4);
+  assert.equal(await menu.locator('button').count(), 15);
   assert.equal(await menu.locator('button img').evaluateAll(async ims => { await Promise.all(ims.map(im => im.decode())); return ims.every(im => im.naturalWidth > 0); }), true);
   assert.equal(await menu.locator('button').first().textContent(), '', 'nome desenhado, sem label sobreposta');
   assert.equal(await p.locator('[data-palco-som]').count(), 0, 'início sem controles de efeitos');
@@ -917,6 +922,36 @@ test('palco cartoon: nomes na arte, quatro destinos, pausa e som persistentes', 
   await p.emulateMedia({ reducedMotion: 'no-preference' });
   await p.evaluate(() => abrirTreino('tecnica:bends:1:curto:2'));
   assert.equal(await esperar(() => p.evaluate(() => document.documentElement.dataset.fogoParado === 'true')), true);
+  assert.deepEqual(a.erros, []);
+  await a.fechar();
+});
+
+test('torre completa: todos os módulos abrem, retorno preserva foco e rolagem, cenário acompanha a página', async () => {
+  const a = await aparelho(amb, { viewport: { width: 390, height: 844 } }), p = a.page;
+  await pronto(p);
+  await p.locator('.torre-palco img').evaluateAll(ims => Promise.all(ims.map(im => im.decode())));
+  const destinos = await p.locator('.torre-modulo').evaluateAll(bs => bs.map(b => ({ id: b.dataset.ir, nome: b.getAttribute('aria-label') })));
+  assert.equal(destinos.length, 15);
+  assert.equal(await p.locator('.torre-alca').count(), 1, 'uma única alça no topo');
+  const tamanho = await p.evaluate(() => ({ fundo: document.querySelector('.fogo-palco').getBoundingClientRect().height, tela: innerHeight, canvas: document.querySelector('.fogo-canvas').height }));
+  assert.ok(tamanho.fundo > tamanho.tela * 1.5, 'cenário ocupa a altura da torre');
+  assert.ok(tamanho.canvas <= tamanho.tela * 1.5 + 1, 'canvas limitado à região visível');
+  await p.emulateMedia({ reducedMotion: 'reduce' });
+  const antes = await p.locator('.fogo-palco').boundingBox();
+  await p.evaluate(() => scrollTo(0, 400));
+  const depois = await p.locator('.fogo-palco').boundingBox();
+  assert.ok(depois.y < antes.y - 350, 'fundo não fica preso à tela');
+  for (const { id, nome } of destinos) {
+    const botao = p.locator(`.torre-modulo[data-ir="${id}"]`);
+    await botao.scrollIntoViewIfNeeded();
+    const y = await p.evaluate(() => scrollY);
+    await botao.click();
+    assert.equal(await esperar(async () => await p.getAttribute('#main', 'data-tela') === id), true, nome);
+    await p.locator('.torre-voltar').click();
+    await pronto(p);
+    assert.equal(await esperar(() => p.evaluate(id => document.activeElement?.dataset.ir === id, id)), true, 'foco retorna ao módulo');
+    assert.ok(Math.abs(await p.evaluate(() => scrollY) - y) < 10, 'posição na torre preservada: ' + nome);
+  }
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
