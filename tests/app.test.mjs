@@ -469,7 +469,7 @@ test('treino do dia: quatro treinos em fila; o som para no fim de cada um, pergu
   const p = a.page;
   await pronto(p);
   await p.evaluate(() => { DB.cfg.caminhoDe = CAMINHO.length; commit(); render(); }); // quem já toca: o Início mostra o treino do dia
-  await p.click('nav.ladrilhos [data-ir="dia"]');
+  await irPelaNav(p, 'Treino do dia');
   assert.equal(await p.locator('.dia-nivel').count(), 3);
   assert.equal(await p.locator('.dia-nivel >> nth=1 >> .dia-lista li').count(), 4);
   await p.evaluate(() => { DB.cfg.trVoltas = 1; DB.cfg.trCfg = {}; const m = treinoDoDia(2); m.forEach(id => { const x = modelo(id); x.bpm = 260; }); });
@@ -512,7 +512,7 @@ test('favoritos: a estrela marca o treino, que aparece no Início e na lista de 
   assert.equal(await d.locator('#tr-fav').getAttribute('aria-pressed'), 'true');
   assert.ok(await d.locator('.tab-n').count() > 20);
   await p.keyboard.press('Escape');
-  await p.evaluate(() => render());
+  await irPelaNav(p, 'Minha jornada');
   assert.match(await p.textContent('.ladrilho[data-ir="favoritos"]'), /1 treino/);
   await p.click('.ladrilho[data-ir="favoritos"]');
   assert.equal(await p.locator('.tr-item').count(), 1);
@@ -611,7 +611,7 @@ test('plano de 4 semanas: técnica, nível e meta; quatro semanas de treinos; te
   const a = await aparelho(amb);
   const p = a.page;
   await pronto(p);
-  await p.click('nav.ladrilhos .ladrilho:has-text("Plano de 4 semanas")');
+  await irPelaNav(p, 'Plano de 4 semanas');
   assert.equal(await p.locator('.ladrilho').count(), 17, 'as 17 técnicas');
   await p.click('.ladrilho:has-text("Galope")');
   await p.click('.ladrilho:has-text("Intermediário")');
