@@ -293,8 +293,8 @@ test('fase 3: primeira experiência, sessão por duração editável, rotina, pr
   await p.fill('#meta-alvo', '30');
   await p.click('[data-meta-form] button[type=submit]');
   assert.match(await p.textContent('.meta'), /30 minutos de prática[\s\S]*6 de 30/, 'a meta conta o que foi praticado no período');
-  await p.evaluate(() => { location.hash = '#/inicio'; });
-  assert.ok(await esperar(async () => (await p.locator('.meta-mini').count()) === 1), 'a meta aparece no Início');
+  await p.evaluate(() => { location.hash = '#/jornada'; });
+  assert.ok(await esperar(async () => (await p.locator('.meta-mini').count()) === 1), 'a meta aparece em Minha jornada');
   assert.deepEqual(a.erros, []);
   await a.fechar();
 });
