@@ -2,6 +2,12 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.24.1 · 2026-11-04
+
+- **Mesmo padrão da família (Kit Fácil 2.10, lei 6):** cartões, dados, músicas, ladrilhos e acordes com o canto comum
+  de 16 px (antes 10). A direção Backstage (texturas, sombras e amplificadores) continua igual.
+- Confirmações do Kit com Cancelar, como as outras janelas.
+
 ## 0.24.0 · 2026-11-04
 
 - Torre de palco com 15 módulos: gabinetes alinhados, nomes pintados, alça apenas no topo e apoio entre equipamentos.

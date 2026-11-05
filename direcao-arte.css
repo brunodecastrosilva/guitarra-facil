@@ -210,7 +210,7 @@ body{background-image:radial-gradient(ellipse at 90% 0,rgba(148,34,17,.14),trans
 .palco-cab h1{font:900 clamp(38px,5vw,64px)/.98 var(--kf-font-display);text-transform:uppercase;margin:14px 0;text-wrap:balance;letter-spacing:-.02em;text-shadow:0 3px 12px #000}
 .palco-cab p{font-size:15px;line-height:1.5;margin:0;color:#ead8cf;max-width:34ch}
 .arte-png{height:240px;border-radius:12px!important;border-color:#66504a!important}.arte-png img{width:100%;height:100%;object-fit:cover;object-position:70% 48%;display:block}
-.cartao,.dado,.primeira-vez,.musica,.ladrilho,.acorde{border-radius:10px!important;box-shadow:inset 0 1px 0 #fff1,0 5px 16px #0002!important;border:1px solid var(--kf-line)}
+.cartao,.dado,.primeira-vez,.musica,.ladrilho,.acorde{border-radius:var(--kf-r-cartao)!important;box-shadow:inset 0 1px 0 #fff1,0 5px 16px #0002!important;border:1px solid var(--kf-line)}
 .cartao,.dado{background:linear-gradient(135deg,var(--kf-surface-2),var(--kf-surface) 60%)}
 .kf-pri{background:linear-gradient(135deg,#f34a2b,#b92018)!important;color:#fff!important;border:1px solid #ff8560!important;box-shadow:0 4px 18px #e5372630,inset 0 1px #ffb09066!important}
 .kf-btn{border-radius:8px}.kf-trilho-it[aria-current="page"],.kf-nav-it[aria-current="page"]{color:var(--gf-vermelho-tx)}
