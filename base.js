@@ -1,7 +1,7 @@
 /* Guitarra Fácil · base comum das telas: versão, atalhos do DOM, ícones, ilustrações e peças de tela (migalhas e botão grande).
    Carrega antes de todos os outros arquivos do app */
 'use strict';
-const VERSAO = '0.25.1';
+const VERSAO = '0.25.2';
 const KEY = 'guitarrafacil.';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
