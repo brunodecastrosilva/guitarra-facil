@@ -2,6 +2,10 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.25.0 · 2026-11-05
+
+- **Apresentação ao abrir e guia em 3 níveis (Kit Fácil 2.11, lei 6):** Essencial (4 passos), Exploração (8) e Completo (10), da torre ao Estúdio.
+
 ## 0.24.1 · 2026-11-04
 
 - **Mesmo padrão da família (Kit Fácil 2.10, lei 6):** cartões, dados, músicas, ladrilhos e acordes com o canto comum
