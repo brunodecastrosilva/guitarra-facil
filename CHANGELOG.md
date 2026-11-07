@@ -2,6 +2,10 @@
 
 Formato: versão, data e o que muda para quem usa. Versões no formato `maior.menor.correção`.
 
+## 0.25.4 · 2026-11-07
+
+- **Kit Fácil 2.13.0 e Código do Projeto Fácil:** as Leis Globais e o Padrão viraram um só código, com artigos e anexos técnicos (`comum/CODIGO.md`, no lugar do `PADRAO.md`). No Guitarra Fácil nada muda para quem usa.
+
 ## 0.25.3 · 2026-11-06
 
 - **Kit Fácil 2.12.1:** no guia ao vivo, a ação só começa depois do toque em Mostrar, num ritmo mais calmo (este app adota o guia ao vivo na vez dele).

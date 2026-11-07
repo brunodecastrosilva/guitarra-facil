@@ -4,7 +4,7 @@ Ambiente visual e interativo para aprender, explorar e criar na guitarra, do pri
 
 **Fase de testes** · versão 0.25.3 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
-O app faz parte do Projeto Fácil. As regras globais e o padrão técnico em `comum/PADRAO.md` têm precedência.
+O app faz parte do Projeto Fácil. O [Código do Projeto Fácil](comum/CODIGO.md) tem precedência.
 
 ## Arquitetura da experiência
 
