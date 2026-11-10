@@ -1,153 +1,153 @@
-/* Guitarra Fácil · dados: o objeto salvo, sincronização, constância, histórico de treinos (praticado e concluído), treino do
-   dia e conquistas */
+/* Guitarra Fácil · dados: o que fica guardado neste aparelho (prefixo guitarrafacil.) e a junção com a nuvem.
+   Registros sincronizados, cada um com a hora da última mudança (t): prática, favoritos, ideias do Estúdio, andamento de
+   cada treino e o perfil (nível, mão, afinação, metas). As exclusões ficam marcadas em del, para não voltarem.
+   Não sincronizam (Art. 34): os volumes deste aparelho e a sessão em andamento.
+   Três estados, sempre separados: praticado (o app registrou o tempo tocado), concluído (a própria pessoa marcou "saiu
+   limpo") e avaliado (não existe: o app não mede a execução). */
 'use strict';
-/* ================= dados ================= */
-// coleções sincronizadas registro a registro (a mudança mais recente vence), como nos outros apps da família
-// feitas e andamentos vêm da versão com aulas (até a 0.3.0): continuam guardados e sincronizados, mas não aparecem
-// rotinas e metas (0.13.0) e ideias do Estúdio (0.15.0) entram do mesmo jeito
-const COLS = ['feitas', 'musicas', 'praticas', 'andamentos', 'treinos', 'conquistas', 'favoritos', 'rotinas', 'metas', 'ideias'];
-const vazio = () => ({ v: 1, cfg: { meta: 20, bpm: 80, estilo: 'rock' }, feitas: [], musicas: [], praticas: [], andamentos: [], treinos: [], conquistas: [], favoritos: [], rotinas: [], metas: [], ideias: [] });
-let DB = (() => { const d = LS.get('db', null); return d && d.v === 1 ? { ...vazio(), ...d, cfg: { ...vazio().cfg, ...(d.cfg || {}) } } : vazio(); })();
-const PRIMEIRO_USO = !DB.cfg.nivel && !DB.praticas.length && !DB.treinos.length && !DB.musicas.length && !LS.get('visto', false);
-LS.set('visto', true);
-let SNAP = {};
-const snapTodos = () => { SNAP = {}; COLS.forEach(c => DB[c].forEach(x => SNAP[c + ':' + x.id] = JSON.stringify(x))); SNAP.cfg = JSON.stringify(DB.cfg); };
-snapTodos();
-function carimbar() {
-  const st = SY.estado.st, del = SY.estado.del, agora = Date.now(), vistos = new Set(['cfg']);
-  COLS.forEach(c => DB[c].forEach(x => {
-    const k = c + ':' + x.id, j = JSON.stringify(x); vistos.add(k);
-    if (SNAP[k] !== j) { SNAP[k] = j; st[k] = agora; delete del[k]; }
-  }));
-  const jc = JSON.stringify(DB.cfg); if (SNAP.cfg !== jc) { SNAP.cfg = jc; st.cfg = agora; }
-  Object.keys(SNAP).forEach(k => { if (!vistos.has(k)) { delete SNAP[k]; delete st[k]; del[k] = agora; } });
-  SY.salvar();
-}
-function commit() { LS.set('db', DB); carimbar(); SY.agendar(); }
-function aplicar(R) {
-  const st = { ...SY.estado.st }, del = { ...SY.estado.del }, rs = R.st || {};
-  for (const k in (R.del || {})) del[k] = Math.max(del[k] || 0, R.del[k]);
-  const antes = KitFacil.canon(DB);
-  for (const c of COLS) {
-    const rm = new Map((R[c] || []).map(x => [x.id, x])), usados = new Set(), out = [];
-    const lt = id => st[c + ':' + id] || 0, rt = id => rs[c + ':' + id] || 0, dl = id => del[c + ':' + id] || 0;
-    for (const x of DB[c]) {
-      usados.add(x.id); const r = rm.get(x.id);
-      if (r) { if (dl(x.id) && dl(x.id) >= Math.max(lt(x.id), rt(x.id))) continue; if (rt(x.id) > lt(x.id)) { out.push(r); st[c + ':' + x.id] = rt(x.id); } else out.push(x); }
-      else if (!(dl(x.id) && dl(x.id) >= lt(x.id))) out.push(x);
-    }
-    for (const r of (R[c] || [])) if (!usados.has(r.id) && !(dl(r.id) && dl(r.id) >= rt(r.id))) { out.push(r); if (rt(r.id)) st[c + ':' + r.id] = rt(r.id); }
-    DB[c] = out;
+
+const DADOS = (() => {
+  const PREFIXO = 'guitarrafacil.', CHAVE = PREFIXO + 'db', CHAVE_APARELHO = PREFIXO + 'aparelho';
+  const COLECOES = ['pratica', 'fav', 'ideias', 'andamento'];
+  const PERFIL_PADRAO = { nivel: 1, mao: 'destro', afin: 'padrao', notacao: 'nomes', metronomo: true, contagem: true, voltas: 2, metaSemana: 60, metaMes: '', metaTri: '', t: 0 };
+  const vazio = () => ({ v: 1, pratica: {}, fav: {}, ideias: {}, andamento: {}, perfil: { ...PERFIL_PADRAO }, del: {} });
+  const lerLS = (k, padrao) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? padrao; } catch { return padrao; } };
+  const gravarLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
+
+  /* dados das versões anteriores à reescrita (coleções em listas): o tempo tocado, as marcações de "saiu limpo" e as
+     ideias do Estúdio continuam; os números dos exercícios antigos não existem mais, então esses treinos contam no
+     tempo e nos dias, mas não aparecem no histórico. Ids fixos ("a-…"): dois aparelhos migram sem duplicar. */
+  function migrar(d) {
+    const o = vazio(), lista = x => (Array.isArray(x) ? x : []);
+    lista(d.treinos).forEach(r => { if (!r || !r.id || !r.em) return; const id = 'a-' + r.id; o.pratica[id] = { id, ex: 'antigo', em: r.em, seg: Math.round((r.min || 0) * 60), bpm: r.bpm || 0, limpo: r.limpo ?? null, t: r.em }; });
+    lista(d.praticas).forEach(r => { if (!r || !r.id || !r.em) return; const id = 'a-' + r.id; if (!o.pratica[id]) o.pratica[id] = { id, ex: 'antigo', em: r.em, seg: Math.round((r.min || 0) * 60), bpm: 0, limpo: null, t: r.em }; });
+    lista(d.ideias).forEach(x => {
+      if (!x || !x.id) return;
+      const comp = Array.isArray(x.compasso) ? x.compasso[0] * (x.compasso[1] || 1) : x.compasso || 4;
+      const evs = lista(x.evs).map(e => { const n = lista(e.n).map(([c, k, dd]) => [c, k, dd ?? null]); return e.t ? { d: e.d, n, t: String(e.t).split(' ')[0] } : { d: e.d, n }; });
+      o.ideias[x.id] = { id: x.id, nome: String(x.nome || 'Ideia').slice(0, 60), bpm: x.bpm || 80, compasso: comp, evs, criada: x.em || agora(), t: x.em || 1 };
+    });
+    return o;
   }
-  if (R.cfg && (rs.cfg || 0) > (st.cfg || 0)) { DB.cfg = { ...DB.cfg, ...R.cfg }; st.cfg = rs.cfg; }
-  SY.estado.st = st; SY.estado.del = del;
-  LS.set('db', DB); snapTodos(); SY.salvar();
-  return antes !== KitFacil.canon(DB);
-}
-const pacote = () => ({ v: 1, cfg: DB.cfg, feitas: DB.feitas, musicas: DB.musicas, praticas: DB.praticas, andamentos: DB.andamentos, treinos: DB.treinos, conquistas: DB.conquistas, favoritos: DB.favoritos, rotinas: DB.rotinas, metas: DB.metas, ideias: DB.ideias, st: SY.estado.st, del: SY.estado.del });
-
-/* ================= constância ================= */
-const DIA = 864e5;
-const meiaNoite = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-const diaNum = (t = Date.now()) => Math.round(meiaNoite(t) / DIA); // conta dias no fuso do aparelho
-const diasPraticados = () => new Set(DB.praticas.concat(DB.treinos).map(p => diaNum(p.em)));
-const minutosNoDia = n => DB.praticas.filter(p => diaNum(p.em) === n).reduce((s, p) => s + p.min, 0);
-const minutosHoje = () => Math.round(minutosNoDia(diaNum()));
-const minutosEntre = (de, ate) => Math.round(DB.praticas.filter(p => { const n = diaNum(p.em); return n >= de && n <= ate; }).reduce((s, p) => s + p.min, 0));
-const minutosSemana = () => minutosEntre(diaNum() - 6, diaNum());
-function diasSeguidos() { const D = diasPraticados(); let n = diaNum(), k = 0; if (!D.has(n)) n--; while (D.has(n)) { k++; n--; } return k; }
-function maiorSequencia() { const D = [...diasPraticados()].sort((a, b) => a - b); let m = 0, k = 0; D.forEach((d, i) => { k = i && d === D[i - 1] + 1 ? k + 1 : 1; m = Math.max(m, k); }); return m; }
-const SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], SEMANA_NOME = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-// a semana de segunda a domingo, com o que foi praticado
-function semanaAtual() {
-  const hoje = diaNum(), dw = new Date().getDay(), seg = hoje - ((dw + 6) % 7), D = diasPraticados();
-  return Array.from({ length: 7 }, (_, i) => { const n = seg + i, w = (i + 1) % 7; return { rot: SEMANA[w], nome: SEMANA_NOME[w], feito: D.has(n), hoje: n === hoje, futuro: n > hoje }; });
-}
-// o treino do dia gira sozinho: uma combinação do cromático e um desenho da pentatônica por dia
-const permDoDia = () => PERMS[diaNum() % 24];
-const desenhoDoDia = () => diaNum() % 5;
-
-/* ================= treinos: histórico ================= */
-// registro: { ex: modelo, cfg, voltas, bpm, min, limpo, em, dia (treino do dia) }; os ids das versões 0.3 a 0.5 viram os
-// treinos de escala de hoje quando dá, e os que não existem mais ficam guardados sem aparecer
-function normalizarTreino(t) {
-  const id = t.ex || '', c = t.cfg || {};
-  if (modelo(id)) return { id, cfg: c };
-  const p = id.split(':');
-  if (p[0] === 'esc' || p[0] === 'seq' || p[0] === 'arp') { const m = MODELOS.find(x => x.id.startsWith(p.slice(0, p[0] === 'seq' ? 3 : 2).join(':') + ':')); if (m) return { id: m.id, cfg: c }; }
-  if (id === 'ex-penta' || id === 'ex-1234') return { id: 'esc:penta-menor:1', cfg: { raiz: 9 } };
-  return { id: null, cfg: c };
-}
-const reg = t => { const n = normalizarTreino(t); return { ...t, id: n.id, cfg: { ...(t.cfg || {}), ...n.cfg } }; };
-const limpo = t => t.limpo === true || (t.acerto != null && t.acerto >= 90);
-const T = () => DB.treinos.map(reg).filter(t => t.id);
-const melhorLimpo = id => T().filter(t => t.id === id && limpo(t)).reduce((m, t) => Math.max(m, t.bpm), 0);
-const ultimoTreino = () => T().sort((a, b) => b.em - a.em)[0] || null;
-const quando = t => { const d = diaNum() - diaNum(t); return d <= 0 ? 'hoje' : d === 1 ? 'ontem' : `há ${d} dias`; };
-const fmtTempo = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-const favorito = id => DB.favoritos.some(f => f.id === id);
-function alternarFavorito(id) { const k = DB.favoritos.findIndex(f => f.id === id); if (k >= 0) DB.favoritos.splice(k, 1); else DB.favoritos.push({ id, em: Date.now() }); commit(); conferirConquistas(); return k < 0; }
-// Identidade pública dos exercícios: o catálogo não usa mais nomes fantasiosos nem gêneros.
-// O número é a posição estável do modelo no catálogo desta versão e permite reencontrar o mesmo exercício.
-// O objetivo vem primeiro na linguagem pedagógica; ids, sementes e estilos continuam apenas como implementação.
-const nomeCategoria = cat => (CATEGORIAS.find(c => c[0] === cat) || [0, { caminho: 'Caminho do iniciante', biblioteca: 'Biblioteca', estudio: 'Estúdio' }[cat] || cat])[1];
-const numeroExercicio = m => String(Math.max(1, MODELOS.indexOf(m) + 1)).padStart(4, '0');
-function objetivoExercicio(m) {
-  if (!m) return 'Exercício';
-  if (m.cat === 'tecnica') {
-    const t = TECNICAS_TREINO.find(x => x.id === m.sub);
-    return `Praticar ${t ? t.nome.toLowerCase() : 'controle técnico'}`;
+  const antigo = d => d && (Array.isArray(d.praticas) || Array.isArray(d.treinos) || Array.isArray(d.ideias));
+  function normalizar(d) {
+    if (antigo(d)) return migrar(d);
+    const o = vazio();
+    if (!d || typeof d !== 'object') return o;
+    COLECOES.forEach(c => { if (d[c] && typeof d[c] === 'object') o[c] = d[c]; });
+    o.perfil = { ...PERFIL_PADRAO, ...(d.perfil || {}) };
+    o.del = d.del && typeof d.del === 'object' ? d.del : {};
+    return o;
   }
-  if (m.cat === 'riffs') return 'Aplicar ritmo, acordes e articulações em um riff';
-  if (m.cat === 'solos') return 'Construir uma frase de solo com articulações';
-  if (m.cat === 'escalas') return m.grupo === 'Arpejo' ? `Percorrer ${m.nome.toLowerCase()}` : m.grupo === 'Sequência' ? `Praticar ${m.nome.toLowerCase()}` : `Mapear ${m.nome.toLowerCase()} no braço`;
-  if (m.cat === 'caminho') return typeof m.resumo === 'string' ? m.resumo.replace(/[.]$/, '') : 'Desenvolver um fundamento';
-  if (m.cat === 'biblioteca') return 'Aplicar técnica em um trecho musical';
-  if (m.cat === 'estudio') return 'Praticar uma criação própria';
-  return typeof m.resumo === 'string' ? m.resumo.replace(/[.]$/, '') : 'Praticar guitarra';
-}
-const tituloDe = m => `#${numeroExercicio(m)} · ${objetivoExercicio(m)}`;
+  let db = normalizar(lerLS(CHAVE, null));
+  let real = null; // durante a demonstração do guia, os dados verdadeiros ficam guardados aqui
+  let aoMudar = () => {};
 
-/* ================= treino do dia ================= */
-// quatro treinos do nível escolhido, sorteados pelo dia: aquecimento de técnica, riff, solo e uma linha muito longa
-function treinoDoDia(nivel) {
-  const r = sorteio(semente(`dia:${diaNum()}:${nivel}`)), um = (cat, sub, tam) => `${cat}:${sub}:${nivel}:${tam}:${r.i(N_POR_LISTA)}`;
-  return [um('tecnica', r.um(TECNICAS_TREINO).id, 'moderado'), um('riffs', r.um(ESTILOS).id, 'longo'), um('solos', r.um(ESTILOS).id, 'moderado'), um('riffs', r.um(ESTILOS).id, 'muito-longo')];
-}
+  function salvar() {
+    if (real) return; // demonstração: nada é salvo
+    gravarLS(CHAVE, db);
+    aoMudar();
+  }
+  const demo = {
+    ligar() { if (!real) { real = db; db = JSON.parse(JSON.stringify(db)); } },
+    desligar() { if (real) { db = real; real = null; } },
+    ativa: () => !!real,
+  };
 
-/* ================= conquistas ================= */
-// [id, nome, como ganhar, condição]: conferidas depois de cada prática; ficam guardadas com a data em que vieram
-const aplicacoesTreinadas = () => new Set(T().map(t => modelo(t.id)).filter(m => m && (m.cat === 'riffs' || m.cat === 'solos')).map(m => m.id));
-const tecnicasTreinadas = () => new Set(T().map(t => modelo(t.id)).filter(m => m && m.cat === 'tecnica').map(m => m.sub));
-const CONQUISTAS = [
-  ['primeiro', 'Primeiro treino', 'Termine um treino.', () => DB.treinos.length > 0],
-  ['meta', 'Meta do dia', 'Pratique os minutos da sua meta num dia.', () => [...diasPraticados()].some(n => minutosNoDia(n) >= DB.cfg.meta)],
-  ['dias3', 'Três dias seguidos', 'Pratique três dias seguidos.', () => maiorSequencia() >= 3],
-  ['dias7', 'Uma semana inteira', 'Pratique sete dias seguidos.', () => maiorSequencia() >= 7],
-  ['dias30', 'Um mês sem parar', 'Pratique 30 dias seguidos.', () => maiorSequencia() >= 30],
-  ['hora', 'Uma hora na semana', 'Some 60 minutos em sete dias.', () => minutosSemana() >= 60],
-  ['horas10', 'Dez horas de guitarra', 'Some 600 minutos de prática.', () => DB.praticas.reduce((s, p) => s + p.min, 0) >= 600],
-  ['dia', 'Treino do dia', 'Termine os quatro treinos de um treino do dia.', () => T().some(t => t.dia && t.diaFim)],
-  ['estilos5', 'Cinco aplicações', 'Treine cinco riffs ou solos diferentes.', () => aplicacoesTreinadas().size >= 5],
-  ['estilos', 'Explorador musical', 'Treine vinte riffs ou solos diferentes.', () => aplicacoesTreinadas().size >= 20],
-  ['tecnicas10', 'Dez técnicas', 'Treine dez técnicas diferentes.', () => tecnicasTreinadas().size >= 10],
-  ['muito-longo', 'Linha inteira', 'Toque uma volta inteira de um treino muito longo.', () => T().some(t => (modelo(t.id) || {}).tamanho === 'muito-longo' && t.voltas >= 1)],
-  ['avancado', 'Nível avançado', 'Faça um treino avançado.', () => T().some(t => (modelo(t.id) || {}).nivel === 3)],
-  ['drop', 'Afinação baixa', 'Treine numa afinação drop.', () => T().some(t => String(t.cfg.afin || (modelo(t.id) || {}).afinPadrao || '').startsWith('drop'))],
-  ['sete', 'Sete cordas', 'Treine numa afinação de sete cordas.', () => T().some(t => String(t.cfg.afin || (modelo(t.id) || {}).afinPadrao || '').startsWith('sete'))],
-  ['limpo140', 'Rápido e limpo', 'Toque um treino limpo a 140 bpm ou mais.', () => T().some(t => limpo(t) && t.bpm >= 140)],
-  ['favorito', 'Favorito', 'Marque um treino com a estrela.', () => DB.favoritos.length > 0],
-  ['plano', 'Quatro semanas', 'Termine um plano de 4 semanas.', () => (DB.cfg.planosFeitos || 0) > 0],
-  ['musica', 'Primeira música', 'Marque uma música como Já toco.', () => DB.musicas.some(m => m.estado === 'toco')],
-];
-const temConquista = id => DB.conquistas.find(c => c.id === id);
-const ganhas = () => CONQUISTAS.filter(c => temConquista(c[0])).length;
-function conferirConquistas(avisar = true) {
-  const novas = CONQUISTAS.filter(c => !temConquista(c[0]) && c[3]());
-  if (!novas.length) return;
-  novas.forEach(c => DB.conquistas.push({ id: c[0], em: Date.now() }));
-  commit();
-  if (avisar) KitFacil.avisar(novas.length === 1 ? `Conquista nova: ${novas[0][1]}.` : `Conquistas novas: ${novas.map(c => c[1]).join(', ')}.`);
-}
-function registrarPratica(min) { if (min > 0) { DB.praticas.push({ id: uid(), em: Date.now(), min }); commit(); } }
+  /* ---------- perfil ---------- */
+  const perfil = () => db.perfil;
+  function mudarPerfil(campos) { Object.assign(db.perfil, campos, { t: agora() }); salvar(); }
 
+  /* ---------- aparelho (não sincroniza) ---------- */
+  const APARELHO_PADRAO = { vol: { guitarra: .9, metronomo: .7, bateria: .8 }, sessao: null };
+  const aparelho = () => { const a = lerLS(CHAVE_APARELHO, {}); return { ...APARELHO_PADRAO, ...a, vol: { ...APARELHO_PADRAO.vol, ...(a.vol || {}) } }; };
+  function mudarAparelho(campos) { if (real) return; gravarLS(CHAVE_APARELHO, { ...aparelho(), ...campos }); }
+
+  /* ---------- prática ---------- */
+  function registrarPratica({ ex, seg, bpm }) {
+    const id = novoId(), t = agora();
+    db.pratica[id] = { id, ex, em: t, seg: Math.round(seg), bpm: bpm || 0, limpo: null, t };
+    if (bpm) db.andamento[ex] = { bpm, t };
+    salvar(); return id;
+  }
+  function marcarLimpo(id, limpo) { const p = db.pratica[id]; if (!p) return; p.limpo = !!limpo; p.t = agora(); salvar(); }
+  const praticas = () => Object.values(db.pratica).sort((a, b) => b.em - a.em);
+  function andamento(exId) { return (db.andamento[exId] || {}).bpm || 0; }
+  function guardarAndamento(exId, bpm) { db.andamento[exId] = { bpm, t: agora() }; salvar(); }
+  /* resumo de um exercício: vezes praticado, vezes concluído limpo e último andamento */
+  function estadoEx(exId) {
+    const ps = praticas().filter(p => p.ex === exId);
+    return { vezes: ps.length, limpos: ps.filter(p => p.limpo).length, ultimo: ps[0] || null, bpm: andamento(exId) };
+  }
+  function semana(t = agora()) {
+    const ini = inicioSemana(t), ps = praticas().filter(p => p.em >= ini);
+    return { seg: ps.reduce((s, p) => s + p.seg, 0), dias: new Set(ps.map(p => hojeISO(p.em))).size, treinos: ps.length, limpos: ps.filter(p => p.limpo).length };
+  }
+  /* dias seguidos com prática, até hoje (ou ontem) */
+  function sequencia() {
+    const dias = new Set(praticas().map(p => hojeISO(p.em)));
+    let n = 0; const d = new Date(); d.setHours(12);
+    if (!dias.has(hojeISO(d.getTime()))) d.setDate(d.getDate() - 1);
+    while (dias.has(hojeISO(d.getTime()))) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  /* prática por competência: tempo e concluídos (praticado ≠ concluído ≠ avaliado) */
+  function competencias() {
+    const r = Object.fromEntries(CATALOGO.COMPETENCIAS.map(([id]) => [id, { seg: 0, treinos: 0, limpos: 0 }]));
+    praticas().forEach(p => { const e = buscar(p.ex); if (!e || !r[e.competencia]) return; r[e.competencia].seg += p.seg; r[e.competencia].treinos++; if (p.limpo) r[e.competencia].limpos++; });
+    return r;
+  }
+
+  /* qualquer coisa que se treina: exercício do catálogo (0001), obra da biblioteca (b-…) ou ideia do Estúdio (i-…) */
+  function buscar(id) {
+    if (!id) return null;
+    if (id.startsWith('b-')) return BIBLIOTECA.comoExercicio(id.slice(2));
+    if (id.startsWith('i-')) { const i = db.ideias[id.slice(2)]; return i ? ESTUDIO.comoExercicio(i) : null; }
+    return CATALOGO.porId(id);
+  }
+
+  /* ---------- favoritos ---------- */
+  const favorito = exId => !!db.fav[exId];
+  function alternarFavorito(exId) {
+    if (db.fav[exId]) { delete db.fav[exId]; db.del['fav:' + exId] = agora(); }
+    else { db.fav[exId] = { t: agora() }; delete db.del['fav:' + exId]; }
+    salvar(); return favorito(exId);
+  }
+  const favoritos = () => Object.entries(db.fav).sort((a, b) => b[1].t - a[1].t).map(([id]) => id);
+
+  /* ---------- ideias do Estúdio ---------- */
+  const ideias = () => Object.values(db.ideias).sort((a, b) => b.t - a.t);
+  const ideia = id => db.ideias[id] || null;
+  function salvarIdeia(i) { i.t = agora(); db.ideias[i.id] = i; delete db.del['ideias:' + i.id]; salvar(); return i; }
+  function apagarIdeia(id) { delete db.ideias[id]; db.del['ideias:' + id] = agora(); salvar(); }
+
+  /* ---------- sincronização: junção registro a registro, a mudança mais recente vence ---------- */
+  const pacote = () => ({ v: 1, pratica: db.pratica, fav: db.fav, ideias: db.ideias, andamento: db.andamento, perfil: db.perfil, del: db.del });
+  function aplicar(remoto) {
+    if (!remoto || typeof remoto !== 'object') return false;
+    const antes = KitFacil.canon(pacote());
+    const r = normalizar(remoto);
+    Object.entries(r.del).forEach(([k, t]) => { if (!(db.del[k] >= t)) db.del[k] = t; });
+    // exclusões com mais de 400 dias saem da lista
+    const limite = agora() - 400 * 864e5;
+    Object.keys(db.del).forEach(k => { if (db.del[k] < limite) delete db.del[k]; });
+    COLECOES.forEach(c => {
+      Object.entries(r[c]).forEach(([id, reg]) => { if (!db[c][id] || (reg.t || 0) > (db[c][id].t || 0)) db[c][id] = reg; });
+      Object.keys(db[c]).forEach(id => { const tDel = db.del[c + ':' + id]; if (tDel && tDel >= (db[c][id].t || 0)) delete db[c][id]; });
+    });
+    if ((r.perfil.t || 0) > (db.perfil.t || 0)) db.perfil = r.perfil;
+    const mudou = antes !== KitFacil.canon(pacote());
+    if (mudou) gravarLS(CHAVE, db);
+    return mudou;
+  }
+  const igual = (a, r) => KitFacil.canon(a) === KitFacil.canon({ v: 1, pratica: r.pratica || {}, fav: r.fav || {}, ideias: r.ideias || {}, andamento: r.andamento || {}, perfil: r.perfil || {}, del: r.del || {} });
+
+  /* ---------- cópia de segurança ---------- */
+  const copia = () => JSON.parse(JSON.stringify(pacote()));
+  function restaurar(dados) { if (!dados || typeof dados !== 'object') return false; db = normalizar(dados); salvar(); return true; }
+  const temDados = () => Object.keys(db.pratica).length > 0 || Object.keys(db.ideias).length > 0 || Object.keys(db.fav).length > 0;
+
+  return { PREFIXO, perfil, mudarPerfil, aparelho, mudarAparelho, registrarPratica, marcarLimpo, praticas, andamento, guardarAndamento,
+    estadoEx, semana, sequencia, competencias, buscar, favorito, alternarFavorito, favoritos, ideias, ideia, salvarIdeia, apagarIdeia,
+    pacote, aplicar, igual, copia, restaurar, temDados, demo, lerLS, gravarLS, set aoMudar(f) { aoMudar = f; } };
+})();

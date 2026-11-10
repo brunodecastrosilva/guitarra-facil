@@ -1,83 +1,91 @@
 # Guitarra Fácil
 
-Ambiente visual e interativo para aprender, explorar e criar na guitarra, do primeiro contato ao estudo avançado. O braço virtual, a tablatura e o som trabalham juntos; a interface usa uma identidade escura, premium e direta, com vermelho como acento.
+Treinos de guitarra elétrica do primeiro contato ao estudo avançado, com o braço virtual, a tablatura e o som
+trabalhando juntos. Identidade: pedal de efeito vermelho sobre grafite de amplificador, escuro de fábrica e títulos em
+Big Shoulders Display.
 
-**Fase de testes** · versão 0.25.3 · <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.1.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
-O app faz parte do Projeto Fácil. O [Código do Projeto Fácil](comum/CODIGO.md) tem precedência.
+O app faz parte do Projeto Fácil. O [Código do Projeto Fácil](comum/CODIGO.md) e os [Anexos](comum/ANEXOS.md) têm
+precedência sobre este README.
 
-## Arquitetura da experiência
+## Telas
 
-A navegação principal foi reduzida a quatro intenções:
+| Navegação | Tela | Para quê |
+|---|---|---|
+| Barra de baixo | Início | sessão de hoje, próximo passo, continuar, semana, favoritos e caminho do iniciante |
+| Barra de baixo | Treinos | catálogo por número e objetivo, com busca, nível, competência e mão; favoritos |
+| Barra de baixo | Explorar | o braço como laboratório: notas, escalas, acordes, intervalos e modo livre, com som |
+| Barra de baixo | Estúdio | ideias escritas no braço, para ouvir, treinar e variar |
+| Mais | Afinador, Metrônomo, Bateria | ferramentas |
+| Mais | Biblioteca | obras em domínio público e riffs originais |
+| Mais | Acordes | 161 formas com diagrama, notas, fórmula e som |
+| Mais | Progresso | semana, competências, histórico e metas |
+| Mais | Ajustes | as oito guias comuns e a guia própria Prática |
+| Interna | Treino | roteiro (partes desenhadas, ouvir a parte), palco (braço e tablatura com o som) e fim (saiu limpo?) |
+| Interna | Sessão de hoje | as cinco etapas, editáveis, e o Começar no pé |
+| Interna | Ideia | o editor do Estúdio |
 
-- **Início:** próximo passo, sessão recomendada, sequência, metas e atalhos.
-- **Treinos:** catálogo por categoria, técnica, nível, tamanho, competência, mão e objetivo. Gênero musical não é etapa nem filtro.
-- **Explorar:** braço virtual, escalas, acordes, intervalos, modo livre, harmonia e ritmo. Substitui as antigas telas separadas de Teoria e Braço.
-- **Estúdio:** criação de riffs e ideias por braço ou tablatura, com ritmo, técnicas, reprodução e variações.
+Nas telas internas, a barra de cima tem voltar, título, nuvem e balão, e as ações ficam na barra de baixo da tela, no
+lugar da navegação (Código, Arts. 58 e 64).
 
-Em **Mais** ficam Afinador, Metrônomo, Bateria, Biblioteca, Acordes, Progresso e Ajustes.
+## Exercícios
 
-Ao abrir, uma apresentação curta (desligável em Ajustes → Preferências gerais) oferece o **guia em 3 níveis**: essencial, exploração e completo.
+Gerados em `exercicios.js` por regras musicais (afinação, métrica, posição e dedilhado), numerados de `#0001` em diante e
+identificados por objetivo. Modelo: `{ id, num, objetivo, familia, tecnica, competencia, nivel, mao, bpm: { ini, meta },
+compasso, partes: [{ nome, evs }], dica, tipo }`. Evento: `{ d: tempos, n: [[corda, casa, dedo]], t: técnica }`, com a
+corda 0 sendo a 6ª. Os testes conferem números únicos, compassos inteiros, casas possíveis e que toda forma de acorde é
+reconhecida pela teoria.
 
-## Recursos centrais
-
-- **Exercícios identificados por número e objetivo:** por exemplo, `#0001 · Praticar palhetada alternada`. Nomes fantasiosos e rótulos públicos de gênero não fazem parte da escolha.
-- **Treino em tela cheia:** braço, tablatura, orientação, andamento e reprodução formam um ambiente único de foco. A tablatura pode rolar horizontalmente quando a linha exigir.
-- **Preview antes de tocar:** todo treino abre num roteiro com cada parte desenhada no braço (onde começa, a ordem
-  com setas, o dedo), um botão para ouvir só a parte e o Começar preso no rodapé. O botão Roteiro volta a ele.
-- **Pausa entre treinos:** na sessão e no treino do dia, o som para no fim de cada treino; a pessoa marca se saiu
-  limpo, vê o próximo e segue com "Ver o próximo", que abre o preview dele. Parar e recomeçar fica no mesmo treino.
-- **1-2-3-4 previsível:** uma ordem, um desenho e uma casa por parte, subindo e descendo as cordas inteiras.
-  Iniciante sem mudar de casa; intermediário sobe uma casa por parte; avançado sobe duas, com aranha e salto de
-  cordas. 60 bpm de partida.
-- **Técnicas animadas:** bends, slides, hammer-ons, pull-offs, tapping e vibrato têm demonstrações lentas, etapas e instruções visuais.
-- **Sessões adaptáveis:** preparação, aquecimento, treino principal, aplicação musical e encerramento dentro do tempo escolhido. Na tela, cada etapa é uma linha que abre para editar, e o Começar fica preso embaixo.
-- **Caminho do iniciante:** progressão visual do primeiro toque ao primeiro solo, sem impedir a exploração livre.
-- **Biblioteca unificada:** trechos para praticar, repertório pessoal e referências organizadas pelo que se pode aprender. Substitui as antigas telas separadas de Biblioteca e Músicas.
-- **Acordes:** mais de 100 formas abertas e móveis, busca por nome ou cifra, famílias, diagramas para destros e canhotos, notas, fórmula, instruções, som e integração com o braço e os treinos.
-- **Progresso:** histórico, metas, competências, andamentos e conquistas. O app diferencia prática registrada de habilidade efetivamente avaliada.
-- **Áudio local:** guitarra, baixo, cordas de fundo, bateria e metrônomo (bloco de madeira) usam gravações FluidR3 sob licença MIT e funcionam sem internet depois de armazenados.
+Três estados da prática, sempre separados: **praticado** (o app registra o tempo tocado), **concluído** (a pessoa marca
+"Saiu limpo") e **avaliado** (não existe: o app não ouve nem avalia a execução).
 
 ## Privacidade e dados
 
 | Dado | Onde fica |
 |---|---|
-| Treinos, favoritos, conquistas, músicas, ideias, metas e preferências | Neste aparelho (`guitarrafacil.db`) |
-| Os mesmos dados, quando a sincronização é ativada | Gist secreto da pessoa, criptografado no aparelho |
-| Afinador | Áudio analisado em memória; não é gravado nem enviado |
-| Gravação de treino | Memória do aparelho; apagada ao fechar o treino e nunca avaliada automaticamente |
+| Treinos registrados, andamentos, favoritos, ideias, metas e ajustes de prática | Neste aparelho (`guitarrafacil.db`) |
+| Os mesmos dados, com a sincronização ligada | Gist secreto da própria pessoa, criptografado no aparelho |
+| Volumes e sessão do dia | Só neste aparelho (`guitarrafacil.aparelho`) |
+| Afinador | Som analisado na memória; nada é gravado nem enviado |
 
 ## Desenvolvimento
 
 ```sh
 npm install
-npm start
-npm run verificar
-npm test
+npm start          # http://localhost:8080/guitarra-facil/
+npm run verificar  # padrão do Código
+npm test           # testes do Kit e do app, sem internet
 ```
 
-Não há etapa de build: HTML, CSS e JavaScript clássicos são servidos diretamente. O GitHub Actions executa o verificador, os testes de navegador e as capturas visuais.
+Não há etapa de build: HTML, CSS e JavaScript clássicos, carregados em ordem pelo `index.html`.
 
 ## Estrutura
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `index.html`, `direcao-arte.css` | moldura e direção visual |
-| `base.js` | versão, ícones, ilustrações e componentes básicos |
-| `dados.js`, `exercicios.js` | persistência, identidade pública dos exercícios, índice e filtros |
-| `catalogo.js`, `metal.js` | geradores e regras musicais internas do catálogo |
-| `pratica.js`, `janela-treino.js`, `tecnicas.js` | braço, tablatura, reprodução, player e demonstrações técnicas |
-| `laboratorio.js`, `tela-teoria.js` | módulo Explorar e teoria aplicada |
-| `biblioteca.js`, `tela-musicas.js`, `musicas.js` | Biblioteca unificada e referências |
-| `ferramentas.js` | Acordes, Afinador, Metrônomo e Bateria |
-| `estudio.js` | criação e edição musical |
-| `sessao.js`, `plano.js`, `evolucao.js` | sessões, planejamento e progresso |
-| `tela-*.js`, `app.js` | telas, rotas e navegação |
-| `comum/` | Kit Fácil compartilhado; deve permanecer idêntico nos apps da família |
-| `tests/` | testes funcionais e capturas reproduzíveis |
+| `index.html`, `estilo.css` | moldura e cores do app |
+| `base.js` | versão, atalhos e ícones |
+| `teoria.js`, `formas.js` | notas, afinações, intervalos, escalas, acordes e formas de acorde |
+| `som.js`, `tocador.js` | gravações FluidR3 e o tempo (trechos, metrônomo e bateria) |
+| `braco.js` | desenhos: braço, parte com setas e dedos, tablatura com ritmo e diagrama de acorde |
+| `exercicios.js`, `biblioteca.js` | catálogo e obras |
+| `dados.js` | o que fica guardado e a junção com a nuvem |
+| `telas.js`, `treino.js`, `explorar.js`, `estudio.js`, `ferramentas.js` | telas |
+| `guia.js` | guia em dois níveis |
+| `app.js` | rotas, navegação, Ajustes e ligação com o Kit |
+| `comum/` | Kit Fácil 0.3.0, igual nos quatro apps |
+| `tests/` | testes do app |
+
+## Exceções ao padrão
+
+Nenhuma. A exceção anterior (barra de baixo em pilha de amplificadores e fogo animado) foi retirada em 10/11/2026, por
+decisão do Bruno.
 
 ## Publicação
 
-As versões são publicadas diretamente na `main`; o GitHub Pages serve a pasta raiz. Ao publicar, atualizar `package.json`, `base.js`, `sw.js`, os parâmetros `?v=` de `index.html`, `CHANGELOG.md` e as novidades de `app.js`.
+Direto na `main`; o GitHub Pages serve a pasta raiz. Ao publicar, atualizar a versão em `package.json`, `base.js`,
+`sw.js`, os `?v=` do `index.html`, o `CHANGELOG.md` e as novidades em `app.js`.
 
-Repositório público sem licença: todos os direitos reservados a Bruno de Castro Silva.
+Os sons vêm do banco FluidR3 (licença MIT; veja `sons/LICENCA-FluidR3.txt`). Repositório público sem licença: todos os
+direitos reservados a Bruno de Castro Silva.

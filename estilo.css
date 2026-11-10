@@ -1,0 +1,179 @@
+/* Guitarra Fácil · cores e desenhos próprios. O app muda só a cor de destaque, os neutros, a marca e a fonte dos títulos
+   (Art. 56); botões, guias, segmentos, seções, janelas e avisos são os do Kit. Ideia visual: pedal de efeito vermelho
+   sobre grafite de amplificador. */
+:root{
+  color-scheme:light;
+  --kf-font-display:"Big Shoulders Display","Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,sans-serif;
+  --kf-bg:#EDEDF0; --kf-surface:#FFFFFF; --kf-surface-2:#E4E4E9; --kf-line:#D2D2D9; --kf-line-2:#B3B3BD;
+  --kf-ink:#141417; --kf-muted:#55555E;
+  --kf-accent:#2B2B30; --kf-accent-ink:#FFFFFF; --kf-accent-soft:#E2E2E7; --kf-accent-texto:#2B2B30;
+  --kf-focus:#2B2B30; --kf-scrim:rgba(14,14,16,.5); --kf-shadow:0 10px 30px rgba(14,14,16,.16),0 2px 6px rgba(14,14,16,.08);
+  --gf-vermelho:#C8231A; --gf-vermelho-tx:#A81C14; --gf-vermelho-suave:#F7E1DF;
+  --gf-madeira:#2D241F; --gf-traste:#B9B9C1; --gf-corda:#DCD6C8; --gf-marca:#E9E4D9; --gf-pestana:#EFEAE0;
+  --gf-nota:#F4F4F6; --gf-nota-tx:#141417; --gf-seta:#FF7A6E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --kf-bg:#0B0B0D; --kf-surface:#151518; --kf-surface-2:#1F1F24; --kf-line:#2B2B32; --kf-line-2:#3D3D46;
+  --kf-ink:#F2F2F5; --kf-muted:#A6A6B0;
+  --kf-accent:#DADADF; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E35; --kf-accent-texto:#E6E6EA;
+  --kf-focus:#E6E6EA; --kf-scrim:rgba(0,0,0,.64); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
+  --gf-vermelho:#D7281D; --gf-vermelho-tx:#FF7A6E; --gf-vermelho-suave:#3A1916;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --kf-bg:#0B0B0D; --kf-surface:#151518; --kf-surface-2:#1F1F24; --kf-line:#2B2B32; --kf-line-2:#3D3D46;
+  --kf-ink:#F2F2F5; --kf-muted:#A6A6B0;
+  --kf-accent:#DADADF; --kf-accent-ink:#18181B; --kf-accent-soft:#2E2E35; --kf-accent-texto:#E6E6EA;
+  --kf-focus:#E6E6EA; --kf-scrim:rgba(0,0,0,.64); --kf-shadow:0 10px 30px rgba(0,0,0,.5);
+  --gf-vermelho:#D7281D; --gf-vermelho-tx:#FF7A6E; --gf-vermelho-suave:#3A1916;
+}
+*{box-sizing:border-box}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--kf-bg);color:var(--kf-ink);font-family:var(--kf-font);font-size:var(--kf-t-corpo);line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+.kf-marca-ic{background:var(--kf-accent);border-radius:9px;display:grid;place-items:center}
+:root[data-theme="dark"] .kf-marca-ic{background:#2B2B30}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kf-marca-ic{background:#2B2B30}}
+.kf-marca-ic svg{width:24px;height:24px}
+.kf-marca-nome{font-family:var(--kf-font-display);font-weight:800;letter-spacing:.01em}
+.kf-titulo,h2.gf-h,.gf-numero{font-family:var(--kf-font-display)}
+
+/* área da tela */
+main#tela{max-width:var(--kf-col,880px);margin:0 auto;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(var(--kf-nav-h) + 40px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:1024px){main#tela{padding-bottom:48px}}
+body.gf-interna main#tela{padding-bottom:calc(var(--kf-nav-h) + 40px + env(safe-area-inset-bottom,0px))}
+.gf-pilha{display:flex;flex-direction:column;gap:12px;min-width:0}
+h2.gf-h{font-weight:800;font-size:var(--kf-t-secao);line-height:1.15;margin:0}
+.gf-apoio{color:var(--kf-muted);font-size:var(--kf-t-apoio);margin:0}
+.gf-campo{display:flex;flex-direction:column;gap:6px;min-width:0}
+.gf-campo > .kf-seg{max-width:none}
+
+/* barra de cima das telas internas: voltar e título */
+.gf-voltar{display:flex;align-items:center;gap:6px;min-width:0;flex:1}
+.gf-voltar button{width:44px;height:44px;border:0;background:none;border-radius:12px;display:grid;place-items:center;color:var(--kf-ink);cursor:pointer;flex:none}
+.gf-voltar button:hover{background:var(--kf-surface-2)}
+.gf-voltar h1{margin:0;font:800 21px/1.1 var(--kf-font-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* barra de ações das telas internas, no lugar da navegação de baixo (Art. 64, parágrafo único) */
+body.gf-interna .kf-nav{display:none}
+.gf-acoes{position:fixed;left:0;right:0;bottom:0;z-index:26;background:var(--kf-surface);box-shadow:0 -1px 0 var(--kf-line);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.gf-acoes[hidden]{display:none}
+.gf-acoes-in{max-width:var(--kf-col,880px);margin:0 auto;display:flex;gap:8px;align-items:center}
+.gf-acoes-in > .kf-btn{flex:1 1 0;min-width:0}
+.gf-acoes-in > .gf-icone{flex:none}
+@media (min-width:1024px){.gf-acoes{left:var(--kf-trilho-w)}}
+.gf-icone{width:48px;min-width:48px;padding:0}
+.gf-icone .kf-i{width:22px;height:22px}
+
+/* listas verticais: uma linha por item, nada lado a lado (Art. 67) */
+.gf-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;background:var(--kf-surface);border-radius:var(--kf-r-cartao);box-shadow:inset 0 0 0 1px var(--kf-line);overflow:hidden}
+.gf-lista > li + li{border-top:1px solid var(--kf-line)}
+.gf-linha{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 14px;border:0;background:none;text-align:left;cursor:pointer;color:inherit}
+.gf-linha:hover{background:var(--kf-surface-2)}
+.gf-linha:focus-visible{outline:2.5px solid var(--kf-focus);outline-offset:-3px}
+.gf-linha-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gf-linha-tx b{font-weight:700;overflow-wrap:anywhere}
+.gf-linha-tx small{color:var(--kf-muted);font-size:var(--kf-t-apoio)}
+.gf-linha .kf-i{flex:none;color:var(--kf-muted)}
+.gf-linha-fig{flex:none;width:44px;display:grid;place-items:center}
+.gf-num{font:800 15px/1 var(--kf-font-display);letter-spacing:.02em;color:var(--gf-vermelho-tx);flex:none;min-width:44px}
+.gf-selo{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--kf-muted)}
+.gf-selo.gf-ok{color:var(--kf-ok)}
+
+/* números grandes (metrônomo, afinador) */
+.gf-numero{font-weight:900;font-size:64px;line-height:1;font-variant-numeric:tabular-nums;text-align:center;margin:0}
+.gf-numero small{display:block;font:600 var(--kf-t-apoio)/1.4 var(--kf-font);color:var(--kf-muted);margin-top:4px}
+.gf-controle{display:flex;align-items:center;justify-content:center;gap:12px}
+.gf-faixa-range{width:100%;min-height:44px;accent-color:var(--gf-vermelho)}
+.gf-pulsos{display:flex;justify-content:center;gap:10px;margin:0;padding:0;list-style:none}
+.gf-pulsos li{width:16px;height:16px;border-radius:50%;background:var(--kf-surface-2);box-shadow:inset 0 0 0 1.5px var(--kf-line-2)}
+.gf-pulsos li.gf-on{background:var(--gf-vermelho);box-shadow:none}
+.gf-pulsos li.gf-forte{width:20px;height:20px}
+
+/* seções que abrem e fecham (a seção do Kit, Art. 70) */
+details.gf-secao{background:var(--kf-surface);border-radius:var(--kf-r-cartao);box-shadow:inset 0 0 0 1px var(--kf-line)}
+details.gf-secao>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;min-height:56px;cursor:pointer}
+details.gf-secao>summary::-webkit-details-marker{display:none}
+details.gf-secao>summary .gf-secao-t{flex:1;min-width:0;font:800 var(--kf-t-cartao)/1.25 var(--kf-font-display);letter-spacing:.01em}
+details.gf-secao>summary small{color:var(--kf-muted);font-size:var(--kf-t-apoio);white-space:nowrap}
+details.gf-secao>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--kf-muted);border-bottom:2px solid var(--kf-muted);transform:rotate(45deg);margin:-4px 4px 0;flex:none}
+details.gf-secao[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+details.gf-secao>summary:focus-visible{outline:2.5px solid var(--kf-focus);outline-offset:-3px;border-radius:var(--kf-r-cartao)}
+.gf-secao-in{padding:0 12px 14px}
+
+/* braço */
+.gf-figura{margin:0;background:var(--kf-surface);border-radius:var(--kf-r-cartao);box-shadow:inset 0 0 0 1px var(--kf-line);padding:10px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gf-figura figcaption{font-size:var(--kf-t-apoio);color:var(--kf-muted);padding:6px 6px 0}
+.gf-braco{display:block;width:100%;min-width:600px;height:auto;max-height:260px}
+.gf-braco.gf-curto{min-width:0;max-width:420px;margin:0 auto}
+.gf-madeira{fill:var(--gf-madeira)}
+.gf-traste{stroke:var(--gf-traste);stroke-width:2}
+.gf-pestana{stroke:var(--gf-pestana);stroke-width:5}
+.gf-corda{stroke:var(--gf-corda)}
+.gf-marca{fill:var(--gf-marca);opacity:.45}
+.gf-ncasa{font:600 11px var(--kf-font);fill:var(--kf-muted);text-anchor:middle}
+.gf-nota circle{fill:var(--gf-nota);stroke:#000;stroke-opacity:.25;stroke-width:1}
+.gf-nota text{font:700 11px var(--kf-font);fill:var(--gf-nota-tx);text-anchor:middle;pointer-events:none}
+.gf-partida circle,.gf-raiz circle{fill:var(--gf-vermelho);stroke:none}
+.gf-partida text,.gf-raiz text{fill:#fff}
+.gf-fantasma circle{fill:none;stroke:var(--gf-nota);stroke-opacity:.5;stroke-width:1.5}
+.gf-nota.gf-ativa circle{fill:var(--gf-vermelho);stroke:#fff;stroke-width:3;stroke-opacity:1}
+.gf-nota.gf-ativa text{fill:#fff}
+.gf-escolhida circle{fill:var(--gf-nota);stroke:var(--gf-vermelho);stroke-width:3;stroke-opacity:1}
+.gf-seta{fill:none;stroke:var(--gf-seta);stroke-width:2;stroke-linecap:round}
+.gf-ponta{fill:var(--gf-seta)}
+.gf-alvo{fill:transparent;cursor:pointer;outline:none}
+.gf-alvo:focus-visible{stroke:var(--kf-focus);stroke-width:2.5}
+.gf-toque .gf-alvo:hover{fill:rgba(255,255,255,.08)}
+
+/* tablatura */
+.gf-tab-pilha{display:flex;flex-direction:column;gap:6px;background:var(--kf-surface);border-radius:var(--kf-r-cartao);box-shadow:inset 0 0 0 1px var(--kf-line);padding:10px 6px;overflow:hidden}
+.gf-tab{display:block;max-width:100%;height:auto}
+.gf-tab-l{stroke:var(--kf-line-2);stroke-width:1}
+.gf-tab-b{stroke:var(--kf-muted);stroke-width:1.2}
+.gf-tab-c{font:600 10px var(--kf-font-mono);fill:var(--kf-muted)}
+.gf-tab-fundo{fill:var(--kf-surface)}
+.gf-tab-n{font:700 12px var(--kf-font-mono);fill:var(--kf-ink);text-anchor:middle}
+.gf-tab-t{font:700 10px var(--kf-font);fill:var(--gf-vermelho-tx);text-anchor:middle}
+.gf-tab-col{fill:transparent}
+.gf-tab-ev.gf-on .gf-tab-col{fill:var(--gf-vermelho-suave)}
+.gf-tab-ev.gf-on .gf-tab-fundo{fill:var(--gf-vermelho)}
+.gf-tab-ev.gf-on .gf-tab-n{fill:#fff}
+.gf-ritmo,.gf-ritmo-o{fill:var(--kf-muted)}
+.gf-ritmo-h{stroke:var(--kf-muted);stroke-width:1.4}
+
+/* diagrama de acorde */
+.gf-diag{display:block;width:150px;height:auto;margin:0 auto}
+.gf-diag-p{width:40px}
+.gf-diag-l{stroke:var(--kf-line-2);stroke-width:1.2}
+.gf-diag-pest{fill:var(--kf-ink)}
+.gf-diag-n{fill:var(--kf-ink)}
+.gf-diag-o{fill:none;stroke:var(--kf-ink);stroke-width:1.5}
+.gf-diag-x{font:700 11px var(--kf-font);fill:var(--kf-muted);text-anchor:middle}
+.gf-diag-p .gf-diag-x{font-size:8px}
+.gf-diag-d{font:700 12px var(--kf-font);fill:var(--kf-surface);text-anchor:middle}
+.gf-diag-ini{font:700 12px var(--kf-font);fill:var(--kf-muted)}
+
+/* treino: contagem e andamento */
+.gf-contagem{font:900 64px/1 var(--kf-font-display);text-align:center;color:var(--gf-vermelho-tx);margin:0}
+.gf-contagem:empty{display:none}
+.gf-andamento{display:flex;align-items:center;gap:6px}
+.gf-andamento output{font:800 20px/1 var(--kf-font-display);min-width:3.2ch;text-align:center;font-variant-numeric:tabular-nums}
+.gf-andamento small{font-size:11px;color:var(--kf-muted);display:block;text-align:center;font-family:var(--kf-font)}
+.gf-passos{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:p}
+.gf-passos li{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--kf-surface);border-radius:var(--kf-r-cartao);box-shadow:inset 0 0 0 1px var(--kf-line)}
+.gf-passos li::before{counter-increment:p;content:counter(p);font:800 20px/1.1 var(--kf-font-display);color:var(--gf-vermelho-tx);min-width:18px}
+.gf-passos li.gf-on{box-shadow:inset 0 0 0 2px var(--gf-vermelho)}
+.gf-passos b{display:block}
+.gf-tempo{font:900 56px/1 var(--kf-font-display);text-align:center;font-variant-numeric:tabular-nums;margin:0}
+
+/* afinador */
+.gf-ponteiro{display:block;width:100%;max-width:340px;height:auto;margin:0 auto}
+.gf-ponteiro .gf-esc{stroke:var(--kf-line-2);stroke-width:2}
+.gf-ponteiro .gf-meio{stroke:var(--kf-ok);stroke-width:3}
+.gf-ponteiro .gf-agulha{stroke:var(--gf-vermelho);stroke-width:3.5;stroke-linecap:round;transition:transform .12s linear}
+.gf-ponteiro .gf-eixo{fill:var(--kf-ink)}
+@media (prefers-reduced-motion: reduce){.gf-ponteiro .gf-agulha{transition:none}}
+
+.gf-so-leitor{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
