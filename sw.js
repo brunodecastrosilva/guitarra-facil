@@ -4,7 +4,7 @@
 // Bibliotecas e fontes têm versão fixa: usa a guardada.
 // O cache leva a versão do app (package.json); cada app só apaga as próprias cópias antigas,
 // porque os apps do projeto dividem o mesmo endereço (github.io).
-const CACHE = 'guitarra-facil-0.1.0';
+const CACHE = 'guitarra-facil-0.2.0';
 const APP = ['./', './index.html', './estilo.css', './base.js', './teoria.js', './formas.js', './som.js', './tocador.js', './braco.js', './exercicios.js', './biblioteca.js', './dados.js', './telas.js', './treino.js', './explorar.js', './estudio.js', './ferramentas.js', './guia.js', './app.js', './comum/kit-facil.js', './comum/kit-facil.css', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './sons/bateria/metronomo.mp3', './sons/bateria/metronomo-forte.mp3'];
 const LIBS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 

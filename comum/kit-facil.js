@@ -17,7 +17,7 @@
    - componentes comuns de tela (Kit 2.10): guias, faixa de aviso, cartão e as medidas de botão, cartão e segmento */
 (function (global) {
   'use strict';
-  const VERSAO = '0.3.0';
+  const VERSAO = '0.4.0';
 
   /* ================= família de apps (mesmo endereço no GitHub Pages) ================= */
   const FAMILIA = [
@@ -159,12 +159,27 @@
     let el = $('.kf-toast');
     if (!el) { el = document.createElement('div'); el.className = 'kf-toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.textContent = msg; el.hidden = false; clearTimeout(toastT);
+    posicionarAviso(el);
     if (acao && acao.label) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'kf-toast-acao'; b.textContent = acao.label;
       b.onclick = () => { el.hidden = true; clearTimeout(toastT); try { acao.run(); } catch (e) { console.error(e); } };
       el.appendChild(b);
     }
     toastT = setTimeout(() => { el.hidden = true; }, acao ? 6000 : 3200);
+  }
+
+  /* Kit 0.4.0: com uma janela aberta, o aviso sobe e fica acima dos botões do pé dela (ou acima da janela, sem pé),
+     para não cobrir um botão (Código, Art. 16, IV) */
+  function posicionarAviso(el) {
+    el.style.bottom = '';
+    if (!atual || !atual.dlg || !atual.dlg.isConnected) return;
+    const pe = $('.kf-dlg-pe', atual.dlg), r = (pe || atual.dlg).getBoundingClientRect();
+    const alvo = r.top;
+    const vh = (global.visualViewport && global.visualViewport.height) || innerHeight;
+    if (alvo > 0 && alvo < vh) el.style.bottom = Math.round(innerHeight - alvo + 12) + 'px';
+    // a janela ainda está subindo ou deslizando: mede de novo quando o movimento termina
+    const anims = atual.dlg.getAnimations ? atual.dlg.getAnimations() : [];
+    if (anims.length && !el._kfEspera) { el._kfEspera = 1; Promise.all(anims.map(a => a.finished.catch(() => {}))).then(() => { el._kfEspera = 0; if (!el.hidden) posicionarAviso(el); }); }
   }
 
   /* ================= janelas (diálogos) ================= */
@@ -198,15 +213,16 @@
     else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
   }
   /* abre uma janela: no celular sobe do pé da tela; em telas largas fica no centro */
-  /* sub: linha pequena acima do título; classe 'kf-alto' (altura quase toda da tela) e 'kf-largo' (até 780 px) */
-  function abrirDialogo({ titulo, sub = '', corpo, pe = '', aoMontar, aoFechar, classe = '', nome = '' }) {
+  /* sub: linha de apoio abaixo do título (Kit 0.4.0); contexto: rótulo curto acima do título, quando houver;
+     classe 'kf-alto' (altura quase toda da tela) e 'kf-largo' (até 780 px) */
+  function abrirDialogo({ titulo, sub = '', contexto = '', corpo, pe = '', aoMontar, aoFechar, classe = '', nome = '' }) {
     const origem = atual ? atual.origem : document.activeElement;
     fecharDialogo(true, { trocando: true });
     const idT = 'kf-t-' + Math.random().toString(36).slice(2, 8);
     const wrap = document.createElement('div');
     wrap.className = 'kf-ov';
     wrap.innerHTML = `<div class="kf-dlg ${esc(classe)}" role="dialog" aria-modal="true" aria-labelledby="${idT}" tabindex="-1"${nome ? ` data-kf-dialogo="${esc(nome)}"` : ''}>
-      <div class="kf-dlg-cab">${sub ? `<div class="kf-dlg-tt"><p class="kf-dlg-sub">${esc(sub)}</p><h2 id="${idT}">${esc(titulo)}</h2></div>` : `<h2 id="${idT}">${esc(titulo)}</h2>`}<button type="button" class="kf-fechar" data-kf-fechar aria-label="Fechar">${IC.x}</button></div>
+      <div class="kf-dlg-cab">${sub || contexto ? `<div class="kf-dlg-tt">${contexto ? `<p class="kf-dlg-ctx">${esc(contexto)}</p>` : ''}<h2 id="${idT}">${esc(titulo)}</h2>${sub ? `<p class="kf-dlg-sub">${esc(sub)}</p>` : ''}</div>` : `<h2 id="${idT}">${esc(titulo)}</h2>`}<button type="button" class="kf-fechar" data-kf-fechar aria-label="Fechar">${IC.x}</button></div>
       <div class="kf-dlg-corpo">${corpo}</div>${pe ? `<div class="kf-dlg-pe">${pe}</div>` : ''}</div>`;
     raiz().appendChild(wrap);
     travar();
@@ -221,6 +237,7 @@
       else if (e.key === 'Tab') prender(e, dlg);
     });
     atual = { el: wrap, dlg, origem, aoFechar, nome };
+    vigiarJanela(dlg);
     if (aoMontar) aoMontar(dlg);
     const alvo = $('[autofocus]', dlg) || dlg;
     try { alvo.focus({ preventScroll: true }); } catch { alvo.focus(); }
@@ -2353,7 +2370,10 @@
   // rola a tela na mesma curva e no mesmo relógio da seção; a posição final é calculada antes, com a altura que a página terá
   function secaoRolar(d, fimTopo, fimAltura) {
     const barra = $$('.kf-barra').find(b => b.getClientRects().length && b.getBoundingClientRect().bottom > 0);
-    const lim = (barra ? barra.getBoundingClientRect().bottom : 0) + 8;
+    // Kit 0.4.0: o app com cabeçalho fixo próprio marca a altura dele em scroll-margin-top da seção (ou de um pai)
+    let margem = 0;
+    for (let e = d; e && e !== document.body && !margem; e = e.parentElement) margem = parseFloat(getComputedStyle(e).scrollMarginTop) || 0;
+    const lim = Math.max((barra ? barra.getBoundingClientRect().bottom : 0) + 8, margem);
     const s0 = global.scrollY, alvo = Math.min(Math.max(0, fimAltura - innerHeight), Math.max(0, fimTopo - lim));
     if (Math.abs(alvo - s0) < 2) return;
     if (semMovimento()) { global.scrollTo({ top: alvo }); return; }
@@ -2397,6 +2417,200 @@
     secaoAlternar(sm.parentNode);
   });
 
+  /* ================= Kit 0.4.0: teclado, janela que muda de lugar, item novo, linha de adicionar, fato,
+     carrossel e arrastar e soltar (propostas do Laboratório do Conta Fácil, Código 0.3) ================= */
+
+  /* janela acima do teclado: no celular e no tablet, com um campo de janela em foco, a camada da janela ocupa só a
+     área visível acima do teclado (medida pelo navegador) e a janela fica colada nele */
+  (() => {
+    const html = document.documentElement, vv = global.visualViewport;
+    let toque = false; try { toque = matchMedia('(pointer: coarse)').matches; } catch {}
+    let t = 0;
+    const medir = () => { if (!vv) return; html.style.setProperty('--kf-vv-top', Math.round(vv.offsetTop) + 'px'); html.style.setProperty('--kf-vv-h', Math.round(vv.height) + 'px'); };
+    const campo = el => el && el.matches && el.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=range]),textarea') && el.closest('.kf-ov');
+    if (vv) { vv.addEventListener('resize', medir); vv.addEventListener('scroll', medir); }
+    document.addEventListener('focusin', e => { if (!toque || !campo(e.target)) return; clearTimeout(t); medir(); html.classList.add('kf-teclado'); });
+    document.addEventListener('focusout', () => { clearTimeout(t); t = setTimeout(() => { if (!campo(document.activeElement)) html.classList.remove('kf-teclado'); }, 150); });
+  })();
+
+  /* janela que muda de lugar (teclado abrindo ou fechando, conteúdo que cresce ou encolhe) desliza até o novo lugar,
+     no tempo da janela subir (240 ms), em vez de saltar; com movimento reduzido, a troca é direta */
+  const JANELA_MS = 240;
+  function vigiarJanela(dlg) {
+    let topo = null;
+    const ver = () => {
+      if (!dlg.isConnected) { obs && obs.disconnect(); return; }
+      const t = dlg.getBoundingClientRect().top, ant = topo; topo = t;
+      if (ant == null || semMovimento() || !dlg.animate) return;
+      const dy = ant - t; if (Math.abs(dy) < 2) return;
+      dlg.animate([{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }], { duration: JANELA_MS, easing: MOV.css, composite: 'add' });
+    };
+    const obs = global.ResizeObserver ? new ResizeObserver(() => requestAnimationFrame(ver)) : null;
+    if (obs) { obs.observe(dlg); obs.observe(dlg.parentElement); }
+    if (global.visualViewport) global.visualViewport.addEventListener('resize', () => requestAnimationFrame(ver));
+    requestAnimationFrame(ver);
+  }
+
+  /* destacar(el): item recém-criado. Se estiver fora da tela, a tela rola até ele no movimento comum; depois ele
+     pisca uma vez na cor clara de destaque do app */
+  function destacar(el) {
+    if (!el || !el.getBoundingClientRect) return;
+    const r = el.getBoundingClientRect(), vh = innerHeight;
+    const barra = $$('.kf-barra').find(b => b.getClientRects().length), topoLivre = barra ? barra.getBoundingClientRect().bottom : 0;
+    const nav = $$('.kf-nav').find(b => b.getClientRects().length), pe = nav ? nav.getBoundingClientRect().top : vh;
+    const fora = r.top < topoLivre || r.bottom > pe;
+    const piscar = () => { el.classList.remove('kf-novo'); void el.offsetWidth; el.classList.add('kf-novo'); setTimeout(() => el.classList.remove('kf-novo'), 1300); };
+    if (!fora || el.closest('.kf-ov')) { if (fora) el.scrollIntoView({ block: 'nearest' }); return piscar(); }
+    const s0 = global.scrollY, alvo = Math.max(0, s0 + r.top - Math.max(topoLivre + 16, (pe - r.height) / 2));
+    if (semMovimento()) { global.scrollTo({ top: alvo }); return piscar(); }
+    const t0 = performance.now();
+    const passo = agora => { const k = Math.min(1, (agora - t0) / MOV.ms); global.scrollTo({ top: s0 + (alvo - s0) * MOV.curva(k) }); if (k < 1) requestAnimationFrame(passo); else piscar(); };
+    requestAnimationFrame(passo);
+  }
+
+  /* adicionar({ rotulo, attrs }): linha de adicionar no fim de uma lista ("+ Pessoa"). Telas com duas ou mais listas
+     usam uma linha por lista no lugar do botão flutuante de criar (Código, Art. 64, II) */
+  function adicionarHTML({ rotulo, attrs = '' } = {}) {
+    return `<button type="button" class="kf-adicionar" ${attrs}>${svg('<path d="M12 5v14M5 12h14"/>')}<span>${esc(rotulo)}</span></button>`;
+  }
+
+  /* fato({ marcado, marcar, desmarcar, attrs }): registrar um fato (pago, feito, estudado) é um botão contornado que
+     troca de texto, nunca uma chave (Código, Art. 65, X). O app mostra o aviso com "Desfazer" ao trocar */
+  function fatoHTML({ marcado = false, marcar, desmarcar, attrs = '' } = {}) {
+    return `<button type="button" class="kf-btn kf-sec kf-fato${marcado ? ' kf-fato-on' : ''}" aria-pressed="${marcado}" ${attrs}>${marcado ? IC.check || '' : ''}<span>${esc(marcado ? desmarcar : marcar)}</span></button>`;
+  }
+
+  /* carrossel(el, { rotulos, aoMudar, inicio }): percorre cartões inteiros, um por vez (Código, Art. 65, IX).
+     Os filhos de el são os cartões. O cartão acompanha o dedo e, ao soltar, vai ao vizinho se andou um quarto da
+     largura ou foi um gesto rápido; setas de 44 px, contador "2 de 5 · Nome", pontos de posição, altura do cartão da
+     vez e setas do teclado. Devolve { ir(i), atual() }. */
+  function carrossel(el, { rotulos = [], aoMudar, inicio = 0, rotulo = 'Cartões' } = {}) {
+    const cartoes = [...el.children]; const n = cartoes.length;
+    el.classList.add('kf-car'); el.setAttribute('role', 'region'); el.setAttribute('aria-roledescription', 'carrossel'); el.setAttribute('aria-label', rotulo);
+    el.innerHTML = `<div class="kf-car-nav"><button type="button" class="kf-btn kf-sec kf-car-seta" data-kf-car="-1" aria-label="Anterior">${svg('<path d="M15 6l-6 6 6 6"/>')}</button><p class="kf-car-cont" aria-live="polite"></p><button type="button" class="kf-btn kf-sec kf-car-seta" data-kf-car="1" aria-label="Próximo">${svg('<path d="M9 6l6 6-6 6"/>')}</button></div><div class="kf-car-janela" tabindex="0"><div class="kf-car-trilho"></div></div><div class="kf-car-pontos" aria-hidden="true"></div>`;
+    const jan = $('.kf-car-janela', el), tri = $('.kf-car-trilho', el), cont = $('.kf-car-cont', el), pts = $('.kf-car-pontos', el);
+    cartoes.forEach((c, i) => { const s = document.createElement('div'); s.className = 'kf-car-slide'; s.setAttribute('role', 'group'); s.setAttribute('aria-roledescription', 'cartão'); s.appendChild(c); tri.appendChild(s); });
+    pts.innerHTML = cartoes.map(() => '<i></i>').join('');
+    const slides = [...tri.children];
+    let i = Math.max(0, Math.min(n - 1, inicio));
+    const largura = () => jan.clientWidth || 1;
+    const pintar = (anim = true) => {
+      const dur = anim && !semMovimento() ? MOV.curto : 0;
+      tri.style.transition = dur ? `transform ${dur}ms ${MOV.css}` : 'none';
+      jan.style.transition = dur ? `height ${dur}ms ${MOV.css}` : 'none';
+      tri.style.transform = `translateX(${-i * 100}%)`;
+      jan.style.height = slides[i].offsetHeight + 'px';
+      slides.forEach((s, k) => { s.inert = k !== i; s.setAttribute('aria-hidden', String(k !== i)); s.setAttribute('aria-label', `${k + 1} de ${n}`); });
+      cont.textContent = `${i + 1} de ${n}${rotulos[i] ? ' · ' + rotulos[i] : ''}`;
+      [...pts.children].forEach((p, k) => p.classList.toggle('kf-on', k === i));
+      $$('.kf-car-seta', el).forEach(b => { b.disabled = (+b.dataset.kfCar < 0 && i === 0) || (+b.dataset.kfCar > 0 && i === n - 1); });
+    };
+    const ir = (k, anim = true) => { const j = Math.max(0, Math.min(n - 1, k)); const mudou = j !== i; i = j; pintar(anim); if (mudou && aoMudar) try { aoMudar(i); } catch (e) { console.error(e); } };
+    el.addEventListener('click', e => { const b = e.target.closest('[data-kf-car]'); if (b && el.contains(b)) ir(i + Number(b.dataset.kfCar)); });
+    jan.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') { e.preventDefault(); ir(i - 1); } else if (e.key === 'ArrowRight') { e.preventDefault(); ir(i + 1); } });
+    let x0 = null, y0 = 0, t0 = 0, dx = 0, eixo = '';
+    jan.addEventListener('pointerdown', e => { if (e.button) return; x0 = e.clientX; y0 = e.clientY; t0 = performance.now(); dx = 0; eixo = ''; });
+    jan.addEventListener('pointermove', e => {
+      if (x0 == null) return;
+      const mx = e.clientX - x0, my = e.clientY - y0;
+      if (!eixo) { if (Math.abs(mx) < 6 && Math.abs(my) < 6) return; eixo = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'; if (eixo === 'x') try { jan.setPointerCapture(e.pointerId); } catch {} }
+      if (eixo !== 'x') return;
+      dx = (i === 0 && mx > 0) || (i === n - 1 && mx < 0) ? mx / 3 : mx;
+      tri.style.transition = 'none'; tri.style.transform = `translateX(calc(${-i * 100}% + ${dx}px))`;
+    });
+    const soltar = () => {
+      if (x0 == null) return; x0 = null;
+      if (eixo !== 'x') return;
+      const v = Math.abs(dx) / Math.max(1, performance.now() - t0);
+      if (Math.abs(dx) > largura() / 4 || (v > .5 && Math.abs(dx) > 20)) ir(i + (dx < 0 ? 1 : -1)); else pintar(true);
+    };
+    jan.addEventListener('pointerup', soltar); jan.addEventListener('pointercancel', soltar);
+    if (global.ResizeObserver) new ResizeObserver(() => pintar(false)).observe(slides[0]);
+    pintar(false);
+    return { ir, atual: () => i };
+  }
+
+  /* arrastar({ area, item, alvo, aoSoltar, aoFora }): arrastar e soltar do Kit, igual em todos os apps.
+     Segurar (no toque, 300 ms parado; no mouse, mover) levanta o cartão inteiro sob o dedo, levemente inclinado; o
+     alvo fica todo colorido; soltar no alvo faz o cartão encolher e entrar nele, que pisca e assenta. Vibração curta
+     onde o aparelho permite; com movimento reduzido, a troca é direta. aoSoltar(itemEl, alvoEl) faz a mudança;
+     aoFora(itemEl) é chamado se soltar fora de qualquer alvo (opcional).
+     Toda ação de arrastar precisa de outro jeito sem arrastar no app (botão com lista de marcar): Código, Art. 16, X. */
+  function arrastar({ area, item, alvo, aoSoltar, aoFora } = {}) {
+    if (!area) return () => {};
+    let st = null;
+    const limpar = () => {
+      if (!st) return;
+      clearTimeout(st.tm);
+      if (st.sobre) st.sobre.classList.remove('kf-arr-alvo');
+      if (st.el) st.el.classList.remove('kf-arr-origem');
+      document.body.classList.remove('kf-arrastando');
+      st = null;
+    };
+    const levantar = () => {
+      const r = st.el.getBoundingClientRect(), f = st.el.cloneNode(true);
+      f.classList.add('kf-arr-fantasma'); f.removeAttribute('id'); f.setAttribute('aria-hidden', 'true');
+      Object.assign(f.style, { width: r.width + 'px', height: r.height + 'px', transform: `translate(${r.left}px,${r.top}px)` });
+      document.body.appendChild(f);
+      st.f = f; st.dx = st.x - r.left; st.dy = st.y - r.top; st.casa = r; st.no = true;
+      st.el.classList.add('kf-arr-origem'); document.body.classList.add('kf-arrastando');
+      requestAnimationFrame(() => f.classList.add('kf-arr-no-ar'));
+      try { navigator.vibrate && navigator.vibrate(12); } catch {}
+    };
+    const mover = (x, y) => {
+      st.f.style.transform = `translate(${x - st.dx}px,${y - st.dy}px)`;
+      st.f.style.visibility = 'hidden';
+      const sob = document.elementFromPoint(x, y); st.f.style.visibility = '';
+      const a = sob && sob.closest && sob.closest(alvo);
+      const ok = a && a !== st.el && area.contains(a) ? a : null;
+      if (ok !== st.sobre) { if (st.sobre) st.sobre.classList.remove('kf-arr-alvo'); st.sobre = ok; if (ok) { ok.classList.add('kf-arr-alvo'); try { navigator.vibrate && navigator.vibrate(6); } catch {} } }
+    };
+    const pousar = () => {
+      const { f, el, sobre, casa } = st, rapido = semMovimento();
+      const fim = () => { f.remove(); };
+      if (sobre) {
+        const r = sobre.getBoundingClientRect();
+        f.classList.add('kf-arr-entra');
+        f.style.transform = `translate(${r.left + r.width / 2 - casa.width / 2}px,${r.top + r.height / 2 - casa.height / 2}px)`;
+        setTimeout(fim, rapido ? 0 : MOV.curto);
+        if (!rapido) { sobre.classList.remove('kf-arr-pisca'); void sobre.offsetWidth; sobre.classList.add('kf-arr-pisca'); setTimeout(() => sobre.classList.remove('kf-arr-pisca'), 700); }
+        try { navigator.vibrate && navigator.vibrate(18); } catch {}
+        limpar();
+        try { aoSoltar && aoSoltar(el, sobre); } catch (e) { console.error(e); }
+      } else {
+        f.classList.remove('kf-arr-no-ar'); f.classList.add('kf-arr-volta');
+        f.style.transform = `translate(${casa.left}px,${casa.top}px)`;
+        setTimeout(fim, rapido ? 0 : MOV.curto);
+        limpar();
+        try { aoFora && aoFora(el); } catch (e) { console.error(e); }
+      }
+    };
+    const down = e => {
+      if (e.button || st) return;
+      const el = e.target.closest && e.target.closest(item);
+      if (!el || !area.contains(el) || e.target.closest('button,a,input,select,textarea')) return;
+      st = { el, x: e.clientX, y: e.clientY, id: e.pointerId, toque: e.pointerType !== 'mouse', no: false };
+      if (st.toque) st.tm = setTimeout(() => { if (st && !st.no) { levantar(); try { area.setPointerCapture(st.id); } catch {} } }, 300);
+    };
+    const move = e => {
+      if (!st || e.pointerId !== st.id) return;
+      const d = Math.hypot(e.clientX - st.x, e.clientY - st.y);
+      if (!st.no) {
+        if (st.toque) { if (d > 8) limpar(); return; }      // no toque, mexer antes do tempo é rolar a tela
+        if (d < 6) return;
+        levantar(); try { area.setPointerCapture(st.id); } catch {}
+      }
+      e.preventDefault(); st.x = e.clientX; st.y = e.clientY; mover(e.clientX, e.clientY);
+    };
+    const up = e => { if (!st || e.pointerId !== st.id) return; if (st.no) pousar(); else limpar(); };
+    const cancel = () => { if (st && st.no) { st.sobre = null; pousar(); } else limpar(); };
+    const semMenu = e => { if (st && st.no) e.preventDefault(); };
+    const semRolar = e => { if (st && st.no) e.preventDefault(); };
+    area.addEventListener('pointerdown', down); area.addEventListener('pointermove', move); area.addEventListener('pointerup', up); area.addEventListener('pointercancel', cancel);
+    area.addEventListener('contextmenu', semMenu); area.addEventListener('touchmove', semRolar, { passive: false });
+    return () => { limpar(); area.removeEventListener('pointerdown', down); area.removeEventListener('pointermove', move); area.removeEventListener('pointerup', up); area.removeEventListener('pointercancel', cancel); area.removeEventListener('contextmenu', semMenu); area.removeEventListener('touchmove', semRolar); };
+  }
+
   global.KitFacil = Object.freeze({
     VERSAO, FAMILIA, IC, iniciar, avisar, esc, canon, novoId, haQuanto,
     dialogo: { abrir: abrirDialogo, fechar: fecharDialogo, aberto: dialogoAberto, confirmar },
@@ -2405,7 +2619,8 @@
     sobre: { abrir: abrirSobre },
     topo: { html: topoHTML, atualizar: atualizarTopo, estado: estadoNuvem, ESTADOS },
     nav: { ajustes: navAjustesHTML, organizar: organizarNav, MAX: NAV_MAX },
-    ui: { cabecalho: cabecalhoHTML, criar: criarHTML, vazio: vazioHTML, abas: abasHTML, faixa: faixaHTML },
+    ui: { cabecalho: cabecalhoHTML, criar: criarHTML, vazio: vazioHTML, abas: abasHTML, faixa: faixaHTML, adicionar: adicionarHTML, fato: fatoHTML },
+    destacar, carrossel, arrastar,
     escolha: { ligar: escolhaLigar },
     data: { ligar: dataLigar },
     hora: { ligar: horaLigar },

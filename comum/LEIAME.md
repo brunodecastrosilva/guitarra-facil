@@ -152,6 +152,13 @@ pelo app em `aplicar`.
 
 ## Mudanças do kit
 
+- **0.4.0 · 11/11/2026** (Código 0.3, propostas do Laboratório do Conta Fácil; copiado aos quatro apps): janela acima
+  do teclado no celular e no tablet; janela que muda de lugar desliza em 240 ms; aviso rápido acima do pé da janela
+  aberta; subtítulo da janela abaixo do título, com `contexto` opcional acima; seções descontam o cabeçalho fixo do
+  app (`scroll-margin-top`); peças novas `KitFacil.ui.adicionar`, `KitFacil.ui.fato`, `KitFacil.destacar`,
+  `KitFacil.carrossel` e `KitFacil.arrastar`; classes `kf-so-leitor` e `kf-li-*` (escala das linhas de lista).
+  Elétrica Fácil e Estudo Fácil saem do Kit 0.1.0 e recebem também o 0.2.0 e o 0.3.0, que só mexem no guia.
+
 - **0.3.0 · 09/11/2026** (feita no Conta Fácil; copiar para os outros três apps pelo Art. 30): guia em vídeo, ligado com
   `guia: { modo: 'video', passos, foto, restaurar }`. Um guia só; cada etapa tem só o título (`t`) e a ação (`acao`);
   ponteiro sem destaque; avanço automático; player com voltar, pausar, avançar e fechar. `foto()` e `restaurar(foto)`
