@@ -29,7 +29,7 @@ const APP = (() => {
       esq.className = 'gf-voltar';
       esq.innerHTML = `<button type="button" id="voltar" aria-label="Voltar">${ICONE.voltar}</button><h1>${esc(tt)}</h1>`;
     }
-    // telas principais: nuvem, chopp e balão; telas internas: só nuvem e balão (Art. 58)
+    // telas principais: nuvem, presente e balão; telas internas: só nuvem e balão (Art. 58)
     $('#topo').innerHTML = t.principal ? KitFacil.topo.html({ principal: true }) : KitFacil.topo.html({ principal: false });
     KitFacil.topo.atualizar();
   }
@@ -135,7 +135,7 @@ KitFacil.iniciar({
   exemploDados: 'os treinos, as ideias do Estúdio, os favoritos e as metas',
   abrirAjustes: secao => { if (secao || APP.rota().nome !== 'ajustes') APP.ir('ajustes'); else APP.voltar(); },
   emAjustes: () => APP.rota().nome === 'ajustes',
-  novidades: [{ versao: '0.2.1', itens: ['O aviso com Desfazer não some enquanto você está com o dedo, o mouse ou o teclado nele.'] }, { versao: '0.2.0', itens: ['Com o teclado aberto, a janela fica acima dele, e o campo em que você digita não fica escondido.', 'Quando uma janela muda de tamanho ou de lugar, ela desliza até a nova posição, em vez de pular.', 'Os avisos rápidos não cobrem mais os botões de uma janela aberta.', 'Nas janelas, a explicação curta vem logo abaixo do título.', 'No guia, o dedo não cobre o que você está digitando, e o cartão do guia não cobre a parte que você está conhecendo.'] }, { versao: '0.1.0', itens: [
+  novidades: [{ versao: '0.3.0', itens: ['O ícone de apoio no alto da tela agora é um presente, que gira uma vez. Tocar nele abre o Pix para mandar um presente ao criador. É opcional.'] }, { versao: '0.2.1', itens: ['O aviso com Desfazer não some enquanto você está com o dedo, o mouse ou o teclado nele.'] }, { versao: '0.2.0', itens: ['Com o teclado aberto, a janela fica acima dele, e o campo em que você digita não fica escondido.', 'Quando uma janela muda de tamanho ou de lugar, ela desliza até a nova posição, em vez de pular.', 'Os avisos rápidos não cobrem mais os botões de uma janela aberta.', 'Nas janelas, a explicação curta vem logo abaixo do título.', 'No guia, o dedo não cobre o que você está digitando, e o cartão do guia não cobre a parte que você está conhecendo.'] }, { versao: '0.1.0', itens: [
     'O app foi refeito do zero, no padrão dos apps da família: barra de cima, Ajustes, janelas e avisos iguais aos outros.',
     'Toda tela principal tem título e uma linha dizendo para que serve; as listas mostram um item por linha.',
     'Treinos com roteiro antes de tocar, braço e tablatura juntos no palco e a pergunta "Saiu limpo?" no fim. Na sessão, o próximo só começa quando você toca.',

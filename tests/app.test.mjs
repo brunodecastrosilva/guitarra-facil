@@ -27,7 +27,7 @@ test('abre sem erros em celular, tablet e computador, sem rolagem lateral, com a
       assert.ok(await semRolagemLateral(p), `rolagem lateral em ${r} no ${nome}`);
     }
     await ir(p, 'inicio'); await p.waitForTimeout(150);
-    const topo = await conferirTopo(p, { chopp: true });
+    const topo = await conferirTopo(p, { presente: true });
     assert.deepEqual(topo.erros, [], `área superior no ${nome}`);
     const navs = await p.evaluate(() => ['.kf-nav', '.kf-trilho'].filter(q => document.querySelector(q).getClientRects().length));
     assert.deepEqual(navs, [viewport.width >= 1024 ? '.kf-trilho' : '.kf-nav'], `navegação no ${nome}`);
@@ -189,8 +189,8 @@ test('treino: abre no roteiro com cada parte desenhada, ouvir a parte e Começar
   const pe = await p.locator('#acoes [data-acao="comecar"]').boundingBox();
   assert.ok(pe && pe.y > 760, 'Começar no pé da tela');
   assert.equal(await p.locator('.kf-nav').isVisible(), false);
-  // tela interna: voltar, título, nuvem e balão (sem chopp) (Art. 58, § 1º)
-  const topo = await conferirTopo(p, { chopp: false });
+  // tela interna: voltar, título, nuvem e balão (sem presente) (Art. 58, § 1º)
+  const topo = await conferirTopo(p, { presente: false });
   assert.deepEqual(topo.erros, []);
   assert.equal(await p.textContent('.gf-voltar h1'), '#0004');
   await p.click('[data-ouvir-parte="0"]');
