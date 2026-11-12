@@ -4,7 +4,7 @@ Treinos de guitarra elétrica do primeiro contato ao estudo avançado, com o bra
 trabalhando juntos. Identidade: pedal de efeito vermelho sobre grafite de amplificador, escuro de fábrica e títulos em
 Big Shoulders Display.
 
-**Fase de testes** · versão 0.1.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.2.1 · Kit Fácil 0.5.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 O app faz parte do Projeto Fácil. O [Código do Projeto Fácil](comum/CODIGO.md) e os [Anexos](comum/ANEXOS.md) têm
 precedência sobre este README.
@@ -74,7 +74,7 @@ Não há etapa de build: HTML, CSS e JavaScript clássicos, carregados em ordem 
 | `telas.js`, `treino.js`, `explorar.js`, `estudio.js`, `ferramentas.js` | telas |
 | `guia.js` | guia em dois níveis |
 | `app.js` | rotas, navegação, Ajustes e ligação com o Kit |
-| `comum/` | Kit Fácil 0.3.0, igual nos quatro apps |
+| `comum/` | Kit Fácil (versão em `comum/LEIAME.md`), igual nos quatro apps |
 | `tests/` | testes do app |
 
 ## Exceções ao padrão
