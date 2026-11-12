@@ -9,7 +9,7 @@ let amb, versao;
 before(async () => { amb = await preparar(); versao = JSON.parse(await readFile(RAIZ + '/package.json', 'utf8')).version; });
 after(async () => { await amb?.encerrar(); });
 const esperar = async (cond, ms = 10000) => { const fim = Date.now() + ms; while (Date.now() < fim) { if (await cond()) return true; await new Promise(r => setTimeout(r, 60)); } return false; };
-const TELAS = [[{ width: 360, height: 740 }, 'celular pequeno'], [{ width: 390, height: 844 }, 'celular'], [{ width: 820, height: 1180 }, 'tablet'], [{ width: 1440, height: 900 }, 'computador']];
+const TELAS = [[{ width: 320, height: 568 }, 'celular mínimo (zoom 400%)'], [{ width: 360, height: 740 }, 'celular pequeno'], [{ width: 390, height: 844 }, 'celular'], [{ width: 820, height: 1180 }, 'tablet'], [{ width: 1440, height: 900 }, 'computador']];
 /* aparelho de quem já usa: sem a apresentação ao abrir, para os testes irem direto à tela */
 const semApresentacao = () => { try { localStorage.setItem('kitfacil.guitarra-facil.visto', JSON.stringify('0.1.0')); localStorage.setItem('kitfacil.guitarra-facil.apresentacao', 'false'); } catch {} };
 const abrir = (o = {}) => aparelho(amb, { antes: semApresentacao, ...o });
@@ -94,7 +94,7 @@ test('listas vazias explicam o que aparece e o que fazer (Art. 64, III); Estúdi
 });
 
 test('nada lado a lado: as listas mostram um item por linha em qualquer largura (Art. 67)', async () => {
-  for (const [viewport] of [TELAS[1], TELAS[3]]) {
+  for (const [viewport] of [TELAS[2], TELAS[4]]) {
     const a = await abrir({ viewport });
     const p = a.page;
     for (const r of ['treinos', 'acordes', 'biblioteca', 'inicio']) {

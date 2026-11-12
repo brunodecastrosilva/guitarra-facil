@@ -1,6 +1,6 @@
 {
   "name": "guitarra-facil",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Guitarra Fácil: ambiente visual e interativo para aprender, explorar e criar na guitarra.",
   "private": true,
   "type": "module",
@@ -11,7 +11,8 @@
     "testar-regras": "node comum/testar-regras.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.49.0"
+    "playwright": "^1.49.0",
+    "@axe-core/playwright": "^4.11.0"
   },
   "engines": {
     "node": ">=22"

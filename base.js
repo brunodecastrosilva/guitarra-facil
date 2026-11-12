@@ -1,6 +1,6 @@
 /* Guitarra Fácil · base: versão, atalhos de página, texto e ícones. Carregado antes de todos os outros arquivos do app. */
 'use strict';
-const VERSAO = '0.2.0';
+const VERSAO = '0.2.1';
 const $ = (q, r = document) => r.querySelector(q);
 const $$ = (q, r = document) => [...r.querySelectorAll(q)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
