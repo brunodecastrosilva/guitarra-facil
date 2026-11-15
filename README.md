@@ -4,7 +4,7 @@ Treinos de guitarra elétrica do primeiro contato ao estudo avançado, com o bra
 trabalhando juntos. Identidade: pedal de efeito vermelho sobre grafite de amplificador, escuro de fábrica e títulos em
 Big Shoulders Display.
 
-**Fase de testes** · versão 0.5.0 · Kit Fácil 0.8.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
+**Fase de testes** · versão 0.5.1 · Kit Fácil 0.9.0 · <https://brunodecastrosilva.github.io/guitarra-facil/>
 
 O app faz parte do Projeto Fácil. O [Código do Projeto Fácil](comum/CODIGO.md) e os [Anexos](comum/ANEXOS.md) têm
 precedência sobre este README.
